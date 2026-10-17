@@ -71,7 +71,7 @@ base paper's evaluation script. The reference answer is used only for grading; i
 optverify/
   contracts.py    shared data records
   data.py         OPT-Engine loader and per-class sampling
-  llm.py          provider clients with token counting and rate limiting
+  llm.py          provider clients with token counting; request pacing in the OpenAI-compatible client
   prompts.py      prompt templates
   roles.py        parser, formalizer with repair, paraphraser, explainer
   solver_tool.py  runs generated PuLP code with HiGHS
@@ -90,8 +90,8 @@ results/          saved runs
 | Name | Roll Number | Role |
 |---|---|---|
 | Mushahid Hussain | i230541 | Group head |
-| (add teammate) | | |
-| (add teammate) | | |
+| Muhammad Waqas | i230569 | Member |
+| Abdul Rauf | i230591 | Member |
 
 Supervisor: Muhammad Sajjad (Group G1)
 
@@ -111,12 +111,31 @@ Baseline (zero-shot, no repair rounds) on OPT-Engine canonical split using Groq 
 | Knapsack | 100% | 100% |
 | NetworkFlow | 100% | 100% |
 | Pollution | 0% | 0% |
-| Portfolio | -- | 100% |
-| Production | -- | 100% |
-| TSP | -- | 100% |
-| Transportation | -- | 100% |
+| Portfolio | not run | 100% |
+| Production | not run | 100% |
+| TSP | not run | 100% |
+| Transportation | not run | 100% |
 
-Pollution Control scores 0% in both runs, showing a systematic formulation failure. Bin Packing and Inventory flip between runs, showing high variance at small sample sizes. These patterns motivate the proposed five-role pipeline with number-coverage, paraphrase-agreement, and calibrated abstention.
+Pollution Control scores 0% in both runs, which points to a systematic formulation problem (or reference answers to check).
+The same Bin Packing problem was solved in Run A but failed with a code error in Run B, even at temperature 0, and the
+two Inventory results come from different problems, so very small samples are noisy. These patterns motivate the proposed
+five-role pipeline with number coverage, paraphrase agreement and calibrated abstention.
+
+### First end-to-end run of the proposed pipeline
+
+Same model, one canonical problem per class, `--paraphrases 2 --repairs 1`, fixed Phase 1 threshold 0.8
+(`results/pipeline_openai-openai-gpt-oss-120b_canonical_r1_20261017-1424/`).
+
+| Measure | Value |
+|---|---|
+| Problems completed | 8 of 10 (TSP and Transportation were rejected by the API: one request above the free plan's 8,000 tokens-per-minute limit) |
+| Answered / escalated / abstained | 4 / 2 / 2 |
+| Selective accuracy | 100% (4 of 4 answers correct) |
+| Wrong-accept rate | 0% (0 of 4) |
+| Mean tokens per problem | 6,117 input + 7,209 output, 5.4 LLM calls |
+
+Both wrong models (Inventory, Pollution Control) were refused. Both escalations were false alarms caused by paraphrase
+runs that returned no optimum; Phase 2 will retry such runs and score them separately from a true disagreement.
 
 ## Notes
 
