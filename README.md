@@ -99,22 +99,22 @@ Supervisor: Muhammad Sajjad (Group G1)
 
 Baseline (zero-shot, no repair rounds) on OPT-Engine canonical split using Groq `openai/gpt-oss-120b`.
 
-**Run 1** (all 10 classes, 1 problem each): 80.0% accuracy, 90.0% solved rate.
+**Run A** (6 classes, 3 problems each): 61.1% accuracy, 83.3% solved rate.
 
-**Run 2** (6 classes, 3 problems each): 61.1% accuracy, 83.3% solved rate.
+**Run B** (all 10 classes, 1 problem each): 80.0% accuracy, 90.0% solved rate.
 
-| Class | Run 1 (n=1) | Run 2 (n=3) |
+| Class | Run A (n=3) | Run B (n=1) |
 |---|---|---|
-| BinPacking | 0% | 100% |
-| Inventory | 100% | 0% |
-| JobShop | 100% | 66.7% |
+| BinPacking | 100% | 0% |
+| Inventory | 0% | 100% |
+| JobShop | 66.7% | 100% |
 | Knapsack | 100% | 100% |
 | NetworkFlow | 100% | 100% |
 | Pollution | 0% | 0% |
-| Portfolio | 100% | -- |
-| Production | 100% | -- |
-| TSP | 100% | -- |
-| Transportation | 100% | -- |
+| Portfolio | -- | 100% |
+| Production | -- | 100% |
+| TSP | -- | 100% |
+| Transportation | -- | 100% |
 
 Pollution Control scores 0% in both runs, showing a systematic formulation failure. Bin Packing and Inventory flip between runs, showing high variance at small sample sizes. These patterns motivate the proposed five-role pipeline with number-coverage, paraphrase-agreement, and calibrated abstention.
 
