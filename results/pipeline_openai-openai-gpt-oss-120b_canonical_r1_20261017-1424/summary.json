@@ -1,0 +1,49 @@
+{
+  "run": "pipeline_openai-openai-gpt-oss-120b_canonical_r1_20261017-1424",
+  "config": {
+    "system": "pipeline",
+    "model": "openai:openai/gpt-oss-120b",
+    "split": "canonical",
+    "per_class": 1,
+    "seed": 0,
+    "repairs": 1,
+    "paraphrases": 2,
+    "threshold": 0.8,
+    "workers": 2,
+    "env_file": ".env"
+  },
+  "failed_problems": [
+    "canonical-1532",
+    "canonical-1775"
+  ],
+  "problems": 8,
+  "accuracy": 0.75,
+  "solved_rate": 0.75,
+  "status_counts": {
+    "error": 1,
+    "infeasible": 1,
+    "optimal": 6
+  },
+  "mean_input_tokens": 6116.625,
+  "mean_output_tokens": 7209.25,
+  "mean_llm_calls": 5.375,
+  "mean_latency_s": 312.44561933750083,
+  "accuracy_by_class": {
+    "BinPacking": 1.0,
+    "Inventory": 0.0,
+    "JobShop": 1.0,
+    "Knapsack": 1.0,
+    "NetworkFlow": 1.0,
+    "Pollution": 0.0,
+    "Portfolio": 1.0,
+    "Production": 1.0
+  },
+  "decision_counts": {
+    "abstain": 2,
+    "answer": 4,
+    "escalate": 2
+  },
+  "coverage": 0.5,
+  "selective_accuracy": 1.0,
+  "wrong_accept_rate": 0.0
+}
