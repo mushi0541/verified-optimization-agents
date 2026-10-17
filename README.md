@@ -97,29 +97,26 @@ Supervisor: Muhammad Sajjad (Group G1)
 
 ## Initial Results
 
-Baseline (zero-shot, no repair rounds) on OPT-Engine canonical split using Groq `openai/gpt-oss-120b`:
+Baseline (zero-shot, no repair rounds) on OPT-Engine canonical split using Groq `openai/gpt-oss-120b`.
 
-| Metric | Value |
-|---|---|
-| Problems | 18 (3 per class, 6 of 10 classes) |
-| Overall accuracy | 61.1% |
-| Solved rate (solver returns optimal) | 83.3% |
-| Mean input tokens | 846 |
-| Mean output tokens | 1,767 |
-| Mean latency | 55.7 s |
+**Run 1** (all 10 classes, 1 problem each): 80.0% accuracy, 90.0% solved rate.
 
-**Accuracy by class:**
+**Run 2** (6 classes, 3 problems each): 61.1% accuracy, 83.3% solved rate.
 
-| Class | Accuracy |
-|---|---|
-| BinPacking | 100% |
-| Inventory | 0% |
-| JobShop | 66.7% |
-| Knapsack | 100% |
-| NetworkFlow | 100% |
-| Pollution | 0% |
+| Class | Run 1 (n=1) | Run 2 (n=3) |
+|---|---|---|
+| BinPacking | 0% | 100% |
+| Inventory | 100% | 0% |
+| JobShop | 100% | 66.7% |
+| Knapsack | 100% | 100% |
+| NetworkFlow | 100% | 100% |
+| Pollution | 0% | 0% |
+| Portfolio | 100% | -- |
+| Production | 100% | -- |
+| TSP | 100% | -- |
+| Transportation | 100% | -- |
 
-The 0% accuracy on Inventory and Pollution shows that certain problem types need stronger verification signals, which motivates the proposed five-role pipeline with number-coverage and paraphrase-agreement checks.
+Pollution Control scores 0% in both runs, showing a systematic formulation failure. Bin Packing and Inventory flip between runs, showing high variance at small sample sizes. These patterns motivate the proposed five-role pipeline with number-coverage, paraphrase-agreement, and calibrated abstention.
 
 ## Notes
 
