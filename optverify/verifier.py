@@ -1,7 +1,7 @@
 """Verifier signals and the answer / abstain / escalate decision.
 
 Phase 1 status: the signals are implemented; the score weights and the threshold are placeholders.
-Phase 2 replaces the fixed threshold with one calibrated to a target wrong-accept rate (Gap B).
+Phase 2 replaces the fixed threshold with one calibrated to a target wrong-accept rate (Gap 2).
 """
 
 import re
@@ -23,7 +23,7 @@ def numbers_in(text: str) -> set[float]:
 
 
 def number_coverage(question: str, code: str) -> tuple[float, list[str]]:
-    """Share of the question's numbers that also appear in the model code (Gap A, data coverage)."""
+    """Share of the question's numbers that also appear in the model code (Gap 1, data coverage)."""
     needed = numbers_in(question)
     if not needed:
         return 1.0, []
@@ -33,7 +33,7 @@ def number_coverage(question: str, code: str) -> tuple[float, list[str]]:
 
 
 def paraphrase_agreement(main_objective: float | None, other_objectives: list[float | None]) -> float | None:
-    """Share of reworded-question runs that reach the same optimum as the main run (Gap A)."""
+    """Share of reworded-question runs that reach the same optimum as the main run (Gap 1)."""
     if not other_objectives:
         return None
     return sum(same_optimum(main_objective, other) for other in other_objectives) / len(other_objectives)
