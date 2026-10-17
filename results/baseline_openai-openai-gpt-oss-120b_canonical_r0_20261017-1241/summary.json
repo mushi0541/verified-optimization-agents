@@ -1,0 +1,21 @@
+{
+  "problems": 18,
+  "accuracy": 0.6111111111111112,
+  "solved_rate": 0.8333333333333334,
+  "status_counts": {
+    "error": 3,
+    "optimal": 15
+  },
+  "mean_input_tokens": 845.6111111111111,
+  "mean_output_tokens": 1766.7777777777778,
+  "mean_llm_calls": 1.0,
+  "mean_latency_s": 55.695399155556515,
+  "accuracy_by_class": {
+    "BinPacking": 1.0,
+    "Inventory": 0.0,
+    "JobShop": 0.6666666666666666,
+    "Knapsack": 1.0,
+    "NetworkFlow": 1.0,
+    "Pollution": 0.0
+  }
+}

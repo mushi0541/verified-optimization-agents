@@ -97,13 +97,29 @@ Supervisor: Muhammad Sajjad (Group G1)
 
 ## Initial Results
 
-Results will appear here after running the baseline with a free-tier model.
-To produce them:
+Baseline (zero-shot, no repair rounds) on OPT-Engine canonical split using Groq `openai/gpt-oss-120b`:
 
-1. Get a free Groq API key at https://console.groq.com/keys
-2. Copy `.env.example` to `.env` and paste the key
-3. Run: `python -m optverify.run baseline --model openai:openai/gpt-oss-120b --split canonical --per-class 3`
-4. Commit the `results/` folder
+| Metric | Value |
+|---|---|
+| Problems | 18 (3 per class, 6 of 10 classes) |
+| Overall accuracy | 61.1% |
+| Solved rate (solver returns optimal) | 83.3% |
+| Mean input tokens | 846 |
+| Mean output tokens | 1,767 |
+| Mean latency | 55.7 s |
+
+**Accuracy by class:**
+
+| Class | Accuracy |
+|---|---|
+| BinPacking | 100% |
+| Inventory | 0% |
+| JobShop | 66.7% |
+| Knapsack | 100% |
+| NetworkFlow | 100% |
+| Pollution | 0% |
+
+The 0% accuracy on Inventory and Pollution shows that certain problem types need stronger verification signals, which motivates the proposed five-role pipeline with number-coverage and paraphrase-agreement checks.
 
 ## Notes
 
