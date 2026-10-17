@@ -85,6 +85,26 @@ docs/architecture.md
 results/          saved runs
 ```
 
+## Team
+
+| Name | Roll Number | Role |
+|---|---|---|
+| Mushahid Hussain | i230541 | Group head |
+| (add teammate) | | |
+| (add teammate) | | |
+
+Supervisor: Muhammad Sajjad (Group G1)
+
+## Initial Results
+
+Results will appear here after running the baseline with a free-tier model.
+To produce them:
+
+1. Get a free Groq API key at https://console.groq.com/keys
+2. Copy `.env.example` to `.env` and paste the key
+3. Run: `python -m optverify.run baseline --model openai:openai/gpt-oss-120b --split canonical --per-class 3`
+4. Commit the `results/` folder
+
 ## Notes
 
 - The OPT-Engine repository has no licence file, so its data is downloaded at a pinned commit instead of being stored here.
