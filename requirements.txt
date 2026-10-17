@@ -1,0 +1,6 @@
+openai>=1.60
+boto3>=1.35
+pulp>=3.3,<4
+highspy>=1.8
+python-dotenv>=1.0
+pytest>=8
