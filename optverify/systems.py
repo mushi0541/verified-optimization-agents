@@ -16,9 +16,11 @@ from .llm import LLM
 
 def run_baseline(problem: Problem, llm: LLM, max_repairs: int = 0) -> RunRecord:
     start = time.perf_counter()
-    usage = TokenUsage()
+    steps = {"formalize": TokenUsage(), "repair": TokenUsage()}
     first_prompt = prompts.BASELINE_FORMALIZE.format(question=problem.question)
-    attempts = roles.formalize_and_solve(first_prompt, problem.question, llm, usage, max_repairs)
+    attempts = roles.formalize_and_solve(
+        first_prompt, problem.question, llm, steps["formalize"], max_repairs, repair_usage=steps["repair"]
+    )
     predicted = attempts[-1].solve.objective
     return RunRecord(
         problem_id=problem.problem_id,
@@ -30,8 +32,9 @@ def run_baseline(problem: Problem, llm: LLM, max_repairs: int = 0) -> RunRecord:
         predicted=predicted,
         correct=is_correct(predicted, problem.answer),
         attempts=attempts,
-        usage=usage,
+        usage=TokenUsage.total(steps),
         latency_s=time.perf_counter() - start,
+        usage_by_step=steps,
     )
 
 
@@ -43,19 +46,24 @@ def run_pipeline(
     threshold: float = 0.8,
 ) -> RunRecord:
     start = time.perf_counter()
-    usage = TokenUsage()
+    steps = {"parse": TokenUsage(), "formalize": TokenUsage(), "repair": TokenUsage()}
 
-    spec = roles.parse_problem(problem.question, llm, usage)
+    spec = roles.parse_problem(problem.question, llm, steps["parse"])
     first_prompt = prompts.FORMALIZE_FROM_SPEC.format(question=problem.question, spec=json.dumps(spec, indent=1))
-    attempts = roles.formalize_and_solve(first_prompt, problem.question, llm, usage, max_repairs)
+    attempts = roles.formalize_and_solve(
+        first_prompt, problem.question, llm, steps["formalize"], max_repairs, repair_usage=steps["repair"]
+    )
     final = attempts[-1]
 
     other_objectives = []
     if final.solve.status == "optimal":
-        for _ in range(paraphrases):
-            reworded = roles.paraphrase(problem.question, llm, usage)
+        for run_number in range(1, paraphrases + 1):
+            # One step per paraphrase run (paraphraser call plus its formalizer call), so lower k can be read
+            # from saved records by dropping the last runs.
+            step = steps[f"paraphrase_{run_number}"] = TokenUsage()
+            reworded = roles.paraphrase(problem.question, llm, step)
             reworded_prompt = prompts.BASELINE_FORMALIZE.format(question=reworded)
-            reworded_attempts = roles.formalize_and_solve(reworded_prompt, reworded, llm, usage, max_repairs=0)
+            reworded_attempts = roles.formalize_and_solve(reworded_prompt, reworded, llm, step, max_repairs=0)
             other_objectives.append(reworded_attempts[-1].solve.objective)
 
     report = verifier.build_report(problem.question, final.code, final.solve.status, final.solve.objective, other_objectives)
@@ -70,10 +78,11 @@ def run_pipeline(
         predicted=decision.answer,
         correct=is_correct(decision.answer, problem.answer),
         attempts=attempts,
-        usage=usage,
+        usage=TokenUsage.total(steps),
         latency_s=time.perf_counter() - start,
         spec=spec,
         verifier=report,
         decision=decision,
         explanation=roles.explain(decision, report),
+        usage_by_step=steps,
     )
