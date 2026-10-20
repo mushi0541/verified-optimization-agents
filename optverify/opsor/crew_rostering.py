@@ -7,6 +7,8 @@ import random
 
 import pulp
 
+from .base import OpsORInstance, assert_question_contains_numbers
+
 
 @dataclass(frozen=True)
 class Shift:
@@ -97,7 +99,7 @@ def build_crew_rostering_question(scenario: CrewRosteringScenario) -> str:
     """Build natural-language question text stating all parameters."""
     lines = [
         "An airport ground handling service must roster personnel across operating shifts to minimize total staffing costs.",
-        "Under labor safety regulations, shifts run in the order Shift_1, Shift_2, ..., Shift_n, with no wrap-around from the last shift to the first. No worker may work more than 2 shifts in a row in this order; a shift the worker does not work breaks the run.",
+        f"Under labor safety regulations, shifts run in the order Shift_1, Shift_2, ..., Shift_n, with no wrap-around from the last shift to the first. No worker may work more than {scenario.max_consecutive} shifts in a row in this order; a shift the worker does not work breaks the run.",
         "",
         "Operational Shifts and Required Headcounts:",
     ]
@@ -201,7 +203,6 @@ def solve_crew_rostering(scenario: CrewRosteringScenario) -> float:
 
 def create_crew_rostering_instance(size: int, seed: int) -> OpsORInstance:
     """Create a complete OpsORInstance for ground-crew rostering at a given size and seed."""
-    from .base import OpsORInstance, assert_question_contains_numbers
 
     num_shifts = size
     if size <= 5:

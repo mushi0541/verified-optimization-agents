@@ -189,7 +189,7 @@ Four models are tested: DeepSeek-V3.2, GPT-5.1, Qwen3-4B-Instruct and Qwen3-4B-R
 
 \subsubsection{Datasets}
 
-The released data, named \cthree{} (Controllable and Configurable Complexity Benchmark) in the authors' repository, come from parametric generators. A difficulty parameter, such as the number of cities in the traveling salesman problem (TSP), sets the complexity of each instance, and a solver computes its exact optimum. The ten problem classes are five linear programs (LP: Inventory, Portfolio, Production, Transportation and Pollution Control) and five mixed-integer programs (MIP: TSP, Knapsack, Bin Packing, Job-Shop Scheduling and Min-Cost Network Flow). Three perturbation sets test robustness on Inventory, Knapsack and TSP: \textit{linguistic complexity} (the same instance in easy, moderate and hard wording), \textit{objective perturbation} (a constant added to the objective, which leaves the optimal solution unchanged), and \textit{constraint augmentation} (a few extra constraints with no new variables). The release contains 1,810 canonical problems (from 50 to 620 per class) and 3,760 perturbation rows. A prediction counts as correct when its relative error is below $10^{-3}$.
+The released data, named \cthree{} (Controllable and Configurable Complexity Benchmark) in the authors' repository, come from parametric generators. A difficulty parameter, such as the number of cities in the traveling salesman problem (TSP), sets the complexity of each instance, and a solver computes its exact optimum. The ten problem classes are five linear programs (LP: Inventory, Portfolio, Production, Transportation and Pollution Control) and five mixed-integer programs (MIP: TSP, Knapsack, Bin Packing, Job-Shop Scheduling and Min-Cost Network Flow). Three perturbation sets test robustness on Inventory, Knapsack and TSP: \textit{linguistic complexity} (the same instance in easy, moderate and hard wording), \textit{objective perturbation} (a constant added to the objective, which leaves the optimal solution unchanged), and \textit{constraint augmentation} (a few extra constraints with no new variables). The release contains 1,810 canonical problems (from 50 to 620 per class) and 3,760 perturbation rows. A prediction counts as correct when its relative error is below $10^{-3}$ (the released evaluation code uses 0.2\%; see Section~\ref{sec:baseline}).
 
 \subsubsection{Key Results}
 
@@ -200,8 +200,8 @@ The released data, named \cthree{} (Controllable and Configurable Complexity Ben
 
 \subsubsection{Limitations}
 
-\textbf{Stated by the authors.}
-\begin{itemize}[leftmargin=1.6em]
+\textbf{Stated by the authors.}\par\nopagebreak
+\begin{itemize}[leftmargin=1.6em, beginpenalty=10000]
 \item Only exact-solution modeling is covered, although heuristics are often preferred for large instances.
 \item Tracks for optimality gaps, run time and heuristic design are future work.
 \item Only linear structures (LP and MIP) are included; nonlinear, stochastic and dynamic programs are left for future work.
@@ -393,7 +393,7 @@ AUROC (area under the receiver operating characteristic curve) of the score for 
 \midrule
 \textcolor{gaptwo}{\textbf{Gap~2.}} Risk-controlled abstention under distribution shift &
 None of the ten systems can abstain. SIRL-32B~[6] falls from 87.40\% on MAMO-Complex to 1.43\% on MIPLIB-NL in the evaluation of~[3]. VeriSimpl~[4] reaches 78.5\% to 91.5\% precision only at 23.0\% to 34.2\% recall, with no threshold rule. OPT-Engine~[1] has ten classes but no held-out-class study. AdmitOR~[14] (preprint): a finite-sample bound held on calibration problems but failed on a benchmark stream (15.9\% wrong against a 5\% target, mostly from questions with missing or rounded numbers). &
-A decision layer that answers, abstains or escalates with reasons. Thresholds that accept at least 29 calibration problems (fewer cannot give a bound below 10\%) are tested from strict to lenient. The scan stops before the first threshold whose one-sided 95\% Clopper-Pearson upper bound on the calibration wrong-accept rate exceeds the target wrong-accept rate $\alpha = 10\%$; this fixed order keeps the bound valid across thresholds. If no threshold passes, the fold answers nothing. Leave-one-class-out: calibrate on nine classes and test on the tenth. &
+A decision layer that answers, abstains or escalates with reasons. Thresholds that accept at least 29 calibration problems (fewer cannot give a bound below 10\%) are tested from strict to lenient. The scan stops before the first threshold whose one-sided 95\% Clopper-Pearson (exact binomial) upper bound on the calibration wrong-accept rate exceeds the target wrong-accept rate $\alpha = 10\%$; this fixed order keeps the bound valid across thresholds. If no threshold passes, the fold answers nothing. Leave-one-class-out: calibrate on nine classes and test on the tenth. &
 Pooled held-out wrong-accept rate (each problem is tested once, in the fold that holds out its class) with an exact 95\% interval, compared with $\alpha$; coverage (share answered, target at least 50\%); risk-coverage curves; comparison with a fixed threshold and with the base-paper SIR setting, which never abstains; OpsOR-Bench as a further shift test.\\
 \midrule
 \textcolor{gapthree}{\textbf{Gap~3.}} Equal-budget single-agent versus multi-agent comparison &
@@ -698,7 +698,7 @@ Phase 3 & 1 week & Live demonstration, slides, rehearsal and viva preparation\\
 \end{tabularx}
 \end{table}
 
-\textbf{Compute and API constraints.} The model runs on Amazon Bedrock and the solver on a laptop CPU. Bedrock charges US\$0.15 per million input tokens and US\$0.60 per million output tokens for this model and has no daily limit at our scale. Our Phase~1 measurements set the budget: the baseline used about 2,800 tokens per problem in one call (mean of both runs), and the pipeline about 18,200 tokens in 6.4 calls on average with $k = 2$ (Section~\ref{sec:pipelinerun}); with $k = 3$, the pipeline needs about 23,000 tokens in about 8.5 calls. The full plan (B0, B1, the pipeline with $k$ up to 3, B2, the constraint-augmentation pairs, OpsOR-Bench, two ablations on 30 problems and the paraphrase check on 30 problems of the linguistic split) therefore needs about 8 to 10 million tokens, or about US\$4, well within the US\$100 credit that AWS gives a new account. At about one minute per pipeline problem, with two problems run at a time, this is about five hours of run time, so the runs fit between Day~1 and Day~13 with room for reruns. B0 is read from the first attempts of B1, B2 reuses its first samples for the smaller budget levels, and lower $k$ and most ablations come from saved records. The fallback if the credits run out or Bedrock is unavailable is in Table~\ref{tab:risks}.
+\textbf{Compute and API constraints.} The model runs on Amazon Bedrock and the solver on a laptop CPU. Bedrock charges US\$0.15 per million input tokens and US\$0.60 per million output tokens for this model and has no daily limit at our scale. Our Phase~1 measurements set the budget: the baseline used about 2,800 tokens per problem in one call (mean of both runs), and the pipeline about 18,500 tokens in 6.2 calls on average with $k = 2$ (Section~\ref{sec:pipelinerun}); with $k = 3$, the pipeline needs about 24,000 tokens in about 8.3 calls. The full plan (B0, B1, the pipeline with $k$ up to 3, B2, the constraint-augmentation pairs, OpsOR-Bench, two ablations on 30 problems and the paraphrase check on 30 problems of the linguistic split) therefore needs about 8 to 10 million tokens, or about US\$4, well within the US\$100 credit that AWS gives a new account. At about one minute per pipeline problem, with two problems run at a time, this is about five hours of run time, so the runs fit between Day~1 and Day~13 with room for reruns. B0 is read from the first attempts of B1, B2 reuses its first samples for the smaller budget levels, and lower $k$ and most ablations come from saved records. The fallback if the credits run out or Bedrock is unavailable is in Table~\ref{tab:risks}.
 
 \textbf{Technical risks and fallback strategy.} Table~\ref{tab:risks} lists the main risks.
 
@@ -790,7 +790,7 @@ Baseline with initial results & \texttt{run\_baseline} in \texttt{optverify/syst
 Model integration and provider setup & \texttt{optverify/llm.py}: Amazon Bedrock (main provider), plus Groq, OpenRouter, Google AI Studio and Ollama through OpenAI-compatible endpoints, with request pacing\\
 Tool interfaces & \texttt{optverify/solver\_tool.py}: PuLP and HiGHS in a separate process with a time limit\\
 State and structured contracts & \texttt{optverify/contracts.py}: \texttt{Problem}, \texttt{Attempt}, \texttt{SolveResult}, \texttt{VerifierReport}, \texttt{Decision}, \texttt{TokenUsage}, \texttt{RunRecord}\\
-Evaluation data and test suite & \cthree{} splits; 69 offline tests in \texttt{tests/} that need no API key and run on every pull request\\
+Evaluation data and test suite & \cthree{} splits; 91 offline tests in \texttt{tests/} that need no API key and run on every pull request\\
 End-to-end workflow & \texttt{run\_pipeline} in \texttt{optverify/systems.py}; first run in Section~\ref{sec:pipelinerun}\\
 Clean repository with history & README with setup and run commands, \texttt{.env.example}, \texttt{requirements.txt}; history of reviewed pull requests, which can merge only when the tests pass\\
 \bottomrule
@@ -800,7 +800,7 @@ Clean repository with history & README with setup and run commands, \texttt{.env
 \subsection{Initial Baseline Results}
 \label{sec:baselineresults}
 
-Two baseline runs used \texttt{gpt-oss-120b} on Amazon Bedrock in the B0 setting (zero-shot SIR prompt, no repair) on the canonical split, at temperature 0. Run~A used 3 problems from each of the 10 classes, and Run~B used 1 from each. Tables~\ref{tab:baseline} and~\ref{tab:perclass} show the overall and per-class results.
+Two baseline runs used \texttt{gpt-oss-120b} on Amazon Bedrock in the B0 setting (zero-shot SIR prompt, no repair) on the canonical split, at temperature 0. Run~A used 3 problems from each of the 10 classes, and Run~B used 1 from each. Tables~\ref{tab:baseline} and~\ref{tab:perclass} show the overall and per-class results. Run~A and the pipeline run (Section~\ref{sec:pipelinerun}) were repeated after we fixed a bug in the solver-runner: on Windows, code that printed a symbol such as $\leq$ stopped with an encoding error and was counted as a code error.
 
 \begin{table}[htbp]
 \centering
@@ -814,12 +814,12 @@ Two baseline runs used \texttt{gpt-oss-120b} on Amazon Bedrock in the B0 setting
 \textbf{Metric} & \textbf{Run A} & \textbf{Run B}\\
 \midrule
 Classes $\times$ problems per class & $10 \times 3$ & $10 \times 1$\\
-Accuracy & 60.0\% & 80.0\%\\
-Solved rate (optimal solver status) & 80.0\% & 100.0\%\\
+Accuracy & 66.7\% & 80.0\%\\
+Solved rate (optimal solver status) & 96.7\% & 100.0\%\\
 Mean input tokens per problem & 902 & 985\\
-Mean output tokens per problem & 1,887 & 1,975\\
+Mean output tokens per problem & 1,781 & 1,975\\
 LLM calls per problem & 1 & 1\\
-Mean latency per problem & 17.6\,s & 11.1\,s\\
+Mean latency per problem & 20.8\,s & 11.1\,s\\
 \bottomrule
 \end{tabular}
 \end{minipage}\hfill
@@ -832,14 +832,14 @@ Mean latency per problem & 17.6\,s & 11.1\,s\\
 \toprule
 \textbf{Problem class} & \textbf{Run A} & \textbf{Run B}\\
 \midrule
-Bin Packing & 66.7\% & 100.0\%\\
+Bin Packing & 100.0\% & 100.0\%\\
 Inventory & 0.0\% & 0.0\%\\
 Job-Shop Scheduling & 66.7\% & 100.0\%\\
-Knapsack & 100.0\% & 100.0\%\\
+Knapsack & 66.7\% & 100.0\%\\
 Min-Cost Network Flow & 100.0\% & 100.0\%\\
 Pollution Control & 0.0\% & 0.0\%\\
-Portfolio & 33.3\% & 100.0\%\\
-Production & 66.7\% & 100.0\%\\
+Portfolio & 66.7\% & 100.0\%\\
+Production & 100.0\% & 100.0\%\\
 TSP & 66.7\% & 100.0\%\\
 Transportation & 100.0\% & 100.0\%\\
 \bottomrule
@@ -848,7 +848,7 @@ Transportation & 100.0\% & 100.0\%\\
 \end{table}
 
 \FloatBarrier
-Three observations follow. First, Inventory and Pollution Control each failed in all four attempts (three in Run~A and one in Run~B). The cause may be a formulation problem in these classes or a wrong reference answer (Section~\ref{sec:evalplan}). Second, results vary even at temperature 0: the same Bin Packing problem gave a code error in Run~A and a correct answer in Run~B. Phase~2 therefore uses at least 10 problems per class and reports confidence intervals. Third, 8 of the 34 runs that reached an optimal solver status returned a wrong objective value with no warning. Gaps~1 and~2 address this silent failure. Run records (one JSON object per problem, with the generated code, solver status, tokens and latency) are in \texttt{results/}.
+Three observations follow. First, Inventory and Pollution Control each failed in all four attempts (three in Run~A and one in Run~B). The cause may be a formulation problem in these classes or a wrong reference answer (Section~\ref{sec:evalplan}). Second, the samples are very small: with three problems per class, one problem moves a class result by 33 points. Phase~2 therefore uses at least 10 problems per class and reports confidence intervals. Third, 11 of the 39 runs that reached an optimal solver status returned a wrong objective value with no warning. Gaps~1 and~2 address this silent failure. Run records (one JSON object per problem, with the generated code, solver status, tokens and latency) are in \texttt{results/}.
 
 \FloatBarrier
 \subsection{First End-to-End Run of the Proposed Pipeline}
@@ -866,21 +866,21 @@ To show that the system works end to end, we ran the full pipeline on one canoni
 \textbf{Measure} & \textbf{Value}\\
 \midrule
 Problems sampled and completed (one per class, the same as Run~B) & 10\\
-Answered / escalated / abstained & 7 / 1 / 2\\
+Answered / escalated / abstained & 7 / 3 / 0\\
 Coverage (share answered) & 70.0\%\\
 Selective accuracy (correct among answered) & 100.0\% (7 of 7)\\
 Wrong-accept rate (wrong among answered) & 0.0\% (0 of 7)\\
 Accuracy of the final model, before the decision & 80.0\% (8 of 10)\\
-Mean input / output tokens per problem & 7,836 / 10,354\\
-Mean LLM calls per problem & 6.4\\
-Mean latency per problem & 58.2\,s\\
+Mean input / output tokens per problem & 7,847 / 10,649\\
+Mean LLM calls per problem & 6.2\\
+Mean latency per problem & 67.2\,s\\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{table}[htbp]
 \centering
-\caption{Verifier signals and decisions for each problem (n/a: not computed because no feasible model was found; *: one reworded run returned no optimum after a retry and was left out).}
+\caption{Verifier signals and decisions for each problem.}
 \label{tab:pipelinecases}
 \small
 \begin{tabularx}{\textwidth}{@{}Y l >{\centering\arraybackslash}p{1.6cm} >{\centering\arraybackslash}p{2.2cm} c l >{\centering\arraybackslash}p{1.3cm}@{}}
@@ -888,15 +888,15 @@ Mean latency per problem & 58.2\,s\\
 \textbf{Class} & \textbf{Solver status} & \textbf{Number coverage} & \textbf{Paraphrase-optimum agreement} & \textbf{Score} & \textbf{Decision} & \textbf{Model correct}\\
 \midrule
 Bin Packing & optimal & 1.00 & 1.00 & 1.00 & answer & yes\\
+Job-Shop Scheduling & optimal & 1.00 & 1.00 & 1.00 & answer & yes\\
 Knapsack & optimal & 1.00 & 1.00 & 1.00 & answer & yes\\
-Min-Cost Network Flow & optimal & 1.00 & 1.00* & 1.00 & answer & yes\\
+Min-Cost Network Flow & optimal & 1.00 & 1.00 & 1.00 & answer & yes\\
 Portfolio & optimal & 1.00 & 1.00 & 1.00 & answer & yes\\
-Production & optimal & 1.00 & 1.00* & 1.00 & answer & yes\\
 Transportation & optimal & 1.00 & 1.00 & 1.00 & answer & yes\\
-TSP & optimal & 0.67 & 1.00 & 0.84 & answer & yes\\
-Inventory & optimal & 1.00 & 0.50 & 0.75 & escalate & yes\\
-Job-Shop Scheduling & error & 1.00 & n/a & 0.00 & abstain & no\\
-Pollution Control & error & 1.00 & n/a & 0.00 & abstain & no\\
+TSP & optimal & 1.00 & 1.00 & 1.00 & answer & yes\\
+Production & optimal & 1.00 & 0.50 & 0.75 & escalate & yes\\
+Inventory & optimal & 1.00 & 0.00 & 0.50 & escalate & no\\
+Pollution Control & optimal & 1.00 & 0.50 & 0.75 & escalate & no\\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -904,10 +904,10 @@ Pollution Control & error & 1.00 & n/a & 0.00 & abstain & no\\
 \FloatBarrier
 Four early observations follow. They come from only ten problems, so they are not statistical claims. They show that the components work together and what to improve next.
 \begin{enumerate}[leftmargin=1.6em]
-\item \textbf{No wrong answer was accepted.} The two wrong models (Job-Shop Scheduling and Pollution Control, whose code still failed after one repair) were refused, and all seven answers were correct. On the same ten problems, B0 (Run~B) returned two wrong values with no warning (Inventory and Pollution Control), because it never refuses and returns the objective whenever the solver status is optimal.
-\item \textbf{Retrying failed reworded runs removes false alarms.} Five of the 16 reworded runs returned no optimum at first. The retry recovered three, and the two that still failed (Min-Cost Network Flow and Production) were left out of the agreement. The first version of the verifier had no retry and counted failed runs as disagreements; it would have escalated three correct answers (Min-Cost Network Flow, Production and TSP). The only escalation (Inventory) is a true disagreement: the main model was correct, but one rewording reached a different optimum.
-\item \textbf{Number coverage needed one more fix.} Item labels such as ``Package 3'' are no longer counted as data, so nine of the ten problems reached full coverage. In TSP, the code listed distances as tuples such as \texttt{(3,14,100.2)}, and the number reader took \texttt{14,100.2} for one number with a thousands separator, so 43 distances looked unused. Commas in code are now read only as separators between values; rescoring the saved run gives full coverage for TSP and changes no decision.
-\item \textbf{Verification is not free.} On the same ten problems, the pipeline used about six times the tokens of the baseline (18,190 against 2,960 per problem). A fair comparison with a single agent must therefore match token budgets, which is the purpose of Gap~3.
+\item \textbf{No wrong answer was accepted.} The two wrong models (Inventory and Pollution Control) were escalated because their reworded versions reached different optima, and all seven answers were correct. On the same ten problems, B0 (Run~B) returned wrong values for both with no warning, because it never refuses and returns the objective whenever the solver status is optimal.
+\item \textbf{Retrying failed reworded runs prevents false alarms, but one remains.} One of the 20 reworded runs (TSP) returned no optimum at first, and the retry recovered it; without the retry, the correct TSP answer would have been escalated. The one false alarm is Production: the model was correct, but one rewording returned the same value with the opposite sign ($-1{,}908.17$ instead of $1{,}908.17$), which happens when a maximization is written as the minimization of the negative. Phase~2 will treat a value and its negative as the same optimum.
+\item \textbf{Number coverage needed two fixes.} Item labels such as ``Package 3'' are not counted as data, and commas in code are read only as separators between values. In an earlier run, TSP code listed distances as tuples such as \texttt{(3,14,100.2)}, and the old reader took \texttt{14,100.2} for one number with a thousands separator, so 43 distances looked unused. With both fixes, all ten problems reached full coverage.
+\item \textbf{Verification is not free.} On the same ten problems, the pipeline used about six times the tokens of the baseline (18,500 against 2,960 per problem). A fair comparison with a single agent must therefore match token budgets, which is the purpose of Gap~3.
 \end{enumerate}
 
 % =====================================================================

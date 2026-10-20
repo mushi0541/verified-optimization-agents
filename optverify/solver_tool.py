@@ -51,11 +51,13 @@ def run_model_code(code: str | None, timeout_s: int = 180) -> SolveResult:
         script = Path(work_dir) / "model.py"
         script.write_text(code + _RESULT_FOOTER, encoding="utf-8")
         try:
+            # UTF-8 mode, so code that prints symbols such as "≤" also runs on Windows.
             process = subprocess.run(
-                [sys.executable, "-I", str(script)],
+                [sys.executable, "-I", "-X", "utf8", str(script)],
                 cwd=work_dir,
                 capture_output=True,
-                text=True,
+                encoding="utf-8",
+                errors="replace",
                 timeout=timeout_s,
                 env={name: os.environ[name] for name in _KEPT_ENV_VARS if name in os.environ},
             )

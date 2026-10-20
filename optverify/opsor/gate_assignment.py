@@ -7,6 +7,8 @@ import random
 
 import pulp
 
+from .base import OpsORInstance, assert_question_contains_numbers
+
 
 @dataclass(frozen=True)
 class Gate:
@@ -198,7 +200,6 @@ def solve_gate_assignment(scenario: GateAssignmentScenario) -> float:
 
 def create_gate_assignment_instance(size: int, seed: int) -> OpsORInstance:
     """Create a complete OpsORInstance for gate assignment at a given size and seed."""
-    from .base import OpsORInstance, assert_question_contains_numbers
 
     # Map instance size (number of flights) to proportional gate capacity
     num_flights = size

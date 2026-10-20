@@ -7,6 +7,8 @@ import random
 
 import pulp
 
+from .base import OpsORInstance, assert_question_contains_numbers
+
 
 @dataclass(frozen=True)
 class EquipmentUnit:
@@ -223,7 +225,6 @@ def solve_equipment_dispatch(scenario: EquipmentDispatchScenario) -> float:
 
 def create_equipment_dispatch_instance(size: int, seed: int) -> OpsORInstance:
     """Create a complete OpsORInstance for equipment dispatch at a given size and seed."""
-    from .base import OpsORInstance, assert_question_contains_numbers
 
     num_requests = size
     if size <= 5:

@@ -34,10 +34,12 @@ operations questions into optimization models, verify those models, and answer, 
 | Output cap fitted to the per-minute token limit (a rejected request is sent once more) | All | `optverify/llm.py` `fitted_output_cap` | Done |
 | Failed paraphrase runs retried once and left out of the agreement; number coverage ignores item labels, accepts percentages written as fractions and reads commas in code as separators between values | Gap 1 | `optverify/systems.py`, `optverify/verifier.py` | Done; checked on the 10 Phase 1 problems (see below) |
 | Main provider switched to Amazon Bedrock (same model) | All | `optverify/llm.py` `BedrockLLM` | Done; all Phase 1 results rerun on Bedrock |
+| Generated code runs in UTF-8 mode, so printed symbols such as `≤` no longer crash it on Windows | All | `optverify/solver_tool.py` | Done; Phase 1 Run A and pipeline rerun |
+| Paraphrase agreement treats a value and its negative as the same optimum | Gap 1 | | Planned (false alarm in the Phase 1 pipeline run) |
 | Fixed evaluation samples | All | samples/, scripts/make_samples.py | Done |
-| OpsOR-Bench | All | 36 problems, three families | Done |
-| Interactive interface | All | | Planned |
-| Requirement coverage, calibrated threshold | Gaps 1 and 2 | | Planned (Phase 2 schedule, report Table 8) |
+| OpsOR-Bench: 36 problems in three families (gate assignment, ground-crew rostering, equipment dispatch) | Gap 2 | `optverify/opsor/`, `data/opsor/opsor_bench.jsonl`, `scripts/make_opsor.py` | Done |
+| Interactive interface | All | | Planned (Phase 2 schedule, report Table 6) |
+| Requirement coverage, calibrated threshold | Gaps 1 and 2 | | Planned (Phase 2 schedule, report Table 6) |
 
 ## Setup
 
@@ -95,7 +97,7 @@ python -m optverify.run pipeline --model bedrock:openai.gpt-oss-120b-1:0 --split
 
 # Single agent B2 (Gap 3): B1, then new samples at temperature 0.7 until the problem has used about
 # --budget-tokens tokens (set it to the pipeline's mean tokens per problem at the largest k)
-python -m optverify.run b2 --model bedrock:openai.gpt-oss-120b-1:0 --split canonical --per-class 10 --repairs 1 --budget-tokens 23000
+python -m optverify.run b2 --model bedrock:openai.gpt-oss-120b-1:0 --split canonical --per-class 10 --repairs 1 --budget-tokens 24000
 ```
 
 B2 answers with the most frequent optimum among its samples and uses their agreement rate as its score, in the
@@ -223,54 +225,57 @@ Supervisor: Muhammad Sajjad (Group G1)
 All Phase 1 results use `gpt-oss-120b` on Amazon Bedrock at temperature 0 (report Section 3).
 
 **Baseline (B0: zero-shot, no repair) on the canonical split.**
-- **Run A**, 3 problems from each of the 10 classes: 60.0% accuracy, 80.0% solved rate
-  (`results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_r0_20261020-1339/`).
+- **Run A**, 3 problems from each of the 10 classes: 66.7% accuracy, 96.7% solved rate
+  (`results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_r0_20261020-1634/`).
 - **Run B**, 1 problem from each class: 80.0% accuracy, 100.0% solved rate
   (`results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_r0_20261020-1340/`).
 
 | Class | Run A (n=3) | Run B (n=1) |
 |---|---|---|
-| BinPacking | 66.7% | 100% |
+| BinPacking | 100% | 100% |
 | Inventory | 0% | 0% |
 | JobShop | 66.7% | 100% |
-| Knapsack | 100% | 100% |
+| Knapsack | 66.7% | 100% |
 | NetworkFlow | 100% | 100% |
 | Pollution | 0% | 0% |
-| Portfolio | 33.3% | 100% |
-| Production | 66.7% | 100% |
+| Portfolio | 66.7% | 100% |
+| Production | 100% | 100% |
 | TSP | 66.7% | 100% |
 | Transportation | 100% | 100% |
 
 Inventory and Pollution Control failed in all four attempts, which points to systematic formulation problems (or
-reference answers to check). The same Bin Packing problem failed with a code error in Run A but was solved in Run B, even
-at temperature 0, so very small samples are noisy. 8 of the 34 runs that reached an optimal solver status returned a wrong
-value with no warning. These silent failures motivate the verifier and calibrated abstention.
+reference answers to check). With 3 problems per class, one problem moves a class result by 33 points, so very small
+samples are noisy. 11 of the 39 runs that reached an optimal solver status returned a wrong value with no warning. These
+silent failures motivate the verifier and calibrated abstention.
+
+Run A and the pipeline run below were repeated after the solver-runner fix: on Windows, model code that printed a symbol
+such as `≤` stopped with an encoding error and was counted as a code error.
 
 ### First end-to-end run of the proposed pipeline
 
 Same model, the same 10 problems as Run B, `--paraphrases 2 --repairs 1`, fixed Phase 1 threshold 0.8
-(`results/pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_r1_20261020-1320/`).
+(`results/pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_r1_20261020-1634/`).
 
 | Measure | Value |
 |---|---|
 | Problems completed | 10 of 10 |
-| Answered / escalated / abstained | 7 / 1 / 2 |
+| Answered / escalated / abstained | 7 / 3 / 0 |
 | Selective accuracy | 100% (7 of 7 answers correct) |
 | Wrong-accept rate | 0% (0 of 7) |
 | Accuracy of the final model, before the decision | 80% (8 of 10) |
-| Mean tokens per problem | 7,836 input + 10,354 output, 6.4 LLM calls |
-| Cost of the whole run | about US$0.07 |
+| Mean tokens per problem | 7,847 input + 10,649 output, 6.2 LLM calls |
+| Cost of the whole run | about US$0.08 |
 
 **What happened.**
-- Both wrong models (Job-Shop Scheduling, Pollution Control) were refused. On the same problems, B0 returned two wrong
-  values with no warning.
-- 5 of the 16 reworded runs first returned no optimum. The retry recovered 3, and the 2 that still failed were left out.
-  Without the retry, and with failed runs counted as disagreements (the first version), 3 correct answers would have
-  been escalated.
-- The one escalation (Inventory) was a true disagreement between the rewordings, although the main model was correct.
-- Number coverage read tuples in code such as `(3,14,100.2)` as one number with a thousands separator, so TSP got
-  coverage 0.67. Commas in code are now read as separators between values; rescoring the saved run gives TSP full
-  coverage and changes no decision.
+- Both wrong models (Inventory, Pollution Control) were escalated because their rewordings reached different optima.
+  On the same problems, B0 returned both wrong values with no warning.
+- 1 of the 20 reworded runs (TSP) first returned no optimum, and the retry recovered it. Without the retry, the correct
+  TSP answer would have been escalated.
+- The one false alarm is Production: the model was correct, but one rewording returned the same value with the opposite
+  sign (-1908.17 instead of 1908.17), as happens when a maximization is written as minimizing the negative. Phase 2
+  will treat a value and its negative as the same optimum.
+- Number coverage ignores item labels and reads commas in code as separators between values (an earlier run read
+  `(3,14,100.2)` as one number), so all ten problems reached full coverage.
 
 This run shows that the parts work together on 10 problems; it is not an evaluation.
 
