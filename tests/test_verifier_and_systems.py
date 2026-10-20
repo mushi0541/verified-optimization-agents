@@ -71,6 +71,13 @@ def test_repeated_words_with_scattered_numbers_are_data():
     assert number_coverage("Office 2 is 7 km away and Office 3 is 9 km away.", "distance = [7, 9]") == (1.0, [])
 
 
+def test_commas_in_code_separate_values():
+    # From the TSP problem of the Bedrock pipeline run: "14,100.2" in code is two values, not 14100.2.
+    question = "Facility 3 to 14: 100.2 minutes. Facility 3 to 16: 7.6 minutes."
+    assert number_coverage(question, "travel = [(3,14,100.2), (3,16,7.6)]") == (1.0, [])
+    assert number_coverage("Capacity is 1,200,000 units.", "capacity = 1_200_000") == (1.0, [])
+
+
 def test_percentages_may_appear_as_fractions():
     assert number_coverage("loss is reduced by 24% and costs 7", "reduction = 0.24\ncost = 7") == (1.0, [])
 

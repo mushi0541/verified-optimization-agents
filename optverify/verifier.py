@@ -10,15 +10,20 @@ from .contracts import Decision, VerifierReport
 from .grading import same_optimum
 
 _NUMBER = re.compile(r"(?<![\w.])-?\d+(?:,\d{3})*(?:\.\d+)?")
+_CODE_NUMBER = re.compile(r"(?<![\w.])-?\d+(?:_\d{3})*(?:\.\d+)?")
 _LABELLED_NUMBER = re.compile(r"\b([A-Z][a-z]+) (\d+)\b(?![.,]\d)")
 _PERCENT = re.compile(r"(?<![\w.])(\d+(?:\.\d+)?)\s?%")
 
 
-def numbers_in(text: str) -> set[float]:
-    """Numeric values in a text. 0 and 1 are skipped because they appear everywhere (indices, binaries)."""
+def numbers_in(text: str, in_code: bool = False) -> set[float]:
+    """Numeric values in a text. 0 and 1 are skipped because they appear everywhere (indices, binaries).
+
+    In code a comma always separates values, as in (3,14,100.2), so only text reads "1,200" as one number;
+    code may group digits with underscores instead (1_200).
+    """
     values = set()
-    for token in _NUMBER.findall(text):
-        value = float(token.replace(",", ""))
+    for token in (_CODE_NUMBER if in_code else _NUMBER).findall(text):
+        value = float(token.replace(",", "").replace("_", ""))
         if value not in (0.0, 1.0):
             values.add(value)
     return values
@@ -49,7 +54,7 @@ def number_coverage(question: str, code: str) -> tuple[float, list[str]]:
     needed = numbers_in(without_index_numbers(question))
     if not needed:
         return 1.0, []
-    present = numbers_in(code)
+    present = numbers_in(code, in_code=True)
     present_rounded = {round(value, 9) for value in present}
     percents = {float(token) for token in _PERCENT.findall(question)}
 

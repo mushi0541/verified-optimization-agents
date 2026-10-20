@@ -14,7 +14,7 @@ operations questions into optimization models, verify those models, and answer, 
 | System architecture | [docs/architecture.md](docs/architecture.md) |
 | Data pipeline | `scripts/download_data.py`, `optverify/data.py` (OPT-Engine C^3-Bench, pinned commit) |
 | Baseline | `optverify/systems.py` `run_baseline`: base-paper zero-shot prompt, PuLP + HiGHS, optional solver-error repair |
-| Model and provider setup | `optverify/llm.py`: free OpenAI-compatible endpoints (Groq, OpenRouter, Google AI Studio, Ollama) or Bedrock |
+| Model and provider setup | `optverify/llm.py`: Amazon Bedrock (main provider), or OpenAI-compatible endpoints (Groq, OpenRouter, Google AI Studio, Ollama) |
 | Tool interface | `optverify/solver_tool.py`: runs generated model code in a separate process with a time limit |
 | State and contracts | `optverify/contracts.py` |
 | Evaluation set and grading | 1,810 canonical + 3,760 perturbed problems; `optverify/grading.py` uses the base paper's 0.2% rule |
@@ -32,8 +32,10 @@ operations questions into optimization models, verify those models, and answer, 
 | E3 plots: accuracy-cost and risk-coverage curves | Gap 3 | `scripts/plot_e3.py` | Done; needs the k = 3 pipeline and B2 runs |
 | Offline tests for the deterministic parts, run on every pull request | All | `tests/`, `.github/workflows/tests.yml` | Done |
 | Output cap fitted to the per-minute token limit (a rejected request is sent once more) | All | `optverify/llm.py` `fitted_output_cap` | Done |
-| Failed paraphrase runs retried once and left out of the agreement; number coverage ignores item labels and accepts percentages written as fractions | Gap 1 | `optverify/systems.py`, `optverify/verifier.py` | Done; checked on the 10 Phase 1 problems (see below) |
-| Fixed evaluation samples, OpsOR-Bench, interactive interface | All | | Planned (Phase 2 schedule, report Table 8) |
+| Failed paraphrase runs retried once and left out of the agreement; number coverage ignores item labels, accepts percentages written as fractions and reads commas in code as separators between values | Gap 1 | `optverify/systems.py`, `optverify/verifier.py` | Done; checked on the 10 Phase 1 problems (see below) |
+| Main provider switched to Amazon Bedrock (same model) | All | `optverify/llm.py` `BedrockLLM` | Done; all Phase 1 results rerun on Bedrock |
+| Fixed evaluation samples | All | samples/, scripts/make_samples.py | Done |
+| OpsOR-Bench, interactive interface | All | | Planned (Phase 2 schedule, report Table 8) |
 | Requirement coverage, calibrated threshold | Gaps 1 and 2 | | Planned (Phase 2 schedule, report Table 8) |
 
 ## Setup
@@ -48,28 +50,33 @@ python scripts/download_data.py          # downloads ~11 MB into data/optengine/
 python -m pytest -q                       # offline tests, no API key needed
 ```
 
-## Models (free tiers)
+## Models
 
-Copy `.env.example` to `.env` and fill in one provider. The default is the Groq free plan (no card needed).
-Each member uses their own key. Never commit `.env`.
+The main model is `gpt-oss-120b`, an open-weight model, on **Amazon Bedrock**. We first used the Groq free plan, but
+Groq did not let some members create an API key, and its limits (200K tokens per day, 8,000 tokens per minute) are too
+small for the planned runs. Bedrock serves the same model with no daily limit at our scale. It is billed per token
+(US$0.15 per million input and US$0.60 per million output tokens in us-east-1, about US$4 for all planned runs), and
+each member pays from the free credits AWS gives a new account, so the project still costs us nothing.
+
+Copy `.env.example` to `.env` and fill in one provider. Each member uses their own key. Never commit `.env`.
 
 ```
-LLM_BASE_URL=https://api.groq.com/openai/v1
-LLM_API_KEY=<your Groq API key>
-LLM_MAX_RPM=2
+AWS_BEARER_TOKEN_BEDROCK=<your Bedrock API key>
+AWS_REGION=us-east-1
 ```
 
 | Variable | Meaning |
 |---|---|
-| `LLM_BASE_URL` | Address of the OpenAI-compatible endpoint (Groq above) |
-| `LLM_API_KEY` | Your own API key from https://console.groq.com/keys |
-| `LLM_MAX_RPM` | Most requests per minute; requests are spaced out so free-tier limits are respected |
+| `AWS_BEARER_TOKEN_BEDROCK` | Your own Bedrock API key (Bedrock console, API keys, Long-term API keys); set a budget alert in AWS Billing |
+| `AWS_REGION` | The AWS region where gpt-oss-120b is available (us-east-1) |
+| `AWS_PROFILE` | Instead of a key: a profile set up with the AWS CLI (`aws configure`) |
 
 Model flag for each provider:
 
 | Provider | Model flag | Notes |
 |---|---|---|
-| Groq free plan | `--model openai:openai/gpt-oss-120b` | 1,000 requests and 200K tokens per day |
+| Amazon Bedrock (main) | `--model bedrock:openai.gpt-oss-120b-1:0` | Billed per token, covered by new-account credits |
+| Groq free plan | `--model openai:openai/gpt-oss-120b` | Same model; 200K tokens per day; set `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_MAX_RPM=2` as in `.env.example` |
 | OpenRouter free | `--model openai:google/gemma-4-31b-it:free` | 50 requests per day without credits |
 | Local Ollama | `--model openai:qwen2.5:7b` | Free, slow without a GPU |
 
@@ -77,17 +84,17 @@ Model flag for each provider:
 
 ```bash
 # Baseline (base paper style), 3 problems from each of the 10 classes
-python -m optverify.run baseline --model openai:openai/gpt-oss-120b --split canonical --per-class 3
+python -m optverify.run baseline --model bedrock:openai.gpt-oss-120b-1:0 --split canonical --per-class 3
 
 # Same, with up to 2 repair rounds driven by solver error messages
-python -m optverify.run baseline --model openai:openai/gpt-oss-120b --split canonical --per-class 3 --repairs 2
+python -m optverify.run baseline --model bedrock:openai.gpt-oss-120b-1:0 --split canonical --per-class 3 --repairs 2
 
 # Proposed pipeline with 2 reworded runs for the verifier
-python -m optverify.run pipeline --model openai:openai/gpt-oss-120b --split canonical --per-class 1 --paraphrases 2 --repairs 1
+python -m optverify.run pipeline --model bedrock:openai.gpt-oss-120b-1:0 --split canonical --per-class 1 --paraphrases 2 --repairs 1
 
 # Single agent B2 (Gap 3): B1, then new samples at temperature 0.7 until the problem has used about
 # --budget-tokens tokens (set it to the pipeline's mean tokens per problem at the largest k)
-python -m optverify.run b2 --model openai:openai/gpt-oss-120b --split canonical --per-class 10 --repairs 1 --budget-tokens 17000
+python -m optverify.run b2 --model bedrock:openai.gpt-oss-120b-1:0 --split canonical --per-class 10 --repairs 1 --budget-tokens 23000
 ```
 
 B2 answers with the most frequent optimum among its samples and uses their agreement rate as its score, in the
@@ -97,6 +104,18 @@ so smaller budgets are read from the same records by keeping the first samples.
 Each run writes `results/<run name>/records.jsonl` (one record per problem: code, solver status, tokens,
 verifier report, decision) and `results/<run name>/summary.json` (accuracy, solved rate, tokens, latency,
 accuracy per class, and for the pipeline: coverage, selective accuracy and wrong-accept rate).
+
+### Fixed evaluation samples
+
+The fixed problem sets are stored as ID lists in `samples/`. To run on one, pass `--sample-file`:
+
+    python -m optverify.run baseline --model <model> --sample-file samples/canonical_100.json
+
+`--sample-file` cannot be combined with `--per-class` or `--seed`.
+
+To regenerate the sample files (needs the downloaded data):
+
+    python scripts/make_samples.py
 
 ## E3 analysis (Gap 3, no API calls)
 
@@ -164,7 +183,9 @@ optverify/
   systems.py      baseline (B0/B1), single agent B2 and proposed pipeline
   grading.py      correctness rule and run summaries
   run.py          command line entry point
+samples/          fixed evaluation sample ID files (canonical, ablation, linguistic, constraint pairs)
 scripts/download_data.py     pinned data download
+scripts/make_samples.py      regenerates the sample files with seed 0
 scripts/analyze_e3.py        E3 equal-budget analysis from saved records
 scripts/compare_baselines.py B0 and B1 per class and the base-paper comparison
 scripts/plot_e3.py           E3 accuracy-cost and risk-coverage plots
@@ -187,72 +208,59 @@ Supervisor: Muhammad Sajjad (Group G1)
 
 ## Initial Results
 
-Baseline (zero-shot, no repair rounds) on OPT-Engine canonical split using Groq `openai/gpt-oss-120b`.
+All Phase 1 results use `gpt-oss-120b` on Amazon Bedrock at temperature 0 (report Section 3).
 
-**Run A** (6 classes, 3 problems each): 61.1% accuracy, 83.3% solved rate.
-
-**Run B** (all 10 classes, 1 problem each): 80.0% accuracy, 90.0% solved rate.
+**Baseline (B0: zero-shot, no repair) on the canonical split.**
+- **Run A**, 3 problems from each of the 10 classes: 60.0% accuracy, 80.0% solved rate
+  (`results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_r0_20261020-1339/`).
+- **Run B**, 1 problem from each class: 80.0% accuracy, 100.0% solved rate
+  (`results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_r0_20261020-1340/`).
 
 | Class | Run A (n=3) | Run B (n=1) |
 |---|---|---|
-| BinPacking | 100% | 0% |
-| Inventory | 0% | 100% |
+| BinPacking | 66.7% | 100% |
+| Inventory | 0% | 0% |
 | JobShop | 66.7% | 100% |
 | Knapsack | 100% | 100% |
 | NetworkFlow | 100% | 100% |
 | Pollution | 0% | 0% |
-| Portfolio | not run | 100% |
-| Production | not run | 100% |
-| TSP | not run | 100% |
-| Transportation | not run | 100% |
+| Portfolio | 33.3% | 100% |
+| Production | 66.7% | 100% |
+| TSP | 66.7% | 100% |
+| Transportation | 100% | 100% |
 
-Pollution Control scores 0% in both runs, which points to a systematic formulation problem (or reference answers to check).
-The same Bin Packing problem was solved in Run A but failed with a code error in Run B, even at temperature 0, and the
-two Inventory results come from different problems, so very small samples are noisy. These patterns motivate the proposed
-five-role pipeline with number coverage, paraphrase agreement and calibrated abstention.
+Inventory and Pollution Control failed in all four attempts, which points to systematic formulation problems (or
+reference answers to check). The same Bin Packing problem failed with a code error in Run A but was solved in Run B, even
+at temperature 0, so very small samples are noisy. 8 of the 34 runs that reached an optimal solver status returned a wrong
+value with no warning. These silent failures motivate the verifier and calibrated abstention.
 
 ### First end-to-end run of the proposed pipeline
 
-Same model, one canonical problem per class, `--paraphrases 2 --repairs 1`, fixed Phase 1 threshold 0.8
-(`results/pipeline_openai-openai-gpt-oss-120b_canonical_r1_20261017-1424/`).
-
-| Measure | Value |
-|---|---|
-| Problems completed | 8 of 10 (TSP and Transportation were rejected by the API: one request above the free plan's 8,000 tokens-per-minute limit) |
-| Answered / escalated / abstained | 4 / 2 / 2 |
-| Selective accuracy | 100% (4 of 4 answers correct) |
-| Wrong-accept rate | 0% (0 of 4) |
-| Mean tokens per problem | 6,117 input + 7,209 output, 5.4 LLM calls |
-
-Both wrong models (Inventory, Pollution Control) were refused. Both escalations were false alarms caused by paraphrase
-runs that returned no optimum; Phase 2 will retry such runs and score them separately from a true disagreement.
-
-### Re-run after the first Phase 2 fixes
-
-**What changed in the code.** Four fixes from the Phase 1 observations:
-- requests above the per-minute limit now get an output cap fitted to that limit and are retried once;
-- a failed paraphrase run is retried once, and a run that still fails is not counted as a disagreement;
-- number coverage ignores item labels such as "Package 3";
-- a percentage written as a fraction (24% as 0.24) counts as used.
-
-**The run.** The same 10 problems and settings (`results/pipeline_openai-openai-gpt-oss-120b_canonical_r1_20261020-1109/`).
+Same model, the same 10 problems as Run B, `--paraphrases 2 --repairs 1`, fixed Phase 1 threshold 0.8
+(`results/pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_r1_20261020-1320/`).
 
 | Measure | Value |
 |---|---|
 | Problems completed | 10 of 10 |
-| Answered / escalated / abstained | 7 / 3 / 0 |
+| Answered / escalated / abstained | 7 / 1 / 2 |
 | Selective accuracy | 100% (7 of 7 answers correct) |
 | Wrong-accept rate | 0% (0 of 7) |
 | Accuracy of the final model, before the decision | 80% (8 of 10) |
-| Mean tokens per problem | 8,251 input + 10,796 output, 7.1 LLM calls |
+| Mean tokens per problem | 7,836 input + 10,354 output, 6.4 LLM calls |
+| Cost of the whole run | about US$0.07 |
 
 **What happened.**
-- TSP and Transportation now complete, and both answers are correct.
-- Both wrong models (Inventory, Pollution Control) were escalated because their reworded runs disagreed.
-- There was one false alarm: in Production, both reworded runs agreed on an optimum different from the correct main model.
+- Both wrong models (Job-Shop Scheduling, Pollution Control) were refused. On the same problems, B0 returned two wrong
+  values with no warning.
+- 5 of the 16 reworded runs first returned no optimum. The retry recovered 3, and the 2 that still failed were left out.
+  Without the retry, and with failed runs counted as disagreements (the first version), 3 correct answers would have
+  been escalated.
+- The one escalation (Inventory) was a true disagreement between the rewordings, although the main model was correct.
+- Number coverage read tuples in code such as `(3,14,100.2)` as one number with a thousands separator, so TSP got
+  coverage 0.67. Commas in code are now read as separators between values; rescoring the saved run gives TSP full
+  coverage and changes no decision.
 
-These 10 problems are the ones that revealed the issues, so this run checks the fixes; it is not an evaluation. Token use
-is higher than in Phase 1 because the two largest problems now complete.
+This run shows that the parts work together on 10 problems; it is not an evaluation.
 
 ## Notes
 

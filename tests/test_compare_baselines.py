@@ -59,17 +59,17 @@ def test_paper_values_are_compared_at_the_strict_rule():
 
 
 def test_phase1_records_give_the_report_numbers():
-    run_a = compare(load_records([str(next(RESULTS.glob("baseline_*_20261017-1241/records.jsonl")))]))
-    run_b = compare(load_records([str(next(RESULTS.glob("baseline_*_20261017-1250/records.jsonl")))]))
-    assert run_a["overall"]["B0"]["accuracy"] == pytest.approx(11 / 18)  # 61.1% in report Table 11
+    run_a = compare(load_records([str(next(RESULTS.glob("baseline_bedrock*_20261020-1339/records.jsonl")))]))
+    run_b = compare(load_records([str(next(RESULTS.glob("baseline_bedrock*_20261020-1340/records.jsonl")))]))
+    assert run_a["overall"]["B0"]["accuracy"] == pytest.approx(18 / 30)  # 60.0% in report Table 12
     assert run_b["overall"]["B0"]["accuracy"] == pytest.approx(0.8)  # 80.0%
-    solved = run_a["overall"]["B0"]["solved_rate"] * 18 + run_b["overall"]["B0"]["solved_rate"] * 10
+    solved = run_a["overall"]["B0"]["solved_rate"] * 30 + run_b["overall"]["B0"]["solved_rate"] * 10
     silent = run_a["overall"]["B0"]["silent_failures"] + run_b["overall"]["B0"]["silent_failures"]
-    assert (round(solved), silent) == (24, 5)  # "5 of the 24 runs that reached an optimal solver status"
+    assert (round(solved), silent) == (34, 8)  # "8 of the 34 runs that reached an optimal solver status"
 
 
 def test_paper_values_file_uses_the_data_class_names():
     paper = json.loads((RESULTS.parent / "docs" / "paper_sir.json").read_text(encoding="utf-8"))
-    run_b = compare(load_records([str(next(RESULTS.glob("baseline_*_20261017-1250/records.jsonl")))]), paper)  # all 10 classes
+    run_b = compare(load_records([str(next(RESULTS.glob("baseline_bedrock*_20261020-1340/records.jsonl")))]), paper)  # all 10 classes
     compared = sorted(name for name, summary in run_b["classes"].items() if "paper_sir" in summary)
     assert compared == ["Knapsack", "NetworkFlow", "TSP"]  # the only classes with SIR values in a table of the paper

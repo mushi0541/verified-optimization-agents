@@ -47,7 +47,7 @@ flowchart LR
 
 | Gap | Component | Status |
 |---|---|---|
-| Gap 1. Verifiers do not check requirement-level coverage or invariance to rewording | `optverify/verifier.py`: `number_coverage`, `paraphrase_agreement` | Implemented (Phase 1). Phase 2 so far: number coverage ignores item labels such as "Package 3" and accepts percentages written as fractions; a failed paraphrase run is retried once and, if it still fails, left out of the agreement. Requirement coverage (each parser requirement linked to a named constraint) still to come |
+| Gap 1. Verifiers do not check requirement-level coverage or invariance to rewording | `optverify/verifier.py`: `number_coverage`, `paraphrase_agreement` | Implemented (Phase 1). Phase 2 so far: number coverage ignores item labels such as "Package 3", accepts percentages written as fractions and reads commas in code as separators between values; a failed paraphrase run is retried once and, if it still fails, left out of the agreement. Requirement coverage (each parser requirement linked to a named constraint) still to come |
 | Gap 2. Refusal rules have no error-rate guarantee that holds on new problem classes | `optverify/verifier.py`: `decide` threshold | Fixed placeholder threshold now; calibrated threshold with leave-one-class-out tests in Phase 2 |
 | Gap 3. No equal-token-budget comparison of single vs multi-agent designs | `TokenUsage` on every call (`optverify/contracts.py`), `usage_by_step` per record; `optverify/systems.py`: `run_single_agent` (B2) | Token metering per step, the single-agent variant B2 and the E3 analysis (`scripts/analyze_e3.py`) implemented (Phase 2) |
 
@@ -66,7 +66,7 @@ All stages exchange the dataclasses in `optverify/contracts.py`:
 
 ## Tools and external systems
 
-- **LLM providers** (`optverify/llm.py`): any OpenAI-compatible endpoint (free tiers: Groq, OpenRouter, Google AI Studio, local Ollama) or Amazon Bedrock. Requests to OpenAI-compatible endpoints are spaced with `LLM_MAX_RPM` to respect free-tier limits. A request rejected as larger than the per-minute token limit (error 413) is sent once more with its output cap fitted to the limit (`fitted_output_cap`).
+- **LLM providers** (`optverify/llm.py`): Amazon Bedrock is the main provider (`gpt-oss-120b`), or any OpenAI-compatible endpoint (free tiers: Groq, OpenRouter, Google AI Studio, local Ollama). Requests to OpenAI-compatible endpoints are spaced with `LLM_MAX_RPM` to respect free-tier limits. A request rejected as larger than the per-minute token limit (error 413) is sent once more with its output cap fitted to the limit (`fitted_output_cap`).
 - **Solver-runner** (`optverify/solver_tool.py`): runs the generated script with PuLP + HiGHS in a separate Python process with a time limit and a minimal environment (no API keys visible).
 - **Data** (`scripts/download_data.py`): OPT-Engine C^3-Bench, pinned to one upstream commit.
 
