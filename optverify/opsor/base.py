@@ -18,7 +18,6 @@ class OpsORInstance:
     question: str
     answer: float
     params: dict = field(default_factory=dict)
-    reference_code: str = ""
 
     def to_problem(self, problem_id: str) -> Problem:
         """Convert to the standard Problem dataclass."""
@@ -33,7 +32,6 @@ class OpsORInstance:
                 "seed": self.seed,
                 "family": self.family,
                 "params": self.params,
-                "reference_code": self.reference_code,
             },
         )
 
