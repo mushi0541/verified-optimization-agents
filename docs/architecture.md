@@ -62,6 +62,7 @@ All stages exchange the dataclasses in `optverify/contracts.py`:
 - `RunRecord`: problem identifiers and reference answer, attempts (each with its solve result), parser specification, verifier report, decision, explanation, token usage and latency; saved one per line in `results/<run>/records.jsonl`
 - `RunRecord.usage_by_step`: token use of each step (`parse`, `formalize`, `repair`, and `paraphrase_1` ... `paraphrase_k`, each covering that run's paraphraser and formalizer calls); the steps add up to `usage`. Records saved before Phase 2 have no steps
 - B2 records also have `samples` (the attempts of each sample; sample 1 is B1 and is also stored in `attempts`), `token_budget` and `sample_agreement` (B2's score); each sample's tokens are in `usage_by_step["sample_<i>"]`
+- B2 answers with the first `samples_used` samples (the ones whose tokens are closest to the budget), and `usage` counts only those samples; any sample drawn after them stays in `samples` and `usage_by_step`
 
 ## Tools and external systems
 
