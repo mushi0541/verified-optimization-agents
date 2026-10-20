@@ -18,7 +18,7 @@ SPLIT_FILES = {
     "opsor": "opsor_bench.jsonl",
 }
 
-_STANDARD_FIELDS = {"question", "answer", "problem_class", "size", "experimental_type"}
+_STANDARD_FIELDS = {"question", "answer", "problem_class", "size", "split", "experimental_type"}
 
 
 def load_split(split: str, data_dir: Path | None = None) -> list[Problem]:
