@@ -189,7 +189,7 @@ Four models are tested: DeepSeek-V3.2, GPT-5.1, Qwen3-4B-Instruct and Qwen3-4B-R
 
 \subsubsection{Datasets}
 
-The released data, named \cthree{} (Controllable and Configurable Complexity Benchmark) in the authors' repository, come from parametric generators. A difficulty parameter, such as the number of cities in the traveling salesman problem (TSP), sets the complexity of each instance, and a solver computes its exact optimum. The ten problem classes are five linear programs (LP: Inventory, Portfolio, Production, Transportation and Pollution Control) and five mixed-integer programs (MIP: TSP, Knapsack, Bin Packing, Job-Shop Scheduling and Min-Cost Network Flow). Three perturbation sets test robustness on Inventory, Knapsack and TSP: \textit{linguistic complexity} (the same instance in easy, moderate and hard wording), \textit{objective perturbation} (a constant added to the objective, which leaves the optimal solution unchanged), and \textit{constraint augmentation} (a few extra constraints with no new variables). The release contains 1,810 canonical problems (from 50 to 620 per class) and 3,760 perturbation rows. A prediction counts as correct when its relative error is below $10^{-3}$.
+The released data, named \cthree{} (Controllable and Configurable Complexity Benchmark) in the authors' repository, come from parametric generators. A difficulty parameter, such as the number of cities in the traveling salesman problem (TSP), sets the complexity of each instance, and a solver computes its exact optimum. The ten problem classes are five linear programs (LP: Inventory, Portfolio, Production, Transportation and Pollution Control) and five mixed-integer programs (MIP: TSP, Knapsack, Bin Packing, Job-Shop Scheduling and Min-Cost Network Flow). Three perturbation sets test robustness on Inventory, Knapsack and TSP: \textit{linguistic complexity} (the same instance in easy, moderate and hard wording), \textit{objective perturbation} (a constant added to the objective, which leaves the optimal solution unchanged), and \textit{constraint augmentation} (a few extra constraints with no new variables). The release contains 1,810 canonical problems (from 50 to 620 per class) and 3,760 perturbation rows. A prediction counts as correct when its relative error is below $10^{-3}$ (the released evaluation code uses 0.2\%; see Section~\ref{sec:baseline}).
 
 \subsubsection{Key Results}
 
@@ -200,8 +200,8 @@ The released data, named \cthree{} (Controllable and Configurable Complexity Ben
 
 \subsubsection{Limitations}
 
-\textbf{Stated by the authors.}
-\begin{itemize}[leftmargin=1.6em]
+\textbf{Stated by the authors.}\par\nopagebreak
+\begin{itemize}[leftmargin=1.6em, beginpenalty=10000]
 \item Only exact-solution modeling is covered, although heuristics are often preferred for large instances.
 \item Tracks for optimality gaps, run time and heuristic design are future work.
 \item Only linear structures (LP and MIP) are included; nonlinear, stochastic and dynamic programs are left for future work.
@@ -393,7 +393,7 @@ AUROC (area under the receiver operating characteristic curve) of the score for 
 \midrule
 \textcolor{gaptwo}{\textbf{Gap~2.}} Risk-controlled abstention under distribution shift &
 None of the ten systems can abstain. SIRL-32B~[6] falls from 87.40\% on MAMO-Complex to 1.43\% on MIPLIB-NL in the evaluation of~[3]. VeriSimpl~[4] reaches 78.5\% to 91.5\% precision only at 23.0\% to 34.2\% recall, with no threshold rule. OPT-Engine~[1] has ten classes but no held-out-class study. AdmitOR~[14] (preprint): a finite-sample bound held on calibration problems but failed on a benchmark stream (15.9\% wrong against a 5\% target, mostly from questions with missing or rounded numbers). &
-A decision layer that answers, abstains or escalates with reasons. Thresholds that accept at least 29 calibration problems (fewer cannot give a bound below 10\%) are tested from strict to lenient. The scan stops before the first threshold whose one-sided 95\% Clopper-Pearson upper bound on the calibration wrong-accept rate exceeds the target wrong-accept rate $\alpha = 10\%$; this fixed order keeps the bound valid across thresholds. If no threshold passes, the fold answers nothing. Leave-one-class-out: calibrate on nine classes and test on the tenth. &
+A decision layer that answers, abstains or escalates with reasons. Thresholds that accept at least 29 calibration problems (fewer cannot give a bound below 10\%) are tested from strict to lenient. The scan stops before the first threshold whose one-sided 95\% Clopper-Pearson (exact binomial) upper bound on the calibration wrong-accept rate exceeds the target wrong-accept rate $\alpha = 10\%$; this fixed order keeps the bound valid across thresholds. If no threshold passes, the fold answers nothing. Leave-one-class-out: calibrate on nine classes and test on the tenth. &
 Pooled held-out wrong-accept rate (each problem is tested once, in the fold that holds out its class) with an exact 95\% interval, compared with $\alpha$; coverage (share answered, target at least 50\%); risk-coverage curves; comparison with a fixed threshold and with the base-paper SIR setting, which never abstains; OpsOR-Bench as a further shift test.\\
 \midrule
 \textcolor{gapthree}{\textbf{Gap~3.}} Equal-budget single-agent versus multi-agent comparison &
@@ -790,7 +790,7 @@ Baseline with initial results & \texttt{run\_baseline} in \texttt{optverify/syst
 Model integration and provider setup & \texttt{optverify/llm.py}: Amazon Bedrock (main provider), plus Groq, OpenRouter, Google AI Studio and Ollama through OpenAI-compatible endpoints, with request pacing\\
 Tool interfaces & \texttt{optverify/solver\_tool.py}: PuLP and HiGHS in a separate process with a time limit\\
 State and structured contracts & \texttt{optverify/contracts.py}: \texttt{Problem}, \texttt{Attempt}, \texttt{SolveResult}, \texttt{VerifierReport}, \texttt{Decision}, \texttt{TokenUsage}, \texttt{RunRecord}\\
-Evaluation data and test suite & \cthree{} splits; 87 offline tests in \texttt{tests/} that need no API key and run on every pull request\\
+Evaluation data and test suite & \cthree{} splits; 91 offline tests in \texttt{tests/} that need no API key and run on every pull request\\
 End-to-end workflow & \texttt{run\_pipeline} in \texttt{optverify/systems.py}; first run in Section~\ref{sec:pipelinerun}\\
 Clean repository with history & README with setup and run commands, \texttt{.env.example}, \texttt{requirements.txt}; history of reviewed pull requests, which can merge only when the tests pass\\
 \bottomrule

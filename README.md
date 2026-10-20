@@ -97,7 +97,7 @@ python -m optverify.run pipeline --model bedrock:openai.gpt-oss-120b-1:0 --split
 
 # Single agent B2 (Gap 3): B1, then new samples at temperature 0.7 until the problem has used about
 # --budget-tokens tokens (set it to the pipeline's mean tokens per problem at the largest k)
-python -m optverify.run b2 --model bedrock:openai.gpt-oss-120b-1:0 --split canonical --per-class 10 --repairs 1 --budget-tokens 23000
+python -m optverify.run b2 --model bedrock:openai.gpt-oss-120b-1:0 --split canonical --per-class 10 --repairs 1 --budget-tokens 24000
 ```
 
 B2 answers with the most frequent optimum among its samples and uses their agreement rate as its score, in the
