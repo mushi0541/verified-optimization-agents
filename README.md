@@ -19,7 +19,7 @@ operations questions into optimization models, verify those models, and answer, 
 | State and contracts | `optverify/contracts.py` |
 | Evaluation set and grading | 1,810 canonical + 3,760 perturbed problems; `optverify/grading.py` uses the base paper's 0.2% rule |
 | End-to-end proposed workflow | `optverify/systems.py` `run_pipeline`: parser, formalizer, solver-runner, verifier, decision, explainer |
-| Tests (offline, no API key) | `tests/` |
+| Tests (offline, no API key) | `tests/`; run on every pull request by `.github/workflows/tests.yml`, and a pull request can merge only when they pass |
 
 ## Phase 2 progress
 
