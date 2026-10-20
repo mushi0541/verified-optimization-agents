@@ -7,6 +7,8 @@ import random
 
 import pulp
 
+from .base import OpsORInstance, assert_question_contains_numbers
+
 
 @dataclass(frozen=True)
 class Shift:
@@ -201,7 +203,6 @@ def solve_crew_rostering(scenario: CrewRosteringScenario) -> float:
 
 def create_crew_rostering_instance(size: int, seed: int) -> OpsORInstance:
     """Create a complete OpsORInstance for ground-crew rostering at a given size and seed."""
-    from .base import OpsORInstance, assert_question_contains_numbers
 
     num_shifts = size
     if size <= 5:
