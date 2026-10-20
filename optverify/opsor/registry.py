@@ -7,6 +7,8 @@ from pathlib import Path
 
 from optverify.contracts import Problem
 from .base import OpsORInstance
+from .crew_rostering import create_crew_rostering_instance
+from .equipment_dispatch import create_equipment_dispatch_instance
 from .gate_assignment import create_gate_assignment_instance
 
 OPSOR_DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "opsor"
@@ -15,6 +17,8 @@ DEFAULT_OPSOR_PATH = OPSOR_DATA_DIR / "opsor_bench.jsonl"
 # Family instance generator dispatch
 FAMILY_GENERATORS = {
     "GateAssignment": create_gate_assignment_instance,
+    "CrewRostering": create_crew_rostering_instance,
+    "EquipmentDispatch": create_equipment_dispatch_instance,
 }
 
 # Gate assignment size and seed configurations: 4 Easy, 4 Medium, 4 Hard = 12 problems
@@ -36,16 +40,63 @@ GATE_ASSIGNMENT_SPECS = [
     {"size": 12, "seed": 11},
 ]
 
+# Ground-crew rostering size and seed configurations: 4 Easy, 4 Medium, 4 Hard = 12 problems
+CREW_ROSTERING_SPECS = [
+    # Easy tier (4-5 shifts)
+    {"size": 4, "seed": 0},
+    {"size": 4, "seed": 1},
+    {"size": 5, "seed": 2},
+    {"size": 5, "seed": 3},
+    # Medium tier (6-7 shifts)
+    {"size": 6, "seed": 4},
+    {"size": 6, "seed": 5},
+    {"size": 7, "seed": 6},
+    {"size": 7, "seed": 7},
+    # Hard tier (8-10 shifts)
+    {"size": 8, "seed": 8},
+    {"size": 8, "seed": 9},
+    {"size": 10, "seed": 10},
+    {"size": 10, "seed": 11},
+]
+
+# Equipment dispatch size and seed configurations: 4 Easy, 4 Medium, 4 Hard = 12 problems
+EQUIPMENT_DISPATCH_SPECS = [
+    # Easy tier (4-5 requests)
+    {"size": 4, "seed": 0},
+    {"size": 4, "seed": 1},
+    {"size": 5, "seed": 2},
+    {"size": 5, "seed": 3},
+    # Medium tier (7-8 requests)
+    {"size": 7, "seed": 4},
+    {"size": 7, "seed": 5},
+    {"size": 8, "seed": 6},
+    {"size": 8, "seed": 7},
+    # Hard tier (10-12 requests)
+    {"size": 10, "seed": 8},
+    {"size": 10, "seed": 9},
+    {"size": 12, "seed": 10},
+    {"size": 12, "seed": 11},
+]
+
+FAMILY_SPECS = {
+    "GateAssignment": GATE_ASSIGNMENT_SPECS,
+    "CrewRostering": CREW_ROSTERING_SPECS,
+    "EquipmentDispatch": EQUIPMENT_DISPATCH_SPECS,
+}
+
 
 def generate_opsor_dataset(families: list[str] | None = None) -> list[Problem]:
     """Generate all registered OpsOR-Bench problem instances as standard Problem records."""
-    target_families = families or ["GateAssignment"]
+    target_families = families or ["GateAssignment", "CrewRostering", "EquipmentDispatch"]
     problems: list[Problem] = []
     current_index = 0
 
-    if "GateAssignment" in target_families:
-        generator = FAMILY_GENERATORS["GateAssignment"]
-        for spec in GATE_ASSIGNMENT_SPECS:
+    for family in target_families:
+        if family not in FAMILY_GENERATORS:
+            raise KeyError(f"Unknown OpsOR family '{family}'. Available: {list(FAMILY_GENERATORS.keys())}")
+        generator = FAMILY_GENERATORS[family]
+        specs = FAMILY_SPECS[family]
+        for spec in specs:
             instance: OpsORInstance = generator(size=spec["size"], seed=spec["seed"])
             problem_id = f"opsor-{current_index:04d}"
             problems.append(instance.to_problem(problem_id))
