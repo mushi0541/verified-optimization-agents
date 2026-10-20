@@ -36,7 +36,21 @@ python -m pytest -q                       # offline tests, no API key needed
 ## Models (free tiers)
 
 Copy `.env.example` to `.env` and fill in one provider. The default is the Groq free plan (no card needed).
-`LLM_MAX_RPM` spaces out requests so free-tier limits are respected.
+Each member uses their own key. Never commit `.env`.
+
+```
+LLM_BASE_URL=https://api.groq.com/openai/v1
+LLM_API_KEY=<your Groq API key>
+LLM_MAX_RPM=2
+```
+
+| Variable | Meaning |
+|---|---|
+| `LLM_BASE_URL` | Address of the OpenAI-compatible endpoint (Groq above) |
+| `LLM_API_KEY` | Your own API key from https://console.groq.com/keys |
+| `LLM_MAX_RPM` | Most requests per minute; requests are spaced out so free-tier limits are respected |
+
+Model flag for each provider:
 
 | Provider | Model flag | Notes |
 |---|---|---|
@@ -91,9 +105,9 @@ results/          saved runs
 
 | Name | Roll Number | Role |
 |---|---|---|
-| Mushahid Hussain | i230541 | Group head |
-| Muhammad Waqas | i230569 | Member |
-| Abdul Rauf | i230591 | Member |
+| Mushahid Hussain | 23I-0541 | Group head |
+| Muhammad Waqas | 23I-0569 | Member |
+| Abdul Rauf | 23I-0591 | Member |
 
 Supervisor: Muhammad Sajjad (Group G1)
 
