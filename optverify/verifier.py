@@ -49,9 +49,14 @@ def build_report(
     feasible = status == "optimal" and objective is not None
     coverage, missing = number_coverage(question, code)
     agreement = paraphrase_agreement(objective, other_objectives)
-    signals = [coverage] if agreement is None else [coverage, agreement]
-    score = sum(signals) / len(signals) if feasible else 0.0
+    score = combined_score(feasible, coverage, agreement)
     return VerifierReport(feasible, coverage, missing, agreement, list(other_objectives), score)
+
+
+def combined_score(feasible: bool, coverage: float, agreement: float | None) -> float:
+    """Mean of the available signals, and 0 when no feasible model exists. Also used to rescore saved records."""
+    signals = [coverage] if agreement is None else [coverage, agreement]
+    return sum(signals) / len(signals) if feasible else 0.0
 
 
 def decide(report: VerifierReport, objective: float | None, threshold: float) -> Decision:
