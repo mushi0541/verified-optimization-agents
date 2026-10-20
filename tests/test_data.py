@@ -38,3 +38,18 @@ def test_sample_per_class_is_balanced_and_repeatable(tmp_path):
     assert classes == ["Inventory", "Knapsack", "Knapsack", "TSP", "TSP"]  # sorted by class; a small class gives all it has
     assert [p.problem_id for p in sample] == [p.problem_id for p in sample_per_class(problems, 2, seed=0)]
     assert len({p.problem_id for p in sample}) == len(sample)  # no problem is drawn twice
+
+
+def test_sample_canonical_and_linguistic(tmp_path):
+    from optverify.data import sample_canonical, sample_linguistic
+
+    rows = [_row("Knapsack") for _ in range(12)] + [_row("TSP") for _ in range(12)]
+    problems = load_split("canonical", _write_split(tmp_path, rows))
+
+    canonical_sample = sample_canonical(problems, per_class=10, seed=0)
+    assert len(canonical_sample) == 20
+    assert len([p for p in canonical_sample if p.problem_class == "Knapsack"]) == 10
+    assert len([p for p in canonical_sample if p.problem_class == "TSP"]) == 10
+
+    linguistic_sample = sample_linguistic(problems, per_class=5, seed=0)
+    assert len(linguistic_sample) == 10

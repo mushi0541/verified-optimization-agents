@@ -55,6 +55,16 @@ def sample_per_class(problems: list[Problem], per_class: int, seed: int = 0) -> 
     return chosen
 
 
+def sample_canonical(problems: list[Problem], per_class: int = 10, seed: int = 0) -> list[Problem]:
+    """Sample canonical problems evenly across classes with a fixed seed."""
+    return sample_per_class(problems, per_class=per_class, seed=seed)
+
+
+def sample_linguistic(problems: list[Problem], per_class: int = 10, seed: int = 0) -> list[Problem]:
+    """Sample linguistic complexity problems evenly across classes with a fixed seed."""
+    return sample_per_class(problems, per_class=per_class, seed=seed)
+
+
 def _to_float(value) -> float | None:
     try:
         return float(value)
