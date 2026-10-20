@@ -22,16 +22,10 @@ _STANDARD_FIELDS = {"question", "answer", "problem_class", "size", "split", "exp
 
 
 def load_split(split: str, data_dir: Path | None = None) -> list[Problem]:
-    if split == "opsor":
-        directory = data_dir if data_dir is not None and data_dir != DATA_DIR else OPSOR_DIR
-        path = directory / SPLIT_FILES[split]
-        if not path.exists():
-            raise FileNotFoundError(f"{path} is missing. Run: python scripts/make_opsor.py")
-    else:
-        directory = data_dir if data_dir is not None else DATA_DIR
-        path = directory / SPLIT_FILES[split]
-        if not path.exists():
-            raise FileNotFoundError(f"{path} is missing. Run: python scripts/download_data.py")
+    default_dir, script = (OPSOR_DIR, "make_opsor.py") if split == "opsor" else (DATA_DIR, "download_data.py")
+    path = (data_dir or default_dir) / SPLIT_FILES[split]
+    if not path.exists():
+        raise FileNotFoundError(f"{path} is missing. Run: python scripts/{script}")
 
     problems = []
     with path.open(encoding="utf-8") as file:
