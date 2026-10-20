@@ -9,6 +9,14 @@ from .crew_rostering import (
     generate_crew_scenario,
     solve_crew_rostering,
 )
+from .equipment_dispatch import (
+    EquipmentDispatchScenario,
+    build_equipment_dispatch_question,
+    build_equipment_reference_model,
+    create_equipment_dispatch_instance,
+    generate_equipment_scenario,
+    solve_equipment_dispatch,
+)
 from .gate_assignment import (
     GateAssignmentScenario,
     build_gate_assignment_question,
@@ -35,6 +43,12 @@ __all__ = [
     "create_crew_rostering_instance",
     "generate_crew_scenario",
     "solve_crew_rostering",
+    "EquipmentDispatchScenario",
+    "build_equipment_dispatch_question",
+    "build_equipment_reference_model",
+    "create_equipment_dispatch_instance",
+    "generate_equipment_scenario",
+    "solve_equipment_dispatch",
     "DEFAULT_OPSOR_PATH",
     "generate_opsor_dataset",
     "save_opsor_jsonl",

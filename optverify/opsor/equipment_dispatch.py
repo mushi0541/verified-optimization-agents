@@ -136,3 +136,139 @@ def build_equipment_dispatch_question(scenario: EquipmentDispatchScenario) -> st
 
 def unit_type_label(u_type: str) -> str:
     return "a loader" if u_type == "loader" else "a tug"
+
+
+def build_equipment_reference_model(scenario: EquipmentDispatchScenario) -> pulp.LpProblem:
+    """Construct the exact PuLP mixed-integer reference model for equipment dispatch."""
+    import pulp
+
+    model = pulp.LpProblem("Airport_Equipment_Dispatch", pulp.LpMinimize)
+
+    # Decision variables
+    # u[k] = 1 if equipment unit k is activated
+    u: dict[str, pulp.LpVariable] = {
+        unit.unit_id: pulp.LpVariable(f"activate_{unit.unit_id}", cat=pulp.LpBinary)
+        for unit in scenario.units
+    }
+    # z[k, r] = 1 if unit k services request r
+    z: dict[tuple[str, str], pulp.LpVariable] = {
+        (unit.unit_id, req.request_id): pulp.LpVariable(
+            f"dispatch_{unit.unit_id}_{req.request_id}", cat=pulp.LpBinary
+        )
+        for unit in scenario.units
+        for req in scenario.requests
+    }
+
+    # Objective: Minimize total fixed activation costs plus transit costs
+    model += pulp.lpSum(unit.fixed_cost * u[unit.unit_id] for unit in scenario.units) + pulp.lpSum(
+        scenario.transit_costs[(unit.unit_id, req.request_id)] * z[(unit.unit_id, req.request_id)]
+        for unit in scenario.units
+        for req in scenario.requests
+    )
+
+    # Constraint 1: Fulfillment of every service request
+    for req in scenario.requests:
+        model += (
+            pulp.lpSum(
+                z[(unit.unit_id, req.request_id)]
+                for unit in scenario.units
+                if unit.unit_type == req.required_type
+            )
+            == 1,
+            f"fulfill_{req.request_id}",
+        )
+
+    # Constraint 2: Type compatibility restriction
+    for unit in scenario.units:
+        for req in scenario.requests:
+            if unit.unit_type != req.required_type:
+                model += (
+                    z[(unit.unit_id, req.request_id)] == 0,
+                    f"incompatible_{unit.unit_id}_{req.request_id}",
+                )
+
+    # Constraint 3: Activation linking and operational hour capacity
+    for unit in scenario.units:
+        for req in scenario.requests:
+            model += (
+                z[(unit.unit_id, req.request_id)] <= u[unit.unit_id],
+                f"link_{unit.unit_id}_{req.request_id}",
+            )
+        model += (
+            pulp.lpSum(
+                req.required_hours * z[(unit.unit_id, req.request_id)]
+                for req in scenario.requests
+            )
+            <= unit.max_hours * u[unit.unit_id],
+            f"capacity_{unit.unit_id}",
+        )
+
+    return model
+
+
+def solve_equipment_dispatch(scenario: EquipmentDispatchScenario) -> float:
+    """Solve the equipment dispatch reference model with HiGHS and return the exact optimal value."""
+    import pulp
+
+    model = build_equipment_reference_model(scenario)
+    solver = pulp.HiGHS(msg=False)
+    status = model.solve(solver)
+    status_str = pulp.LpStatus[status]
+    if status_str != "Optimal":
+        raise ValueError(f"Equipment dispatch scenario did not solve to Optimal: status={status_str}")
+    return round(float(pulp.value(model.objective)), 2)
+
+
+def create_equipment_dispatch_instance(size: int, seed: int) -> OpsORInstance:
+    """Create a complete OpsORInstance for equipment dispatch at a given size and seed."""
+    from .base import OpsORInstance, assert_question_contains_numbers
+
+    num_requests = size
+    if size <= 5:
+        num_units = 3
+    elif size <= 8:
+        num_units = 4
+    else:
+        num_units = 6
+
+    scenario = generate_equipment_scenario(num_requests=num_requests, num_units=num_units, seed=seed)
+    question = build_equipment_dispatch_question(scenario)
+    answer = solve_equipment_dispatch(scenario)
+
+    # Verify that all numbers used by the model are in the question text
+    assert_question_contains_numbers(question, scenario.all_numbers())
+
+    params = {
+        "num_requests": num_requests,
+        "num_units": num_units,
+        "units": [
+            {
+                "unit_id": u.unit_id,
+                "unit_type": u.unit_type,
+                "fixed_cost": u.fixed_cost,
+                "max_hours": u.max_hours,
+            }
+            for u in scenario.units
+        ],
+        "requests": [
+            {
+                "request_id": r.request_id,
+                "stand_id": r.stand_id,
+                "required_type": r.required_type,
+                "required_hours": r.required_hours,
+            }
+            for r in scenario.requests
+        ],
+        "transit_costs": {
+            f"{u_id}->{r_id}": cost for (u_id, r_id), cost in scenario.transit_costs.items()
+        },
+    }
+
+    return OpsORInstance(
+        family="EquipmentDispatch",
+        size=size,
+        seed=seed,
+        question=question,
+        answer=answer,
+        params=params,
+    )
