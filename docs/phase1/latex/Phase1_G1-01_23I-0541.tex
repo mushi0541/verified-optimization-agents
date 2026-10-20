@@ -529,7 +529,7 @@ Every problem has a reference optimum, which is used only for grading and is nev
 
 \textbf{Environment and tools.} Python 3.12; PuLP 3 with the open-source HiGHS solver.
 
-\textbf{Models and APIs.} \texttt{openai/gpt-oss-120b} through the API of the Groq free plan (1,000 requests and 200,000 tokens per day, and at most 8,000 tokens per minute) is the main model for every role and every baseline. Phase~1 used temperature 0 for every call. In Phase~2, the paraphraser and the repeated samples of B2 use temperature 0.7, because repeated calls at temperature 0 can return almost the same text; all other calls stay at temperature 0. The client works with any OpenAI-compatible endpoint, so OpenRouter, Google AI Studio or a local Ollama model can replace it, and Amazon Bedrock is also supported.
+\textbf{Models and APIs.} \texttt{gpt-oss-120b}, an open-weight model, through Amazon Bedrock (model ID \texttt{openai.gpt-oss-120b-1:0}) is the main model for every role and every baseline. We first used the Groq free plan, but one member could not create a Groq API key, and its limits (200,000 tokens per day and 8,000 tokens per minute) are too small for the planned runs. Bedrock serves the same model weights without a daily limit at our scale, and each member uses the credits that AWS gives a new account. Phase~1 used temperature 0 for every call. In Phase~2, the paraphraser and the repeated samples of B2 use temperature 0.7, because repeated calls at temperature 0 can return almost the same text; all other calls stay at temperature 0. The client also works with any OpenAI-compatible endpoint, so the Groq free plan, OpenRouter, Google AI Studio or a local Ollama model can replace Bedrock.
 
 \subsection{System Architecture Description}
 \label{sec:arch}
@@ -729,7 +729,7 @@ Table~\ref{tab:rq} states one narrow empirical question and one testable predict
 
 \textbf{Statistics.} Exact (Clopper-Pearson) 95\% intervals for all rates, McNemar tests for paired accuracy differences, and bootstrap intervals for AUROC and for paired differences in wrong-accept rate. At 50\% coverage, tied scores are broken at random and results are averaged over 1,000 draws.
 
-\textbf{Failure analysis.} A sample of wrong answers will be labeled by error type (missing constraint, wrong data value, wrong objective sense, integrality error, code error), together with examples of correct refusals and false alarms. Failed problems whose reference answer looks doubtful, including every Pollution Control failure, will be checked by hand. The Phase~2 results will be summarized in the required gap-resolution table (method or component, base paper result, our result, and whether each gap is fully, partially or not addressed).
+\textbf{Failure analysis.} A sample of wrong answers will be labeled by error type (missing constraint, wrong data value, wrong objective sense, integrality error, code error), together with examples of correct refusals and false alarms. Failed problems whose reference answer looks doubtful, including every Inventory and Pollution Control failure, will be checked by hand. The Phase~2 results will be summarized in the required gap-resolution table (method or component, base paper result, our result, and whether each gap is fully, partially or not addressed).
 
 \subsection{Milestones and Feasibility}
 
@@ -744,8 +744,8 @@ Table~\ref{tab:rq} states one narrow empirical question and one testable predict
 \toprule
 \textbf{Stage} & \textbf{Time} & \textbf{Tasks and outputs}\\
 \midrule
-Phase 1 (done) & 10 days & Literature review, proposal, data pipeline, baseline with initial results, first end-to-end pipeline run, repository\\
-Phase 2a & Days 1 to 4 & Day~1: fix evaluation samples, fit the output cap of each request to the per-minute limit, retry failed paraphrase runs and add requirement linking to the formalizer prompt; start B1 runs (which also give B0) and pipeline runs at the end of Day~1 (they continue in the background until Day~13). Days 2 to 4: ignore index-like numbers in number coverage (rescored from saved records); start the OpsOR-Bench generators and the paper outline\\
+Phase 1 (done) & 10 days & Literature review, proposal, data pipeline, baseline with initial results, first end-to-end pipeline run with the first verifier fixes, repository\\
+Phase 2a & Days 1 to 4 & Day~1: fix evaluation samples and add requirement linking to the formalizer prompt; start B1 runs (which also give B0) and pipeline runs at the end of Day~1. Days 2 to 4: start the OpsOR-Bench generators and the paper outline\\
 Phase 2b & Days 5 to 8 & Compute requirement coverage from saved records; implement and run B2; start the new runs for ablations (iv) and (vii) on 30 problems; finish OpsOR-Bench; build the interactive interface\\
 Phase 2c & Days 9 to 12 & E1 with ablations (i) to (iii), E2 leave-one-class-out calibration with ablation (vi) and the OpsOR-Bench shift test, E3 equal-budget comparison with ablation (v), and ablations (iv) and (vii), first on the records collected so far; check the paraphrase signal against the linguistic split; draft the paper\\
 Phase 2d & Days 13 to 15 & Final E1 to E3 tables on the complete records; failure analysis; gap-resolution table; finish the IEEE-style paper of 6 to 8 pages; Turnitin reports on Day~14; final repository and application\\
@@ -754,7 +754,7 @@ Phase 3 & 1 week & Live demonstration, slides, rehearsal and viva preparation\\
 \end{tabularx}
 \end{table}
 
-\textbf{Compute and API constraints.} All experiments use free resources and a laptop CPU for the solver. The Groq free plan allows 1,000 requests and 200,000 tokens per day per account, and at most 8,000 tokens per minute. Our Phase~1 measurements set the budget: the baseline used about 2,600 tokens per problem in one call, and the pipeline about 13,300 tokens in 5.4 calls on average with $k = 2$ (Section~\ref{sec:pipelinerun}); with $k = 3$, the pipeline needs about 17,000 tokens in about 7 calls. The full plan (B0, B1, the pipeline with $k$ up to 3, B2, the constraint-augmentation pairs, OpsOR-Bench, two ablations on 30 problems and the paraphrase check on 30 problems of the linguistic split) therefore needs about 6 to 7.5 million tokens. Three free keys, one per member, give 600,000 tokens per day, so the runs need 10 to 12.5 days of quota. Runs start at the end of Day~1 and continue in the background until Day~13, which gives 12 days of quota (7.2 million tokens), shared with development calls. This is enough at the lower and middle estimates but leaves little slack. It is possible only because B0 is read from the first attempts of B1, B2 reuses its first samples for the smaller budget levels, and the results for lower $k$ and most ablations come from saved records. If runs fall behind, or if token use approaches the upper estimate, we first drop the OpsOR-Bench runs with $k = 3$ and then use $k = 2$ for the constraint-augmentation pairs, while the main canonical runs keep $k = 3$ and 10 problems per class, so that E3 keeps its three budget levels. Because a single request may not exceed the per-minute limit, Phase~2 sets the output cap of each request to the per-minute limit minus the prompt length; this addresses the two rejected requests of the Phase~1 run (Section~\ref{sec:pipelinerun}).
+\textbf{Compute and API constraints.} The model runs on Amazon Bedrock and the solver on a laptop CPU. Bedrock charges US\$0.15 per million input tokens and US\$0.60 per million output tokens for this model and has no daily limit at our scale. Our Phase~1 measurements set the budget: the baseline used about 2,800 tokens per problem in one call, and the pipeline about 18,200 tokens in 6.4 calls on average with $k = 2$ (Section~\ref{sec:pipelinerun}); with $k = 3$, the pipeline needs about 23,000 tokens in about 8.5 calls. The full plan (B0, B1, the pipeline with $k$ up to 3, B2, the constraint-augmentation pairs, OpsOR-Bench, two ablations on 30 problems and the paraphrase check on 30 problems of the linguistic split) therefore needs about 8 to 10 million tokens, or about US\$4, well within the US\$100 credit that AWS gives a new account. At about one minute per pipeline problem, with two problems run at a time, this is about five hours of run time, so the runs fit easily between Day~1 and Day~13 and leave room for reruns. B0 is read from the first attempts of B1, B2 reuses its first samples for the smaller budget levels, and the results for lower $k$ and most ablations come from saved records, which keeps both cost and run time low. If the credits run out or Bedrock becomes unavailable, members switch to the Groq free plan (200,000 tokens per day per account and at most 8,000 tokens per minute); the client already spaces requests and fits the output cap of each request to the per-minute limit minus the prompt length. Under that limit we first drop the OpsOR-Bench runs with $k = 3$ and then use $k = 2$ for the constraint-augmentation pairs, while the main canonical runs keep $k = 3$ and 10 problems per class, so that E3 keeps its three budget levels.
 
 \textbf{Technical risks and fallback strategy.} Table~\ref{tab:risks} lists the main risks.
 
@@ -768,7 +768,7 @@ Phase 3 & 1 week & Live demonstration, slides, rehearsal and viva preparation\\
 \toprule
 \textbf{Risk} & \textbf{Impact} & \textbf{Mitigation} & \textbf{Fallback}\\
 \midrule
-Free-plan API limits, or requests above the per-minute limit & Slower experiments; failed runs & One API key per member; paced requests; output cap fitted to the per-minute limit; rejected requests retried; saved records reused for ablations, calibration and budget sweeps & Drop OpsOR-Bench runs with $k = 3$, then use $k = 2$ for the constraint-augmentation pairs (main runs keep $k = 3$); switch to OpenRouter, Google AI Studio or a local model; Amazon Bedrock as a paid last resort\\
+API credits run out, or a provider limits or blocks access & Slower experiments; failed runs & One Bedrock key per member with a budget alert; failed requests retried; saved records reused for ablations, calibration and budget sweeps & Switch to the Groq free plan (paced requests, output cap fitted to its per-minute limit), OpenRouter or a local model; then drop OpsOR-Bench runs with $k = 3$ and use $k = 2$ for the constraint-augmentation pairs (main runs keep $k = 3$)\\
 Model or provider change & Results not comparable & Exact model ID and settings stored in every run record; one fixed model for all final runs & Re-run the baselines on the replacement model so that comparisons stay paired\\
 Reworded questions change the meaning, or wrong answers agree & Noisy agreement signal & At least two rewordings in the main runs ($k = 1$ is only a lower budget level in E3); comparison with the human-designed linguistic perturbation set & Weight the signal by its measured precision and report it separately\\
 False alarms in number coverage (units, percentages, derived values, index-like integers) & Unneeded escalations & Normalize numbers (percentages, thousands separators and units) and ignore index-like integers such as item numbers; treat number coverage as a soft score & Exclude other known-safe number types and report the false-alarm rate\\
@@ -848,10 +848,10 @@ Table~\ref{tab:foundation} maps each Phase~1 technical requirement to its eviden
 Finalized system architecture & Sections~\ref{sec:arch} and~\ref{sec:blueprint}, Figure~\ref{fig:arch}; \texttt{docs/architecture.md}\\
 Working data pipeline & \texttt{scripts/download\_data.py} (pinned upstream commit) and \texttt{optverify/data.py} (loading and stratified sampling)\\
 Baseline with initial results & \texttt{run\_baseline} in \texttt{optverify/systems.py}; saved runs in \texttt{results/} (Section~\ref{sec:baselineresults})\\
-Model integration and provider setup & \texttt{optverify/llm.py}: OpenAI-compatible endpoints (Groq, OpenRouter, Google AI Studio, Ollama) with request pacing, and Amazon Bedrock\\
+Model integration and provider setup & \texttt{optverify/llm.py}: Amazon Bedrock (main provider), and OpenAI-compatible endpoints (Groq, OpenRouter, Google AI Studio, Ollama) with request pacing\\
 Tool interfaces & \texttt{optverify/solver\_tool.py}: PuLP and HiGHS in a separate process with a time limit\\
 State and structured contracts & \texttt{optverify/contracts.py}: \texttt{Problem}, \texttt{Attempt}, \texttt{SolveResult}, \texttt{VerifierReport}, \texttt{Decision}, \texttt{TokenUsage}, \texttt{RunRecord}\\
-Evaluation data and test suite & \cthree{} splits; ten offline tests in \texttt{tests/} that need no API key\\
+Evaluation data and test suite & \cthree{} splits; 69 offline tests in \texttt{tests/} that need no API key and run on every pull request\\
 End-to-end workflow & \texttt{run\_pipeline} in \texttt{optverify/systems.py}; first run in Section~\ref{sec:pipelinerun}\\
 Clean repository with history & README with setup and run commands, \texttt{.env.example}, \texttt{requirements.txt}, commit history\\
 \bottomrule
@@ -861,7 +861,7 @@ Clean repository with history & README with setup and run commands, \texttt{.env
 \subsection{Initial Baseline Results}
 \label{sec:baselineresults}
 
-Two baseline runs used \texttt{openai/gpt-oss-120b} on the Groq free plan in the B0 setting (zero-shot SIR prompt, no repair) on the canonical split, both at temperature 0. Run~A covered 3 problems from each of 6 classes, and Run~B covered 1 problem from each of the 10 classes. Table~\ref{tab:baseline} gives the overall results, and Table~\ref{tab:perclass} gives the accuracy per class.
+Two baseline runs used \texttt{gpt-oss-120b} on Amazon Bedrock in the B0 setting (zero-shot SIR prompt, no repair) on the canonical split, both at temperature 0. Run~A covered 3 problems from each of the 10 classes, and Run~B covered 1 problem from each class. Table~\ref{tab:baseline} gives the overall results, and Table~\ref{tab:perclass} gives the accuracy per class.
 
 \begin{table}[htbp]
 \centering
@@ -874,13 +874,13 @@ Two baseline runs used \texttt{openai/gpt-oss-120b} on the Groq free plan in the
 \toprule
 \textbf{Metric} & \textbf{Run A} & \textbf{Run B}\\
 \midrule
-Classes $\times$ problems per class & $6 \times 3$ & $10 \times 1$\\
-Accuracy & 61.1\% & 80.0\%\\
-Solved rate (optimal solver status) & 83.3\% & 90.0\%\\
-Mean input tokens per problem & 846 & 989\\
-Mean output tokens per problem & 1,767 & 1,623\\
+Classes $\times$ problems per class & $10 \times 3$ & $10 \times 1$\\
+Accuracy & 60.0\% & 80.0\%\\
+Solved rate (optimal solver status) & 80.0\% & 100.0\%\\
+Mean input tokens per problem & 902 & 985\\
+Mean output tokens per problem & 1,887 & 1,975\\
 LLM calls per problem & 1 & 1\\
-Mean latency per problem & 55.7\,s & 52.3\,s\\
+Mean latency per problem & 17.6\,s & 11.1\,s\\
 \bottomrule
 \end{tabular}
 \end{minipage}\hfill
@@ -893,57 +893,56 @@ Mean latency per problem & 55.7\,s & 52.3\,s\\
 \toprule
 \textbf{Problem class} & \textbf{Run A} & \textbf{Run B}\\
 \midrule
-Bin Packing & 100.0\% & 0.0\%\\
-Inventory & 0.0\% & 100.0\%\\
+Bin Packing & 66.7\% & 100.0\%\\
+Inventory & 0.0\% & 0.0\%\\
 Job-Shop Scheduling & 66.7\% & 100.0\%\\
 Knapsack & 100.0\% & 100.0\%\\
 Min-Cost Network Flow & 100.0\% & 100.0\%\\
 Pollution Control & 0.0\% & 0.0\%\\
-Portfolio & not run & 100.0\%\\
-Production & not run & 100.0\%\\
-TSP & not run & 100.0\%\\
-Transportation & not run & 100.0\%\\
+Portfolio & 33.3\% & 100.0\%\\
+Production & 66.7\% & 100.0\%\\
+TSP & 66.7\% & 100.0\%\\
+Transportation & 100.0\% & 100.0\%\\
 \bottomrule
 \end{tabular}
 \end{minipage}
 \end{table}
 
 \FloatBarrier
-Three observations follow. First, Pollution Control failed in all four attempts across both runs, which points to a systematic formulation problem in that class, or to reference answers that need checking (Section~\ref{sec:evalplan}). Second, results vary even on the same problem: the same Bin Packing problem was solved correctly in Run~A but produced a code error in Run~B, although both runs used temperature 0. The two Inventory results cannot be compared, because they come from different problems. Phase~2 therefore uses at least 10 problems per class and reports confidence intervals. Third, 5 of the 24 runs that reached an optimal solver status returned a wrong objective value with no warning. This silent failure is exactly what Gaps~1 and~2 address. Full run records (one JSON object per problem, with the generated code, solver status, tokens and latency) are stored in the \texttt{results/} directory.
+Three observations follow. First, Inventory and Pollution Control failed in all four attempts across both runs, which points to systematic formulation problems in these classes, or to reference answers that need checking (Section~\ref{sec:evalplan}). Second, results vary even on the same problem: the same Bin Packing problem produced a code error in Run~A but was solved correctly in Run~B, although both runs used temperature 0. Phase~2 therefore uses at least 10 problems per class and reports confidence intervals. Third, 8 of the 34 runs that reached an optimal solver status returned a wrong objective value with no warning. This silent failure is exactly what Gaps~1 and~2 address. Full run records (one JSON object per problem, with the generated code, solver status, tokens and latency) are stored in the \texttt{results/} directory.
 
 \FloatBarrier
 \subsection{First End-to-End Run of the Proposed Pipeline}
 \label{sec:pipelinerun}
 
-To show that the proposed system already operates end to end, we ran the full pipeline on one canonical problem per class with the same model at temperature 0. The run used the parser, the formalizer, the solver-runner with one repair round ($r = 1$), the verifier with two paraphrase runs ($k = 2$), the decision layer with the fixed Phase~1 threshold of 0.8 and the explainer. Tables~\ref{tab:pipeline} and~\ref{tab:pipelinecases} report the results.
+To show that the proposed system already operates end to end, we ran the full pipeline on one canonical problem per class with the same model at temperature 0. The run used the parser, the formalizer, the solver-runner with one repair round ($r = 1$), the verifier with two paraphrase runs ($k = 2$, each retried once if it returns no optimum), the decision layer with the fixed Phase~1 threshold of 0.8 and the explainer. Tables~\ref{tab:pipeline} and~\ref{tab:pipelinecases} report the results.
 
 \begin{table}[!htbp]
 \centering
-\caption{First end-to-end run of the proposed pipeline (\texttt{openai/gpt-oss-120b}, $k = 2$, $r = 1$).}
+\caption{First end-to-end run of the proposed pipeline (\texttt{gpt-oss-120b} on Bedrock, $k = 2$, $r = 1$).}
 \label{tab:pipeline}
 \small
 \begin{tabular}{@{}lr@{}}
 \toprule
 \textbf{Measure} & \textbf{Value}\\
 \midrule
-Problems sampled (one per class) & 10\\
-Problems completed & 8\\
-Problems rejected by the API (a request over 8,000 tokens per minute) & 2 (TSP, Transportation)\\
-Answered / escalated / abstained & 4 / 2 / 2\\
-Coverage (share answered) & 50.0\%\\
-Selective accuracy (correct among answered) & 100.0\% (4 of 4)\\
-Wrong-accept rate (wrong among answered) & 0.0\% (0 of 4)\\
-Accuracy of the final model, before the decision & 75.0\% (6 of 8)\\
-Mean input / output tokens per problem & 6,117 / 7,209\\
-Mean LLM calls per problem & 5.4\\
-Mean latency per problem (requests paced at 2 per minute) & 312\,s\\
+Problems sampled (one per class, the same as Run~B) & 10\\
+Problems completed & 10\\
+Answered / escalated / abstained & 7 / 1 / 2\\
+Coverage (share answered) & 70.0\%\\
+Selective accuracy (correct among answered) & 100.0\% (7 of 7)\\
+Wrong-accept rate (wrong among answered) & 0.0\% (0 of 7)\\
+Accuracy of the final model, before the decision & 80.0\% (8 of 10)\\
+Mean input / output tokens per problem & 7,836 / 10,354\\
+Mean LLM calls per problem & 6.4\\
+Mean latency per problem & 58.2\,s\\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{table}[htbp]
 \centering
-\caption{Verifier signals and decisions for each completed problem (n/a: not computed because no feasible model was found).}
+\caption{Verifier signals and decisions for each problem (n/a: not computed because no feasible model was found; *: one reworded run returned no optimum after a retry and was left out).}
 \label{tab:pipelinecases}
 \small
 \begin{tabularx}{\textwidth}{@{}Y l >{\centering\arraybackslash}p{1.6cm} >{\centering\arraybackslash}p{2.2cm} c l >{\centering\arraybackslash}p{1.3cm}@{}}
@@ -951,26 +950,28 @@ Mean latency per problem (requests paced at 2 per minute) & 312\,s\\
 \textbf{Class} & \textbf{Solver status} & \textbf{Number coverage} & \textbf{Paraphrase-optimum agreement} & \textbf{Score} & \textbf{Decision} & \textbf{Model correct}\\
 \midrule
 Bin Packing & optimal & 1.00 & 1.00 & 1.00 & answer & yes\\
-Job-Shop Scheduling & optimal & 1.00 & 1.00 & 1.00 & answer & yes\\
-Knapsack & optimal & 0.73 & 1.00 & 0.86 & answer & yes\\
-Production & optimal & 0.92 & 1.00 & 0.96 & answer & yes\\
-Min-Cost Network Flow & optimal & 1.00 & 0.50 & 0.75 & escalate & yes\\
-Portfolio & optimal & 1.00 & 0.00 & 0.50 & escalate & yes\\
-Inventory & infeasible & 1.00 & n/a & 0.00 & abstain & no\\
-Pollution Control & error & 0.94 & n/a & 0.00 & abstain & no\\
+Knapsack & optimal & 1.00 & 1.00 & 1.00 & answer & yes\\
+Min-Cost Network Flow & optimal & 1.00 & 1.00* & 1.00 & answer & yes\\
+Portfolio & optimal & 1.00 & 1.00 & 1.00 & answer & yes\\
+Production & optimal & 1.00 & 1.00* & 1.00 & answer & yes\\
+Transportation & optimal & 1.00 & 1.00 & 1.00 & answer & yes\\
+TSP & optimal & 0.67 & 1.00 & 0.84 & answer & yes\\
+Inventory & optimal & 1.00 & 0.50 & 0.75 & escalate & yes\\
+Job-Shop Scheduling & error & 1.00 & n/a & 0.00 & abstain & no\\
+Pollution Control & error & 1.00 & n/a & 0.00 & abstain & no\\
 \bottomrule
 \end{tabularx}
 \end{table}
 
 \FloatBarrier
-The run supports four early observations. They come from only eight problems and are not statistical claims; they show that the components work together and reveal what to improve first.
+The run supports four early observations. They come from only ten problems and are not statistical claims; they show that the components work together and reveal what to improve next.
 \begin{enumerate}[leftmargin=1.6em]
-\item \textbf{No wrong answer was accepted.} The two wrong models (an infeasible Inventory model and a Pollution Control model whose code still failed after repair) were refused, and all four answers given were correct. B0, in contrast, returns the objective whenever the solver status is optimal and never refuses.
-\item \textbf{Both escalations were false alarms.} The answers were correct, but one or both paraphrase runs did not return an optimum, and the current signal counts such a run as a disagreement. Phase~2 will retry failed paraphrase runs and score them separately from a true disagreement.
-\item \textbf{Number coverage flags index-like numbers.} In the Knapsack and Production questions, it reported small integers such as item numbers (for example 2, 3 and 5) as unused. Phase~2 will ignore such index-like numbers, as planned in Table~\ref{tab:risks}.
-\item \textbf{Verification is not free.} The pipeline used about five times the tokens of the baseline (13,300 against 2,600 per problem). This confirms that a fair comparison with a single agent must match token budgets, which is the purpose of Gap~3.
+\item \textbf{No wrong answer was accepted.} The two wrong models (Job-Shop Scheduling and Pollution Control, whose code still failed after one repair) were refused, and all seven answers were correct. On the same ten problems, B0 (Run~B) returned two wrong values with no warning (Inventory and Pollution Control), because it returns the objective whenever the solver status is optimal and never refuses.
+\item \textbf{Retrying failed reworded runs removes false alarms.} Five of the 16 reworded runs returned no optimum at first; the retry recovered three, and the two that still failed (Min-Cost Network Flow and Production) were left out of the agreement. Without the retry, and with failed runs counted as disagreements as in the first version of the verifier, three correct answers (Min-Cost Network Flow, Production and TSP) would have been escalated. The only escalation (Inventory) is a true disagreement: the main model was correct, but one rewording reached a different optimum.
+\item \textbf{Number coverage needed one more fix.} Item labels such as ``Package 3'' are no longer counted as data, so nine of the ten problems reached full coverage. In TSP, the code listed distances as tuples such as \texttt{(3,14,100.2)}, and the number reader took \texttt{14,100.2} for one number with a thousands separator, so 43 distances looked unused. Commas in code are now read only as separators between values; rescoring the saved run gives full coverage for TSP and changes no decision.
+\item \textbf{Verification is not free.} On the same ten problems, the pipeline used about six times the tokens of the baseline (18,190 against 2,960 per problem). This confirms that a fair comparison with a single agent must match token budgets, which is the purpose of Gap~3.
 \end{enumerate}
-The run records and summary are stored in \texttt{results/} with the baseline runs. The two rejected problems were not re-run on the same day because the three Phase~1 runs had used most of the free plan's daily token limit; fitting the output cap to the per-minute limit, as planned for Phase~2, should prevent this failure.
+The run records and summary are stored in \texttt{results/} with the baseline runs.
 
 % =====================================================================
 % REFERENCES
