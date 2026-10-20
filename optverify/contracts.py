@@ -53,6 +53,7 @@ class SolveResult:
     stdout: str = ""
     error: str = ""
     runtime_s: float = 0.0
+    variables: dict[str, float] = field(default_factory=dict)
 
 
 @dataclass
