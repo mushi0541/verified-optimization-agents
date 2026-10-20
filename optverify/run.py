@@ -1,9 +1,9 @@
 """Command line entry point.
 
 Examples:
-    python -m optverify.run baseline --model openai:openai/gpt-oss-120b --split canonical --per-class 5
-    python -m optverify.run pipeline --model openai:openai/gpt-oss-120b --split canonical --per-class 1
-    python -m optverify.run b2 --model openai:openai/gpt-oss-120b --split canonical --per-class 10 --repairs 1 --budget-tokens 17000
+    python -m optverify.run baseline --model bedrock:openai.gpt-oss-120b-1:0 --split canonical --per-class 5
+    python -m optverify.run pipeline --model bedrock:openai.gpt-oss-120b-1:0 --split canonical --per-class 1
+    python -m optverify.run b2 --model bedrock:openai.gpt-oss-120b-1:0 --split canonical --per-class 10 --repairs 1 --budget-tokens 23000
 """
 
 import argparse
