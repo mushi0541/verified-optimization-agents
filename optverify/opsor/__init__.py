@@ -9,6 +9,7 @@ from .gate_assignment import (
     generate_gate_scenario,
     solve_gate_assignment,
 )
+from .registry import DEFAULT_OPSOR_PATH, generate_opsor_dataset, save_opsor_jsonl
 
 __all__ = [
     "OpsORInstance",
@@ -20,4 +21,7 @@ __all__ = [
     "create_gate_assignment_instance",
     "generate_gate_scenario",
     "solve_gate_assignment",
+    "DEFAULT_OPSOR_PATH",
+    "generate_opsor_dataset",
+    "save_opsor_jsonl",
 ]
