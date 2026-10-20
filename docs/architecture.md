@@ -49,7 +49,7 @@ flowchart LR
 |---|---|---|
 | Gap 1. Verifiers do not check requirement-level coverage or invariance to rewording | `optverify/verifier.py`: `number_coverage`, `paraphrase_agreement` | Implemented (Phase 1); requirement coverage (each parser requirement linked to a named constraint) in Phase 2 |
 | Gap 2. Refusal rules have no error-rate guarantee that holds on new problem classes | `optverify/verifier.py`: `decide` threshold | Fixed placeholder threshold now; calibrated threshold with leave-one-class-out tests in Phase 2 |
-| Gap 3. No equal-token-budget comparison of single vs multi-agent designs | `TokenUsage` on every call (`optverify/contracts.py`), `usage_by_step` per record; `optverify/systems.py`: `run_single_agent` (B2) | Token metering per step and the single-agent variant B2 implemented (Phase 2) |
+| Gap 3. No equal-token-budget comparison of single vs multi-agent designs | `TokenUsage` on every call (`optverify/contracts.py`), `usage_by_step` per record; `optverify/systems.py`: `run_single_agent` (B2) | Token metering per step, the single-agent variant B2 and the E3 analysis (`scripts/analyze_e3.py`) implemented (Phase 2) |
 
 ## State and contracts
 
