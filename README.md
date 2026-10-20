@@ -69,6 +69,22 @@ Each run writes `results/<run name>/records.jsonl` (one record per problem: code
 verifier report, decision) and `results/<run name>/summary.json` (accuracy, solved rate, tokens, latency,
 accuracy per class, and for the pipeline: coverage, selective accuracy and wrong-accept rate).
 
+## E3 analysis (Gap 3, no API calls)
+
+Compares the pipeline and B2 at k = 1, 2, 3 from saved records. The pipeline records must come from a run with
+`--paraphrases 3`; lower k are read from them by dropping the last paraphrase runs.
+
+```bash
+python scripts/analyze_e3.py --pipeline results/<pipeline run>/records.jsonl --b2 results/<b2 run>/records.jsonl \
+    --baseline results/<baseline r1 run>/records.jsonl --out results/e3
+```
+
+It reports accuracy, wrong-accept rate at 50% coverage (ties broken at random, 1,000 draws), tokens and calls per
+problem, whether B2 is within 10% of the pipeline's mean tokens, McNemar tests, bootstrap 95% intervals of the paired
+differences, and whether H3 holds at k = 3. Several record files per system (one per member) can be passed.
+Seeds are fixed, so a rerun gives the same numbers. `--out` writes `e3.json` and `accuracy_cost.csv` (points for the
+accuracy-cost curves).
+
 ## Evaluation rule
 
 A predicted objective counts as correct when `|predicted - reference| <= 0.002 * |reference|`, the same rule as the
@@ -88,7 +104,8 @@ optverify/
   systems.py      baseline (B0/B1), single agent B2 and proposed pipeline
   grading.py      correctness rule and run summaries
   run.py          command line entry point
-scripts/download_data.py
+scripts/download_data.py     pinned data download
+scripts/analyze_e3.py        E3 equal-budget analysis from saved records
 tests/
 docs/architecture.md
 docs/phase1/      submitted Phase 1 report (PDF and LaTeX source)
