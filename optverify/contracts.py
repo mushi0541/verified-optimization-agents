@@ -29,6 +29,14 @@ class TokenUsage:
         self.output_tokens += other.output_tokens
         self.calls += other.calls
 
+    @staticmethod
+    def total(steps: dict[str, "TokenUsage"]) -> "TokenUsage":
+        """Sum of the token use of several steps."""
+        total = TokenUsage()
+        for usage in steps.values():
+            total.add(usage)
+        return total
+
 
 @dataclass
 class LLMReply:
@@ -89,6 +97,9 @@ class RunRecord:
     verifier: VerifierReport | None = None
     decision: Decision | None = None
     explanation: str = ""
+    # Token use of each step (parse, formalize, repair, paraphrase_1 ... paraphrase_k); the steps add up to usage.
+    # Empty in records saved before Phase 2.
+    usage_by_step: dict[str, TokenUsage] = field(default_factory=dict)
 
     def to_json(self) -> dict:
         return asdict(self)

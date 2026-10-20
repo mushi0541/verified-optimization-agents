@@ -18,13 +18,22 @@ def parse_problem(question: str, llm: LLM, usage: TokenUsage) -> dict | None:
     return _first_json_object(reply.text)
 
 
-def formalize_and_solve(first_prompt: str, question: str, llm: LLM, usage: TokenUsage, max_repairs: int) -> list[Attempt]:
-    """Write model code, run it, and repair it from solver/runtime errors only (never from the reference answer)."""
+def formalize_and_solve(
+    first_prompt: str,
+    question: str,
+    llm: LLM,
+    usage: TokenUsage,
+    max_repairs: int,
+    repair_usage: TokenUsage | None = None,
+) -> list[Attempt]:
+    """Write model code, run it, and repair it from solver/runtime errors only (never from the reference answer).
+
+    Repair calls are counted in repair_usage when it is given, otherwise in usage."""
     attempts = []
     prompt = first_prompt
-    for _ in range(max_repairs + 1):
+    for round_number in range(max_repairs + 1):
         reply = llm.complete(prompt)
-        usage.add(reply.usage)
+        (usage if round_number == 0 or repair_usage is None else repair_usage).add(reply.usage)
         code = extract_code(reply.text)
         result = run_model_code(code)
         attempts.append(Attempt(code=code or "", solve=result))
