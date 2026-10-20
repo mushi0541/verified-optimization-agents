@@ -23,6 +23,12 @@ def test_solver_returns_optimum():
     assert is_correct(result.objective, TOY_OPTIMUM)
 
 
+def test_solver_accepts_symbols_in_printed_output():
+    result = run_model_code(extract_code(TOY_CODE) + "\nprint('x ≤ 4, y ≥ 0')")
+    assert result.status == "optimal"
+    assert "x ≤ 4, y ≥ 0" in result.stdout
+
+
 def test_solver_reports_errors_and_infeasibility():
     assert run_model_code("this is not python").status == "error"
     assert run_model_code(None).status == "no_code"
