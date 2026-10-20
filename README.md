@@ -21,6 +21,18 @@ operations questions into optimization models, verify those models, and answer, 
 | End-to-end proposed workflow | `optverify/systems.py` `run_pipeline`: parser, formalizer, solver-runner, verifier, decision, explainer |
 | Tests (offline, no API key) | `tests/`; run on every pull request by `.github/workflows/tests.yml`, and a pull request can merge only when they pass |
 
+## Phase 2 progress
+
+| Part | Gap | Where | Status |
+|---|---|---|---|
+| Token use per step (`parse`, `formalize`, `repair`, `paraphrase_<j>`, `sample_<i>`) | Gap 3 | `RunRecord.usage_by_step` in `optverify/contracts.py` | Done |
+| Single agent B2 at an equal token budget | Gap 3 | `optverify/systems.py` `run_single_agent`, `python -m optverify.run b2` | Done; runs pending |
+| E3 analysis: pipeline against B2 at k = 1, 2, 3 | Gap 3 | `scripts/analyze_e3.py` | Done; needs the k = 3 pipeline and B2 runs |
+| B0 and B1 per class, and the base-paper comparison | Baselines | `scripts/compare_baselines.py` | Done; needs the B1 runs and the paper values |
+| Offline tests for every module | All | `tests/` | Done |
+| Output cap fitted to the per-minute limit, fixed evaluation samples, OpsOR-Bench, interactive interface | All | | Planned (Phase 2 schedule, report Table 8) |
+| Requirement coverage, retried paraphrase runs, calibrated threshold | Gaps 1 and 2 | | Planned (Phase 2 schedule, report Table 8) |
+
 ## Setup
 
 Python 3.12 is recommended.
