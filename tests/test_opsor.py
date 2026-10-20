@@ -1,6 +1,5 @@
 import hashlib
 import re
-from pathlib import Path
 
 from optverify.data import load_split
 from optverify.opsor import (

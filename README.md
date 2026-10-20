@@ -37,9 +37,9 @@ operations questions into optimization models, verify those models, and answer, 
 | Generated code runs in UTF-8 mode, so printed symbols such as `≤` no longer crash it on Windows | All | `optverify/solver_tool.py` | Done; Phase 1 Run A and pipeline rerun |
 | Paraphrase agreement treats a value and its negative as the same optimum | Gap 1 | | Planned (false alarm in the Phase 1 pipeline run) |
 | Fixed evaluation samples | All | samples/, scripts/make_samples.py | Done |
-| OpsOR-Bench | All | 36 problems, three families | Done |
-| Interactive interface | All | | Planned |
-| Requirement coverage, calibrated threshold | Gaps 1 and 2 | | Planned (Phase 2 schedule, report Table 8) |
+| OpsOR-Bench: 36 problems in three families (gate assignment, ground-crew rostering, equipment dispatch) | Gap 2 | `optverify/opsor/`, `data/opsor/opsor_bench.jsonl`, `scripts/make_opsor.py` | Done |
+| Interactive interface | All | | Planned (Phase 2 schedule, report Table 6) |
+| Requirement coverage, calibrated threshold | Gaps 1 and 2 | | Planned (Phase 2 schedule, report Table 6) |
 
 ## Setup
 
