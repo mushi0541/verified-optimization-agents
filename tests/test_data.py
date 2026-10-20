@@ -114,3 +114,45 @@ def test_constraint_pairing_logic():
     sampled = sample_constraint_pairs(problems, per_class=1, seed=0)
     assert len(sampled) == 3
     assert [p["pair_id"] for p in sampled] == [0, 1, 2]
+
+
+def test_save_and_load_sample_file(tmp_path):
+    from optverify.data import load_sample_file, save_sample_file
+
+    rows = [_row("Knapsack", answer="10"), _row("TSP", answer="20")]
+    data_dir = _write_split(tmp_path, rows)
+
+    # Test saving and loading a simple list of IDs
+    sample_path = tmp_path / "sample_test.json"
+    ids = ["canonical-0001", "canonical-0000"]
+    save_sample_file(sample_path, ids)
+
+    # Check formatting: 2-space indent, trailing newline, valid json
+    raw = sample_path.read_bytes()
+    assert raw.endswith(b"\n")
+    assert b"\r" not in raw  # Unix line endings "\n"
+
+    problems = load_sample_file(sample_path, data_dir=data_dir)
+    assert len(problems) == 2
+    assert [p.problem_id for p in problems] == ["canonical-0001", "canonical-0000"]
+    assert problems[0].problem_class == "TSP"
+    assert problems[1].problem_class == "Knapsack"
+
+    # Test loading pair dicts loads both original and augmented
+    pair_path = tmp_path / "pairs_test.json"
+    pairs = [{"augmented": "canonical-0001", "original": "canonical-0000", "pair_id": 0, "pairing": "matched_data", "problem_class": "Knapsack"}]
+    save_sample_file(pair_path, pairs)
+    pair_problems = load_sample_file(pair_path, data_dir=data_dir)
+    assert len(pair_problems) == 2
+    assert [p.problem_id for p in pair_problems] == ["canonical-0000", "canonical-0001"]
+
+    # Test error handling on bad json structure or missing ID
+    bad_path = tmp_path / "bad.json"
+    bad_path.write_text('{"not": "a list"}', encoding="utf-8")
+    with pytest.raises(ValueError, match="must contain a list"):
+        load_sample_file(bad_path, data_dir=data_dir)
+
+    missing_id_path = tmp_path / "missing.json"
+    save_sample_file(missing_id_path, ["canonical-9999"])
+    with pytest.raises(KeyError, match="canonical-9999"):
+        load_sample_file(missing_id_path, data_dir=data_dir)

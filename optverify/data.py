@@ -203,6 +203,51 @@ def sample_constraint_pairs(problems: list[Problem], per_class: int = 10, seed: 
     return sampled
 
 
+def save_sample_file(path: Path | str, items: list[str] | list[dict]) -> None:
+    """Save sample IDs or pair records to JSON with sorted keys, 2-space indent, and a trailing newline."""
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    payload = json.dumps(items, indent=2, sort_keys=True) + "\n"
+    with target.open("w", encoding="utf-8", newline="\n") as file:
+        file.write(payload)
+
+
+def load_sample_file(path: Path | str, data_dir: Path = DATA_DIR) -> list[Problem]:
+    """Load Problem records referenced by a sample JSON file.
+
+    Supports both ID lists and pair objects containing 'original' and 'augmented' fields.
+    """
+    target = Path(path)
+    with target.open(encoding="utf-8") as file:
+        data = json.load(file)
+
+    problem_ids: list[str] = []
+    if isinstance(data, list):
+        for entry in data:
+            if isinstance(entry, str):
+                problem_ids.append(entry)
+            elif isinstance(entry, dict) and "original" in entry and "augmented" in entry:
+                problem_ids.append(entry["original"])
+                problem_ids.append(entry["augmented"])
+            else:
+                raise ValueError(f"Unrecognized entry in sample file {path}: {entry}")
+    else:
+        raise ValueError(f"Sample file {path} must contain a list, got {type(data).__name__}")
+
+    split_caches: dict[str, dict[str, Problem]] = {}
+    loaded_problems: list[Problem] = []
+
+    for pid in problem_ids:
+        split = pid.partition("-")[0]
+        if split not in split_caches:
+            split_caches[split] = {p.problem_id: p for p in load_split(split, data_dir=data_dir)}
+        if pid not in split_caches[split]:
+            raise KeyError(f"Problem ID '{pid}' from sample file {path} not found in split '{split}'.")
+        loaded_problems.append(split_caches[split][pid])
+
+    return loaded_problems
+
+
 def _to_float(value) -> float | None:
     try:
         return float(value)
