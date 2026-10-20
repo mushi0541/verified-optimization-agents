@@ -72,3 +72,45 @@ def test_sample_ablation_subset_is_strict_subset(tmp_path):
     ablation_ids = {p.problem_id for p in ablation_sample}
     assert ablation_ids.issubset(canonical_ids)
     assert len(ablation_ids) < len(canonical_ids)
+
+
+def test_constraint_pairing_logic():
+    from optverify.contracts import Problem
+    from optverify.data import match_inventory_pairs, match_knapsack_pairs, match_tsp_pairs, sample_constraint_pairs
+
+    # Knapsack pair: identical items and capacity
+    k_orig_q = "Packages:\n* Item A: size 10 units, revenue 20 credits\n* Item B: size 15 units, revenue 30 credits\nCapacity of 50 units."
+    k_aug_q = "Items:\n* Crate A: weight 10kg, profit 20 units\n* Crate B: weight 15kg, profit 30 units\nExtra constraint.\nVehicle payload limit of 50."
+    k_orig = Problem("constraint-0001", k_orig_q, 50.0, "Knapsack", 2, "constraint", {"constraint_type": "original"})
+    k_aug = Problem("constraint-0501", k_aug_q, 45.0, "Knapsack", 2, "constraint", {"constraint_type": "augmented"})
+
+    # TSP pair: 3-node graph with 3 edges in orig, 2 edges in aug (1 forbidden)
+    t_orig_q = "Stations:\nA to B: 10.0\nA to C: 20.0\nB to C: 30.0"
+    t_aug_q = "Stations:\nA to B: 10.0\nB to C: 30.0\nPath A to C is forbidden."
+    t_orig = Problem("constraint-0002", t_orig_q, 60.0, "TSP", 3, "constraint", {"constraint_type": "original"})
+    t_aug = Problem("constraint-0502", t_aug_q, 70.0, "TSP", 3, "constraint", {"constraint_type": "augmented"})
+
+    # Inventory pair: same class and size
+    i_orig = Problem("constraint-0003", "Inv orig question", 100.0, "Inventory", 5, "constraint", {"constraint_type": "original"})
+    i_aug = Problem("constraint-0503", "Inv aug question", 120.0, "Inventory", 5, "constraint", {"constraint_type": "augmented"})
+
+    problems = [k_orig, k_aug, t_orig, t_aug, i_orig, i_aug]
+
+    kp = match_knapsack_pairs(problems)
+    assert len(kp) == 1
+    assert kp[0]["original"] == "constraint-0001" and kp[0]["augmented"] == "constraint-0501"
+    assert kp[0]["pairing"] == "matched_data"
+
+    tp = match_tsp_pairs(problems)
+    assert len(tp) == 1
+    assert tp[0]["original"] == "constraint-0002" and tp[0]["augmented"] == "constraint-0502"
+    assert tp[0]["pairing"] == "matched_data"
+
+    ip = match_inventory_pairs(problems, seed=0)
+    assert len(ip) == 1
+    assert ip[0]["original"] == "constraint-0003" and ip[0]["augmented"] == "constraint-0503"
+    assert ip[0]["pairing"] == "class_and_size"
+
+    sampled = sample_constraint_pairs(problems, per_class=1, seed=0)
+    assert len(sampled) == 3
+    assert [p["pair_id"] for p in sampled] == [0, 1, 2]
