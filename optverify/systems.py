@@ -85,7 +85,7 @@ def run_pipeline(
         spec=spec,
         verifier=report,
         decision=decision,
-        explanation=roles.explain(decision, report),
+        explanation=roles.explain(decision, report, final.solve.variables),
         usage_by_step=steps,
     )
 

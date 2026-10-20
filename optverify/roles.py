@@ -50,7 +50,11 @@ def paraphrase(question: str, llm: LLM, usage: TokenUsage) -> str:
     return reply.text.strip()
 
 
-def explain(decision: Decision, report: VerifierReport) -> str:
+def explain(
+    decision: Decision,
+    report: VerifierReport,
+    variables: dict[str, float] | None = None,
+) -> str:
     """Plain-language note for the operations user. Deterministic, so it costs no tokens."""
     if decision.action == "answer":
         opening = f"Recommended plan found. Optimal objective value: {decision.answer:g}."
@@ -61,7 +65,13 @@ def explain(decision: Decision, report: VerifierReport) -> str:
     checks = f"Checks: number coverage {report.number_coverage:.0%}"
     if report.paraphrase_agreement is not None:
         checks += f", reworded-question agreement {report.paraphrase_agreement:.0%}"
-    return " ".join([opening, checks + ".", *decision.reasons])
+    summary = " ".join([opening, checks + ".", *decision.reasons])
+    if decision.action != "answer" or not variables:
+        return summary
+    lines = [summary]
+    for name, value in sorted(variables.items()):
+        lines.append(f"{name}: {value:g}")
+    return "\n".join(lines)
 
 
 def _first_json_object(text: str) -> dict | None:
