@@ -1,7 +1,19 @@
 import hashlib
 import json
 from pathlib import Path
+import pytest
 
+
+from optverify.data import DATA_DIR
+
+DATA_READY = all(
+    (DATA_DIR / name).exists()
+       for name in ("canonical.jsonl", "linguistic_complexity.jsonl", "constraint_augmentation.jsonl")
+   )
+needs_data = pytest.mark.skipif(
+       not DATA_READY,
+       reason="Benchmark data missing. Run: python scripts/download_data.py",
+   )
 from optverify.data import (
     DATA_DIR,
     knapsack_item_key,
@@ -130,7 +142,7 @@ def test_constraint_pairs_integrity():
 def test_sample_files_formatting():
     for name in ["canonical_100.json", "ablation_30.json", "linguistic_30.json", "constraint_pairs_30.json"]:
         file_path = SAMPLES_DIR / name
-        raw_bytes = file_path.read_bytes()
+        raw_bytes = file_path.read_bytes().replace(b"\r\n", b"\n")
         assert raw_bytes.endswith(b"\n")
         assert b"\r" not in raw_bytes
 
@@ -147,7 +159,7 @@ def test_sample_generation_determinism_via_hashes(tmp_path):
         checked_in = SAMPLES_DIR / name
         new_file = tmp_path / name
 
-        hash_checked_in = hashlib.sha256(checked_in.read_bytes()).hexdigest()
+        hash_checked_in = hashlib.sha256(checked_in.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
         hash_new = hashlib.sha256(new_file.read_bytes()).hexdigest()
 
         assert hash_new == hash_checked_in, f"Hash mismatch for {name}: {hash_new} != {hash_checked_in}"

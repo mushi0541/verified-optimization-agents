@@ -4,6 +4,16 @@ import pytest
 
 from optverify.data import load_sample_file
 from optverify.run import parse_args
+from optverify.data import DATA_DIR
+
+DATA_READY = all(
+    (DATA_DIR / name).exists()
+    for name in ("canonical.jsonl", "linguistic_complexity.jsonl", "constraint_augmentation.jsonl")
+)
+needs_data = pytest.mark.skipif(
+    not DATA_READY,
+    reason="Benchmark data missing. Run: python scripts/download_data.py",
+)
 
 
 def test_default_arguments_without_sample_file():
@@ -42,6 +52,7 @@ def test_sample_file_combined_with_seed_fails(capsys):
     assert "--sample-file cannot be combined with --per-class or --seed" in captured.err
 
 
+@needs_data
 def test_sample_file_loads_problems_and_pairs():
     # Canonical sample file loads 100 problems
     canonical_args = parse_args(["baseline", "--model", "dummy", "--sample-file", "samples/canonical_100.json"])
