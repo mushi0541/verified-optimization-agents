@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 import random
 
+import pulp
+
 
 @dataclass(frozen=True)
 class Shift:
@@ -94,8 +96,8 @@ def generate_crew_scenario(num_shifts: int, num_workers: int, seed: int) -> Crew
 def build_crew_rostering_question(scenario: CrewRosteringScenario) -> str:
     """Build natural-language question text stating all parameters."""
     lines = [
-        "An airport ground handling service must roster personnel across daily operating shifts to minimize total staffing costs.",
-        f"Under labor safety regulations, no worker may be scheduled to work more than {scenario.max_consecutive} consecutive shifts without a rest period.",
+        "An airport ground handling service must roster personnel across operating shifts to minimize total staffing costs.",
+        "Under labor safety regulations, shifts run in the order Shift_1, Shift_2, ..., Shift_n, with no wrap-around from the last shift to the first. No worker may work more than 2 shifts in a row in this order; a shift the worker does not work breaks the run.",
         "",
         "Operational Shifts and Required Headcounts:",
     ]
@@ -104,17 +106,19 @@ def build_crew_rostering_question(scenario: CrewRosteringScenario) -> str:
 
     lines.append("")
     lines.append("Worker Roster and Availability:")
+    shift_order = {s.shift_id: i for i, s in enumerate(scenario.shifts)}
     for worker in scenario.workers:
-        avail_str = ", ".join(worker.available_shifts)
+        avail_shifts = sorted(worker.available_shifts, key=lambda s_id: shift_order.get(s_id, 0))
+        avail_str = ", ".join(avail_shifts)
         lines.append(
             f"- {worker.worker_id}: compensation is {worker.shift_cost} per shift, maximum of {worker.max_shifts} total shifts, available for: {avail_str}."
         )
 
     lines.append("")
     lines.append("Constraints and Rules:")
-    lines.append("1. Shift staffing demand must be met for each shift.")
+    lines.append("1. Each shift needs at least its required number of workers.")
     lines.append("2. Each worker cannot exceed their designated maximum total shifts.")
-    lines.append(f"3. Consecutive shifts limit: no worker can work more than {scenario.max_consecutive} consecutive shifts.")
+    lines.append(f"3. No worker may work more than {scenario.max_consecutive} shifts in a row in this order.")
     lines.append("4. A worker can only be assigned to shifts for which they are available.")
     lines.append("")
     lines.append("Objective:")
@@ -126,8 +130,6 @@ def build_crew_rostering_question(scenario: CrewRosteringScenario) -> str:
 
 def build_crew_reference_model(scenario: CrewRosteringScenario) -> pulp.LpProblem:
     """Construct the exact PuLP mixed-integer reference model for ground-crew rostering."""
-    import pulp
-
     model = pulp.LpProblem("Ground_Crew_Rostering", pulp.LpMinimize)
 
     # Decision variables: y[w, s] = 1 if worker w is assigned to shift s
@@ -188,8 +190,6 @@ def build_crew_reference_model(scenario: CrewRosteringScenario) -> pulp.LpProble
 
 def solve_crew_rostering(scenario: CrewRosteringScenario) -> float:
     """Solve the crew rostering reference model with HiGHS and return the exact optimal value."""
-    import pulp
-
     model = build_crew_reference_model(scenario)
     solver = pulp.HiGHS(msg=False)
     status = model.solve(solver)
