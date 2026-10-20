@@ -21,6 +21,17 @@ try:
     import pulp as _pulp
     print("STATUS:", _pulp.LpStatus[model.status])
     print("OBJECTIVE:", _pulp.value(model.objective))
+    if model.status == _pulp.LpStatusOptimal:
+        _vars = []
+        for _v in model.variables():
+            _val = _pulp.value(_v)
+            if _val is not None and abs(_val) > 1e-9:
+                _vars.append((_v.name, float(_val)))
+        _vars.sort(key=lambda _item: _item[0])
+        for _name, _val in _vars[:100]:
+            print("VAR:", _name, repr(_val))
+        if len(_vars) > 100:
+            print("VARS_OMITTED:", len(_vars) - 100)
 except NameError:
     pass
 """
@@ -71,7 +82,18 @@ def run_model_code(code: str | None, timeout_s: int = 180) -> SolveResult:
     status = _STATUS_NAMES.get(status_text, "not_solved") if status_text else "error"
     error = "" if status_text else "The script ran but did not define a PuLP problem named `model`."
     objective = _to_float(_last_match(r"^OBJECTIVE:\s*(\S+)\s*$", stdout)) if status == "optimal" else None
-    return SolveResult(status, objective, _tail(stdout), error, runtime)
+    variables = _parse_variables(stdout) if status == "optimal" else {}
+    return SolveResult(status, objective, _tail(stdout), error, runtime, variables)
+
+
+def _parse_variables(text: str) -> dict[str, float]:
+    variables = {}
+    for match in re.finditer(r"^VAR:\s*(\S+)\s+(\S+)$", text, re.MULTILINE):
+        try:
+            variables[match.group(1)] = float(match.group(2))
+        except ValueError:
+            pass
+    return variables
 
 
 def _last_match(pattern: str, text: str) -> str | None:
