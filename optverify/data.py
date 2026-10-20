@@ -65,6 +65,11 @@ def sample_linguistic(problems: list[Problem], per_class: int = 10, seed: int = 
     return sample_per_class(problems, per_class=per_class, seed=seed)
 
 
+def sample_ablation_subset(canonical_sample: list[Problem], per_class: int = 3, seed: int = 0) -> list[Problem]:
+    """Sample an ablation subset directly from the canonical evaluation sample with a fixed seed."""
+    return sample_per_class(canonical_sample, per_class=per_class, seed=seed)
+
+
 def _to_float(value) -> float | None:
     try:
         return float(value)

@@ -53,3 +53,22 @@ def test_sample_canonical_and_linguistic(tmp_path):
 
     linguistic_sample = sample_linguistic(problems, per_class=5, seed=0)
     assert len(linguistic_sample) == 10
+
+
+def test_sample_ablation_subset_is_strict_subset(tmp_path):
+    from optverify.data import sample_ablation_subset, sample_canonical
+
+    rows = [_row("Knapsack") for _ in range(15)] + [_row("TSP") for _ in range(15)]
+    problems = load_split("canonical", _write_split(tmp_path, rows))
+
+    canonical_sample = sample_canonical(problems, per_class=10, seed=0)
+    ablation_sample = sample_ablation_subset(canonical_sample, per_class=3, seed=0)
+
+    assert len(ablation_sample) == 6
+    assert len([p for p in ablation_sample if p.problem_class == "Knapsack"]) == 3
+    assert len([p for p in ablation_sample if p.problem_class == "TSP"]) == 3
+
+    canonical_ids = {p.problem_id for p in canonical_sample}
+    ablation_ids = {p.problem_id for p in ablation_sample}
+    assert ablation_ids.issubset(canonical_ids)
+    assert len(ablation_ids) < len(canonical_ids)
