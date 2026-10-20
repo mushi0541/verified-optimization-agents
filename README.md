@@ -37,7 +37,8 @@ operations questions into optimization models, verify those models, and answer, 
 | Generated code runs in UTF-8 mode, so printed symbols such as `≤` no longer crash it on Windows | All | `optverify/solver_tool.py` | Done; Phase 1 Run A and pipeline rerun |
 | Paraphrase agreement treats a value and its negative as the same optimum | Gap 1 | | Planned (false alarm in the Phase 1 pipeline run) |
 | Fixed evaluation samples | All | samples/, scripts/make_samples.py | Done |
-| OpsOR-Bench, interactive interface | All | | Planned (Phase 2 schedule, report Table 8) |
+| OpsOR-Bench | All | 36 problems, three families | Done |
+| Interactive interface | All | | Planned |
 | Requirement coverage, calibrated threshold | Gaps 1 and 2 | | Planned (Phase 2 schedule, report Table 8) |
 
 ## Setup
@@ -119,6 +120,14 @@ To regenerate the sample files (needs the downloaded data):
 
     python scripts/make_samples.py
 
+To run on the OpsOR-Bench operations research problems:
+
+    python -m optverify.run baseline --model <model> --split opsor
+
+To regenerate the OpsOR-Bench problem file:
+
+    python scripts/make_opsor.py
+
 ## E3 analysis (Gap 3, no API calls)
 
 Compares the pipeline and B2 at k = 1, 2, 3 from saved records. The pipeline records must come from a run with
@@ -178,6 +187,7 @@ optverify/
   contracts.py    shared data records
   data.py         OPT-Engine loader and per-class sampling
   llm.py          provider clients with token counting; request pacing in the OpenAI-compatible client
+  opsor/          OpsOR-Bench problem families and reference models
   prompts.py      prompt templates
   roles.py        parser, formalizer with repair, paraphraser, explainer
   solver_tool.py  runs generated PuLP code with HiGHS
@@ -185,8 +195,10 @@ optverify/
   systems.py      baseline (B0/B1), single agent B2 and proposed pipeline
   grading.py      correctness rule and run summaries
   run.py          command line entry point
+data/opsor/       generated OpsOR-Bench problem file
 samples/          fixed evaluation sample ID files (canonical, ablation, linguistic, constraint pairs)
 scripts/download_data.py     pinned data download
+scripts/make_opsor.py        regenerates the OpsOR-Bench file with fixed seeds
 scripts/make_samples.py      regenerates the sample files with seed 0
 scripts/analyze_e3.py        E3 equal-budget analysis from saved records
 scripts/compare_baselines.py B0 and B1 per class and the base-paper comparison
