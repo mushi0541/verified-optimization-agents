@@ -3,6 +3,8 @@
 - baseline:  base-paper style, one LLM call writes model code, then (optionally) repairs from solver errors.
 - pipeline:  proposed five-role system: parser, formalizer, solver-runner, verifier, explainer,
              plus the answer / abstain / escalate decision.
+- b2:        single agent at an equal token budget (Gap 3): B1 plus independent samples until the token budget
+             is used; answers with the most frequent optimum, scored by the agreement rate among samples.
 """
 
 import json
@@ -10,7 +12,7 @@ import time
 
 from . import prompts, roles, verifier
 from .contracts import Problem, RunRecord, TokenUsage
-from .grading import is_correct
+from .grading import is_correct, same_optimum
 from .llm import LLM
 
 
@@ -86,3 +88,84 @@ def run_pipeline(
         explanation=roles.explain(decision, report),
         usage_by_step=steps,
     )
+
+
+def run_single_agent(
+    problem: Problem,
+    llm: LLM,
+    sample_llm: LLM,
+    token_budget: float,
+    max_repairs: int = 1,
+    threshold: float = 0.8,
+    max_samples: int = 10,
+) -> RunRecord:
+    """B2. Sample 1 is B1 (llm, temperature 0); later samples use sample_llm (temperature 0.7 in the main runs).
+
+    Samples are drawn until their tokens reach token_budget (or max_samples), once per problem; smaller budget
+    levels are read from the same record with samples_within_budget. Each sample is one formalizer call with
+    up to max_repairs repairs driven by the solver status or error text, as in B1.
+    """
+    start = time.perf_counter()
+    steps: dict[str, TokenUsage] = {}
+    samples = []
+    first_prompt = prompts.BASELINE_FORMALIZE.format(question=problem.question)
+    while len(samples) < max_samples and (not samples or _tokens(TokenUsage.total(steps)) < token_budget):
+        step = steps[f"sample_{len(samples) + 1}"] = TokenUsage()
+        sampler = llm if not samples else sample_llm
+        samples.append(roles.formalize_and_solve(first_prompt, problem.question, sampler, step, max_repairs))
+
+    used = samples_within_budget([_tokens(usage) for usage in steps.values()], token_budget)
+    answer, agreement = majority_vote([attempts[-1].solve.objective for attempts in samples[:used]])
+    decision = verifier.decide_by_agreement(answer, agreement, used, threshold)
+    return RunRecord(
+        problem_id=problem.problem_id,
+        problem_class=problem.problem_class,
+        size=problem.size,
+        system=f"b2_r{max_repairs}",
+        model=llm.name,
+        reference=problem.answer,
+        predicted=decision.answer,
+        correct=is_correct(decision.answer, problem.answer),
+        attempts=samples[0],
+        usage=TokenUsage.total(steps),
+        latency_s=time.perf_counter() - start,
+        decision=decision,
+        explanation=" ".join(decision.reasons),
+        usage_by_step=steps,
+        samples=samples,
+        token_budget=token_budget,
+        sample_agreement=agreement,
+    )
+
+
+def majority_vote(objectives: list[float | None]) -> tuple[float | None, float]:
+    """B2's answer and score: the most frequent optimum among the samples and the share of samples that reach it.
+
+    Optima are compared with the verifier's tolerance, failed samples (None) count as disagreeing, and a tie
+    goes to the optimum that was found first.
+    """
+    best, best_count = None, 0
+    for candidate in objectives:
+        if candidate is None:
+            continue
+        count = sum(same_optimum(candidate, other) for other in objectives)
+        if count > best_count:
+            best, best_count = candidate, count
+    return best, (best_count / len(objectives) if objectives else 0.0)
+
+
+def samples_within_budget(sample_tokens: list[int], budget: float) -> int:
+    """How many of the first samples to use so their total tokens is closest to budget (at least one).
+
+    A tie goes to fewer samples.
+    """
+    best_count, best_gap, spent = 1, float("inf"), 0
+    for count, tokens in enumerate(sample_tokens, start=1):
+        spent += tokens
+        if abs(spent - budget) < best_gap:
+            best_count, best_gap = count, abs(spent - budget)
+    return best_count
+
+
+def _tokens(usage: TokenUsage) -> int:
+    return usage.input_tokens + usage.output_tokens
