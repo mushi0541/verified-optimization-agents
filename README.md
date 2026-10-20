@@ -5,6 +5,7 @@ operations questions into optimization models, verify those models, and answer, 
 
 - Base paper: OPT-Engine (Chen et al., ICML 2026), benchmark C^3-Bench.
 - Architecture, gap mapping and data contracts: [docs/architecture.md](docs/architecture.md)
+- Phase 1 report (submitted): [docs/phase1/Phase1_G1-01_23I-0541.pdf](docs/phase1/Phase1_G1-01_23I-0541.pdf), LaTeX source in `docs/phase1/latex/`
 
 ## What is in Phase 1
 
@@ -82,6 +83,7 @@ optverify/
 scripts/download_data.py
 tests/
 docs/architecture.md
+docs/phase1/      submitted Phase 1 report (PDF and LaTeX source)
 results/          saved runs
 ```
 
