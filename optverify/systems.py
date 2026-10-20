@@ -60,13 +60,13 @@ def run_pipeline(
     other_objectives = []
     if final.solve.status == "optimal":
         for run_number in range(1, paraphrases + 1):
-            # One step per paraphrase run (paraphraser call plus its formalizer call), so lower k can be read
-            # from saved records by dropping the last runs.
+            # One step per paraphrase run (paraphraser call plus its formalizer call, and the retry when the first
+            # try returns no optimum), so lower k can be read from saved records by dropping the last runs.
             step = steps[f"paraphrase_{run_number}"] = TokenUsage()
-            reworded = roles.paraphrase(problem.question, llm, step)
-            reworded_prompt = prompts.BASELINE_FORMALIZE.format(question=reworded)
-            reworded_attempts = roles.formalize_and_solve(reworded_prompt, reworded, llm, step, max_repairs=0)
-            other_objectives.append(reworded_attempts[-1].solve.objective)
+            objective = _reworded_optimum(problem.question, llm, step)
+            if objective is None:  # retry once, so a failed run is not mistaken for a disagreement
+                objective = _reworded_optimum(problem.question, llm, step)
+            other_objectives.append(objective)
 
     report = verifier.build_report(problem.question, final.code, final.solve.status, final.solve.objective, other_objectives)
     decision = verifier.decide(report, final.solve.objective, threshold)
@@ -88,6 +88,14 @@ def run_pipeline(
         explanation=roles.explain(decision, report),
         usage_by_step=steps,
     )
+
+
+def _reworded_optimum(question: str, llm: LLM, usage: TokenUsage) -> float | None:
+    """Reword the question and solve it with the baseline prompt and no repair; None if no optimum is found."""
+    reworded = roles.paraphrase(question, llm, usage)
+    reworded_prompt = prompts.BASELINE_FORMALIZE.format(question=reworded)
+    attempts = roles.formalize_and_solve(reworded_prompt, reworded, llm, usage, max_repairs=0)
+    return attempts[-1].solve.objective
 
 
 def run_single_agent(
