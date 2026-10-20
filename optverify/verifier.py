@@ -27,13 +27,18 @@ def numbers_in(text: str) -> set[float]:
 def without_index_numbers(text: str) -> str:
     """Remove item labels such as "Package 3" or "Leg 2", which name items instead of giving data.
 
-    A capitalized word counts as a label when it is followed by at least two different integers in the text.
+    A capitalized word counts as a label when the integers after it in the text form an unbroken run of at least two
+    (1, 2, 3 or 4, 5, 6, 7). A repeated word with other numbers, such as "Each 30 ... Each 45", keeps them as data.
     """
-    numbers_per_word: dict[str, set[str]] = {}
+    numbers_per_word: dict[str, set[int]] = {}
     for word, number in _LABELLED_NUMBER.findall(text):
-        numbers_per_word.setdefault(word, set()).add(number)
-    labels = {word for word, numbers in numbers_per_word.items() if len(numbers) >= 2}
+        numbers_per_word.setdefault(word, set()).add(int(number))
+    labels = {word for word, numbers in numbers_per_word.items() if _is_unbroken_run(numbers)}
     return _LABELLED_NUMBER.sub(lambda match: f"{match[1]} #" if match[1] in labels else match[0], text)
+
+
+def _is_unbroken_run(numbers: set[int]) -> bool:
+    return len(numbers) >= 2 and max(numbers) - min(numbers) == len(numbers) - 1
 
 
 def number_coverage(question: str, code: str) -> tuple[float, list[str]]:
