@@ -1,0 +1,2 @@
+# Sample files are compared byte for byte, so keep LF line endings on every system.
+samples/*.json text eol=lf
