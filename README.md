@@ -28,10 +28,13 @@ operations questions into optimization models, verify those models, and answer, 
 | Token use per step (`parse`, `formalize`, `repair`, `paraphrase_<j>`, `sample_<i>`) | Gap 3 | `RunRecord.usage_by_step` in `optverify/contracts.py` | Done |
 | Single agent B2 at an equal token budget | Gap 3 | `optverify/systems.py` `run_single_agent`, `python -m optverify.run b2` | Done; runs pending |
 | E3 analysis: pipeline against B2 at k = 1, 2, 3 | Gap 3 | `scripts/analyze_e3.py` | Done; needs the k = 3 pipeline and B2 runs |
-| B0 and B1 per class, and the base-paper comparison | Baselines | `scripts/compare_baselines.py` | Done; needs the B1 runs and the paper values |
-| Offline tests for every module | All | `tests/` | Done |
-| Output cap fitted to the per-minute limit, fixed evaluation samples, OpsOR-Bench, interactive interface | All | | Planned (Phase 2 schedule, report Table 8) |
-| Requirement coverage, retried paraphrase runs, calibrated threshold | Gaps 1 and 2 | | Planned (Phase 2 schedule, report Table 8) |
+| B0 and B1 per class, and the base-paper comparison | Baselines | `scripts/compare_baselines.py`, paper values in `docs/paper_sir.json` | Done; needs the B1 runs |
+| E3 plots: accuracy-cost and risk-coverage curves | Gap 3 | `scripts/plot_e3.py` | Assigned (issue #9) |
+| Offline tests for the deterministic parts, run on every pull request | All | `tests/`, `.github/workflows/tests.yml` | Done |
+| Output cap fitted to the per-minute token limit (a rejected request is sent once more) | All | `optverify/llm.py` `fitted_output_cap` | Done |
+| Failed paraphrase runs retried once and left out of the agreement; number coverage ignores item labels and accepts percentages written as fractions | Gap 1 | `optverify/systems.py`, `optverify/verifier.py` | Done; checked on the 10 Phase 1 problems (see below) |
+| Fixed evaluation samples, OpsOR-Bench, interactive interface | All | | Planned (Phase 2 schedule, report Table 8) |
+| Requirement coverage, calibrated threshold | Gaps 1 and 2 | | Planned (Phase 2 schedule, report Table 8) |
 
 ## Setup
 
@@ -125,16 +128,22 @@ line at the 50% coverage used for H3).
 ## B0 and B1 against the base paper (no API calls)
 
 ```bash
-python scripts/compare_baselines.py --baseline results/<baseline r1 run>/records.jsonl --paper paper_sir.json --markdown
+python scripts/compare_baselines.py --baseline results/<baseline r1 run>/records.jsonl --paper docs/paper_sir.json --markdown
 ```
 
 B0 is read from the first attempt of each B1 record. Per class and overall, the script reports B0 and B1 accuracy at
 the 0.2% rule and at the paper's stricter 0.1% rule (with exact 95% intervals), solved rate, silent failures (optimal
 status but a wrong value), problems fixed and broken by the repair round with a McNemar test, and tokens and calls.
-`--paper` is optional: a JSON file with the base paper's SIR accuracy per class, entered by hand from the paper, for
-example `{"Knapsack": {"sir_accuracy": 0.95, "source": "Table 3, DeepSeek-V3.2"}}`. Class names must match the data
-(`BinPacking`, `Inventory`, `JobShop`, `Knapsack`, `NetworkFlow`, `Pollution`, `Portfolio`, `Production`, `TSP`,
-`Transportation`).
+`--paper` is optional: a JSON file with the base paper's SIR accuracy per class, entered by hand from the paper.
+Class names must match the data (`BinPacking`, `Inventory`, `JobShop`, `Knapsack`, `NetworkFlow`, `Pollution`,
+`Portfolio`, `Production`, `TSP`, `Transportation`).
+
+`docs/paper_sir.json` holds the values we use. They come from the paper's Table 2 (DeepSeek-V3.2, SIR), the only
+per-class SIR numbers the paper gives in a table: TSP, Knapsack and NetworkFlow. The other seven classes are shown
+only in plots, so they have no paper value. Each value is the mean of the Easy, Medium and Hard accuracy, because the
+paper does not say which sizes belong to each tier. The paper grades at a 0.1% relative error, so compare it with B0
+at the 0.1% rule. The model and the solver differ from ours (DeepSeek-V3.2 and Gurobi), so this column gives context;
+our own B0 on the same problems is the baseline.
 
 ## Evaluation rule
 
@@ -161,6 +170,7 @@ scripts/compare_baselines.py B0 and B1 per class and the base-paper comparison
 scripts/plot_e3.py           E3 accuracy-cost and risk-coverage plots
 tests/
 docs/architecture.md
+docs/paper_sir.json  base-paper SIR accuracy per class, for compare_baselines.py
 docs/phase1/      submitted Phase 1 report (PDF and LaTeX source)
 results/          saved runs
 ```
@@ -216,6 +226,33 @@ Same model, one canonical problem per class, `--paraphrases 2 --repairs 1`, fixe
 
 Both wrong models (Inventory, Pollution Control) were refused. Both escalations were false alarms caused by paraphrase
 runs that returned no optimum; Phase 2 will retry such runs and score them separately from a true disagreement.
+
+### Re-run after the first Phase 2 fixes
+
+**What changed in the code.** Four fixes from the Phase 1 observations:
+- requests above the per-minute limit now get an output cap fitted to that limit and are retried once;
+- a failed paraphrase run is retried once, and a run that still fails is not counted as a disagreement;
+- number coverage ignores item labels such as "Package 3";
+- a percentage written as a fraction (24% as 0.24) counts as used.
+
+**The run.** The same 10 problems and settings (`results/pipeline_openai-openai-gpt-oss-120b_canonical_r1_20261020-1109/`).
+
+| Measure | Value |
+|---|---|
+| Problems completed | 10 of 10 |
+| Answered / escalated / abstained | 7 / 3 / 0 |
+| Selective accuracy | 100% (7 of 7 answers correct) |
+| Wrong-accept rate | 0% (0 of 7) |
+| Accuracy of the final model, before the decision | 80% (8 of 10) |
+| Mean tokens per problem | 8,251 input + 10,796 output, 7.1 LLM calls |
+
+**What happened.**
+- TSP and Transportation now complete, and both answers are correct.
+- Both wrong models (Inventory, Pollution Control) were escalated because their reworded runs disagreed.
+- There was one false alarm: in Production, both reworded runs agreed on an optimum different from the correct main model.
+
+These 10 problems are the ones that revealed the issues, so this run checks the fixes; it is not an evaluation. Token use
+is higher than in Phase 1 because the two largest problems now complete.
 
 ## Notes
 

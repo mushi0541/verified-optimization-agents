@@ -10,6 +10,8 @@ from .contracts import Decision, VerifierReport
 from .grading import same_optimum
 
 _NUMBER = re.compile(r"(?<![\w.])-?\d+(?:,\d{3})*(?:\.\d+)?")
+_LABELLED_NUMBER = re.compile(r"\b([A-Z][a-z]+) (\d+)\b(?![.,]\d)")
+_PERCENT = re.compile(r"(?<![\w.])(\d+(?:\.\d+)?)\s?%")
 
 
 def numbers_in(text: str) -> set[float]:
@@ -22,21 +24,46 @@ def numbers_in(text: str) -> set[float]:
     return values
 
 
+def without_index_numbers(text: str) -> str:
+    """Remove item labels such as "Package 3" or "Leg 2", which name items instead of giving data.
+
+    A capitalized word counts as a label when it is followed by at least two different integers in the text.
+    """
+    numbers_per_word: dict[str, set[str]] = {}
+    for word, number in _LABELLED_NUMBER.findall(text):
+        numbers_per_word.setdefault(word, set()).add(number)
+    labels = {word for word, numbers in numbers_per_word.items() if len(numbers) >= 2}
+    return _LABELLED_NUMBER.sub(lambda match: f"{match[1]} #" if match[1] in labels else match[0], text)
+
+
 def number_coverage(question: str, code: str) -> tuple[float, list[str]]:
-    """Share of the question's numbers that also appear in the model code (Gap 1, data coverage)."""
-    needed = numbers_in(question)
+    """Share of the question's data numbers that also appear in the model code (Gap 1, data coverage).
+
+    Item labels are ignored, and a percentage also counts as present when the code uses it as a fraction (24% as 0.24).
+    """
+    needed = numbers_in(without_index_numbers(question))
     if not needed:
         return 1.0, []
     present = numbers_in(code)
-    missing = sorted(value for value in needed if value not in present)
+    present_rounded = {round(value, 9) for value in present}
+    percents = {float(token) for token in _PERCENT.findall(question)}
+
+    def is_used(value: float) -> bool:
+        return value in present or (value in percents and round(value / 100, 9) in present_rounded)
+
+    missing = sorted(value for value in needed if not is_used(value))
     return 1 - len(missing) / len(needed), [f"{value:g}" for value in missing]
 
 
 def paraphrase_agreement(main_objective: float | None, other_objectives: list[float | None]) -> float | None:
-    """Share of reworded-question runs that reach the same optimum as the main run (Gap 1)."""
-    if not other_objectives:
+    """Share of reworded-question runs that reach the same optimum as the main run (Gap 1).
+
+    Runs that returned no optimum are left out: a failed run is not evidence of a different answer.
+    """
+    solved = [other for other in other_objectives if other is not None]
+    if not solved:
         return None
-    return sum(same_optimum(main_objective, other) for other in other_objectives) / len(other_objectives)
+    return sum(same_optimum(main_objective, other) for other in solved) / len(solved)
 
 
 def build_report(
@@ -68,6 +95,9 @@ def decide(report: VerifierReport, objective: float | None, threshold: float) ->
         reasons.append("Numbers from the question not used in the model: " + ", ".join(report.missing_numbers[:10]) + ".")
     if report.paraphrase_agreement is not None and report.paraphrase_agreement < 1:
         reasons.append("Reworded versions of the question gave different optimal values.")
+    failed_runs = report.paraphrase_objectives.count(None)
+    if failed_runs:
+        reasons.append(f"{failed_runs} reworded run(s) returned no optimum after a retry and were not counted.")
     return _answer_or_escalate(report.score, objective, threshold, reasons)
 
 

@@ -1,0 +1,14 @@
+{
+  "TSP": {
+    "sir_accuracy": 0.859,
+    "source": "OPT-Engine Table 2, DeepSeek-V3.2, SIR: mean of Easy 91.7%, Medium 86.0%, Hard 80.0%"
+  },
+  "Knapsack": {
+    "sir_accuracy": 0.932,
+    "source": "OPT-Engine Table 2, DeepSeek-V3.2, SIR: mean of Easy 92.3%, Medium 91.7%, Hard 95.7%"
+  },
+  "NetworkFlow": {
+    "sir_accuracy": 1.0,
+    "source": "OPT-Engine Table 2 (Netflow), DeepSeek-V3.2, SIR: 100% at Easy, Medium and Hard"
+  }
+}

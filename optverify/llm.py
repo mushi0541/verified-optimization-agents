@@ -7,11 +7,31 @@ free tiers listed in .env.example) or "bedrock:<model id>" (paid, optional).
 
 import copy
 import os
+import re
 import threading
 import time
 from typing import Protocol
 
 from .contracts import LLMReply, TokenUsage
+
+# Free plans count the prompt plus max_tokens against a tokens-per-minute limit and reject larger requests
+# with a message such as "... tokens per minute (TPM): Limit 8000, Requested 9259 ...".
+_TPM_LIMIT_ERROR = re.compile(r"Limit (\d+), Requested (\d+)")
+MIN_ANSWER_TOKENS = 512
+
+
+def fitted_output_cap(error_message: str, max_tokens: int, margin: int = 100) -> int | None:
+    """Output cap that fits the per-minute limit, read from a "request too large" error message.
+
+    The prompt size is Requested - max_tokens, so the cap is Limit - prompt size - margin.
+    Returns None when the message has no such numbers or too little room is left for an answer.
+    """
+    match = _TPM_LIMIT_ERROR.search(error_message)
+    if match is None:
+        return None
+    limit, requested = int(match[1]), int(match[2])
+    cap = limit - (requested - max_tokens) - margin
+    return cap if cap >= MIN_ANSWER_TOKENS else None
 
 
 class LLM(Protocol):
@@ -89,6 +109,17 @@ class OpenAICompatibleLLM:
         self._pacer = _Pacer(60.0 / max_rpm if max_rpm > 0 else 0.0)
 
     def complete(self, prompt: str, max_tokens: int = 4096) -> LLMReply:
+        from openai import APIStatusError
+
+        try:
+            return self._request(prompt, max_tokens)
+        except APIStatusError as error:
+            fitted = fitted_output_cap(str(error), max_tokens)
+            if error.status_code != 413 or fitted is None:
+                raise
+            return self._request(prompt, fitted)
+
+    def _request(self, prompt: str, max_tokens: int) -> LLMReply:
         self._pacer.wait_for_turn()
         start = time.perf_counter()
         response = self.client.chat.completions.create(

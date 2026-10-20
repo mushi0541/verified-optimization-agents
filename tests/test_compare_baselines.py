@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pytest
@@ -65,3 +66,10 @@ def test_phase1_records_give_the_report_numbers():
     solved = run_a["overall"]["B0"]["solved_rate"] * 18 + run_b["overall"]["B0"]["solved_rate"] * 10
     silent = run_a["overall"]["B0"]["silent_failures"] + run_b["overall"]["B0"]["silent_failures"]
     assert (round(solved), silent) == (24, 5)  # "5 of the 24 runs that reached an optimal solver status"
+
+
+def test_paper_values_file_uses_the_data_class_names():
+    paper = json.loads((RESULTS.parent / "docs" / "paper_sir.json").read_text(encoding="utf-8"))
+    run_b = compare(load_records([str(next(RESULTS.glob("baseline_*_20261017-1250/records.jsonl")))]), paper)  # all 10 classes
+    compared = sorted(name for name, summary in run_b["classes"].items() if "paper_sir" in summary)
+    assert compared == ["Knapsack", "NetworkFlow", "TSP"]  # the only classes with SIR values in a table of the paper
