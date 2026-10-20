@@ -59,13 +59,13 @@ def test_paper_values_are_compared_at_the_strict_rule():
 
 
 def test_phase1_records_give_the_report_numbers():
-    run_a = compare(load_records([str(next(RESULTS.glob("baseline_bedrock*_20261020-1339/records.jsonl")))]))
+    run_a = compare(load_records([str(next(RESULTS.glob("baseline_bedrock*_r0_20261020-1634/records.jsonl")))]))
     run_b = compare(load_records([str(next(RESULTS.glob("baseline_bedrock*_20261020-1340/records.jsonl")))]))
-    assert run_a["overall"]["B0"]["accuracy"] == pytest.approx(18 / 30)  # 60.0% in report Table 12
+    assert run_a["overall"]["B0"]["accuracy"] == pytest.approx(20 / 30)  # 66.7% in report Table 10
     assert run_b["overall"]["B0"]["accuracy"] == pytest.approx(0.8)  # 80.0%
     solved = run_a["overall"]["B0"]["solved_rate"] * 30 + run_b["overall"]["B0"]["solved_rate"] * 10
     silent = run_a["overall"]["B0"]["silent_failures"] + run_b["overall"]["B0"]["silent_failures"]
-    assert (round(solved), silent) == (34, 8)  # "8 of the 34 runs that reached an optimal solver status"
+    assert (round(solved), silent) == (39, 11)  # "11 of the 39 runs that reached an optimal solver status"
 
 
 def test_paper_values_file_uses_the_data_class_names():

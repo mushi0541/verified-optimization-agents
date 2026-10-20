@@ -1,9 +1,10 @@
 {
-  "run": "pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_r1_20261020-1320",
+  "run": "pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_r1_20261020-1634",
   "config": {
     "system": "pipeline",
     "model": "bedrock:openai.gpt-oss-120b-1:0",
     "split": "canonical",
+    "sample_file": null,
     "per_class": 1,
     "seed": 0,
     "repairs": 1,
@@ -13,24 +14,24 @@
     "max_samples": 10,
     "sample_temperature": 0.7,
     "workers": 2,
-    "env_file": ".env"
+    "env_file": ".env",
+    "endpoint": "bedrock us-east-1"
   },
   "failed_problems": [],
   "problems": 10,
   "accuracy": 0.8,
-  "solved_rate": 0.8,
+  "solved_rate": 1.0,
   "status_counts": {
-    "error": 2,
-    "optimal": 8
+    "optimal": 10
   },
-  "mean_input_tokens": 7836.0,
-  "mean_output_tokens": 10354.2,
-  "mean_llm_calls": 6.4,
-  "mean_latency_s": 58.17577635999769,
+  "mean_input_tokens": 7847.1,
+  "mean_output_tokens": 10648.7,
+  "mean_llm_calls": 6.2,
+  "mean_latency_s": 67.16564885000116,
   "accuracy_by_class": {
     "BinPacking": 1.0,
-    "Inventory": 1.0,
-    "JobShop": 0.0,
+    "Inventory": 0.0,
+    "JobShop": 1.0,
     "Knapsack": 1.0,
     "NetworkFlow": 1.0,
     "Pollution": 0.0,
@@ -40,9 +41,8 @@
     "Transportation": 1.0
   },
   "decision_counts": {
-    "abstain": 2,
     "answer": 7,
-    "escalate": 1
+    "escalate": 3
   },
   "coverage": 0.7,
   "selective_accuracy": 1.0,

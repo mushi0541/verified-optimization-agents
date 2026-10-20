@@ -1,9 +1,10 @@
 {
-  "run": "baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_r0_20261020-1339",
+  "run": "baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_r0_20261020-1634",
   "config": {
     "system": "baseline",
     "model": "bedrock:openai.gpt-oss-120b-1:0",
     "split": "canonical",
+    "sample_file": null,
     "per_class": 3,
     "seed": 0,
     "repairs": 0,
@@ -13,30 +14,30 @@
     "max_samples": 10,
     "sample_temperature": 0.7,
     "workers": 2,
-    "env_file": ".env"
+    "env_file": ".env",
+    "endpoint": "bedrock us-east-1"
   },
   "failed_problems": [],
   "problems": 30,
-  "accuracy": 0.6,
-  "solved_rate": 0.8,
+  "accuracy": 0.6666666666666666,
+  "solved_rate": 0.9666666666666667,
   "status_counts": {
-    "error": 5,
-    "no_code": 1,
-    "optimal": 24
+    "error": 1,
+    "optimal": 29
   },
   "mean_input_tokens": 901.8666666666667,
-  "mean_output_tokens": 1887.0333333333333,
+  "mean_output_tokens": 1780.9333333333334,
   "mean_llm_calls": 1.0,
-  "mean_latency_s": 17.589120906669027,
+  "mean_latency_s": 20.823465280007802,
   "accuracy_by_class": {
-    "BinPacking": 0.6666666666666666,
+    "BinPacking": 1.0,
     "Inventory": 0.0,
     "JobShop": 0.6666666666666666,
-    "Knapsack": 1.0,
+    "Knapsack": 0.6666666666666666,
     "NetworkFlow": 1.0,
     "Pollution": 0.0,
-    "Portfolio": 0.3333333333333333,
-    "Production": 0.6666666666666666,
+    "Portfolio": 0.6666666666666666,
+    "Production": 1.0,
     "TSP": 0.6666666666666666,
     "Transportation": 1.0
   }
