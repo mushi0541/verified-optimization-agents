@@ -115,6 +115,8 @@ def run_single_agent(
         samples.append(roles.formalize_and_solve(first_prompt, problem.question, sampler, step, max_repairs))
 
     used = samples_within_budget([_tokens(usage) for usage in steps.values()], token_budget)
+    # B2 is charged only for the samples behind its answer; later samples stay in samples and usage_by_step.
+    used_steps = {name: steps[name] for name in list(steps)[:used]}
     answer, agreement = majority_vote([attempts[-1].solve.objective for attempts in samples[:used]])
     decision = verifier.decide_by_agreement(answer, agreement, used, threshold)
     return RunRecord(
@@ -127,7 +129,7 @@ def run_single_agent(
         predicted=decision.answer,
         correct=is_correct(decision.answer, problem.answer),
         attempts=samples[0],
-        usage=TokenUsage.total(steps),
+        usage=TokenUsage.total(used_steps),
         latency_s=time.perf_counter() - start,
         decision=decision,
         explanation=" ".join(decision.reasons),
@@ -135,6 +137,7 @@ def run_single_agent(
         samples=samples,
         token_budget=token_budget,
         sample_agreement=agreement,
+        samples_used=used,
     )
 
 
