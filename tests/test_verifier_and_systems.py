@@ -64,6 +64,13 @@ def test_item_labels_are_not_data():
     assert number_coverage(question, "sizes = [33, 45, 4]")[1] == ["3"]
 
 
+def test_repeated_words_with_scattered_numbers_are_data():
+    question = "Each 30 minutes a truck leaves. Each 45 minutes a van leaves. Demand is 12."
+    assert number_coverage(question, "demand = 12")[1] == ["30", "45"]
+    # A run of labels may start above 1 when other items have names, as in some TSP problems ("Office 2 ... Office 9").
+    assert number_coverage("Office 2 is 7 km away and Office 3 is 9 km away.", "distance = [7, 9]") == (1.0, [])
+
+
 def test_percentages_may_appear_as_fractions():
     assert number_coverage("loss is reduced by 24% and costs 7", "reduction = 0.24\ncost = 7") == (1.0, [])
 
