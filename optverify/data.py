@@ -8,21 +8,30 @@ from pathlib import Path
 from .contracts import Problem
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "optengine"
+OPSOR_DIR = Path(__file__).resolve().parent.parent / "data" / "opsor"
 
 SPLIT_FILES = {
     "canonical": "canonical.jsonl",
     "linguistic": "linguistic_complexity.jsonl",
     "constraint": "constraint_augmentation.jsonl",
     "objective": "objective_perturbation.jsonl",
+    "opsor": "opsor_bench.jsonl",
 }
 
 _STANDARD_FIELDS = {"question", "answer", "problem_class", "size", "experimental_type"}
 
 
-def load_split(split: str, data_dir: Path = DATA_DIR) -> list[Problem]:
-    path = data_dir / SPLIT_FILES[split]
-    if not path.exists():
-        raise FileNotFoundError(f"{path} is missing. Run: python scripts/download_data.py")
+def load_split(split: str, data_dir: Path | None = None) -> list[Problem]:
+    if split == "opsor":
+        directory = data_dir if data_dir is not None and data_dir != DATA_DIR else OPSOR_DIR
+        path = directory / SPLIT_FILES[split]
+        if not path.exists():
+            raise FileNotFoundError(f"{path} is missing. Run: python scripts/make_opsor.py")
+    else:
+        directory = data_dir if data_dir is not None else DATA_DIR
+        path = directory / SPLIT_FILES[split]
+        if not path.exists():
+            raise FileNotFoundError(f"{path} is missing. Run: python scripts/download_data.py")
 
     problems = []
     with path.open(encoding="utf-8") as file:

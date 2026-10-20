@@ -26,7 +26,7 @@ RESULTS_DIR = Path(__file__).resolve().parent.parent / "results"
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run a baseline (B0/B1 or B2) or the proposed pipeline on OPT-Engine data.")
+    parser = argparse.ArgumentParser(description="Run a baseline (B0/B1 or B2) or the proposed pipeline on OPT-Engine or OpsOR-Bench data.")
     parser.add_argument("system", choices=["baseline", "pipeline", "b2"])
     parser.add_argument("--model", required=True, help="e.g. bedrock:openai.gpt-oss-120b-1:0 or openai:openai/gpt-oss-120b")
     parser.add_argument("--split", choices=sorted(SPLIT_FILES), default="canonical")
