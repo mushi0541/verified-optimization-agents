@@ -32,12 +32,22 @@ def test_sampling_stops_at_the_token_budget():
     assert list(record.usage_by_step) == ["sample_1", "sample_2", "sample_3"]
     assert record.usage == TokenUsage.total(record.usage_by_step)
     assert record.token_budget == 2.6 * tokens
+    assert record.samples_used == 3
 
     capped = run_single_agent(TOY_PROBLEM, FakeLLM(), FakeLLM(), token_budget=100 * tokens, max_samples=4)
     assert len(capped.samples) == 4
 
     one = run_single_agent(TOY_PROBLEM, FakeLLM(), FakeLLM(), token_budget=1)
     assert len(one.samples) == 1  # sample 1 (B1) is always drawn
+
+
+def test_usage_counts_only_the_samples_behind_the_answer():
+    tokens = _sample_tokens()
+    record = run_single_agent(TOY_PROBLEM, FakeLLM(), FakeLLM(), token_budget=2.2 * tokens)
+    assert len(record.samples) == 3 and list(record.usage_by_step) == ["sample_1", "sample_2", "sample_3"]
+    assert record.samples_used == 2  # 2 samples (2.0x) are closer to the budget than 3 (3.0x)
+    assert record.usage == TokenUsage.total({name: record.usage_by_step[name] for name in ("sample_1", "sample_2")})
+    assert record.usage.input_tokens + record.usage.output_tokens == 2 * tokens
 
 
 def test_first_sample_is_b1_and_later_samples_use_the_sampling_model():

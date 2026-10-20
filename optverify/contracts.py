@@ -105,6 +105,7 @@ class RunRecord:
     samples: list[list[Attempt]] = field(default_factory=list)
     token_budget: float | None = None  # tokens per problem the samples were drawn up to
     sample_agreement: float | None = None  # B2's score: share of the used samples that reach its answer
+    samples_used: int | None = None  # B2's answer and usage come from samples[:samples_used] only
 
     def to_json(self) -> dict:
         return asdict(self)
