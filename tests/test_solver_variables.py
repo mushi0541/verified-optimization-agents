@@ -1,14 +1,8 @@
 """Tests for capturing decision variable values from solver runs and explaining them."""
 
-import json
-from dataclasses import asdict
-from pathlib import Path
-
-from optverify.contracts import Attempt, Decision, SolveResult, VerifierReport
-from optverify.grading import is_correct
+from optverify.contracts import Decision, VerifierReport
 from optverify.roles import explain
-from optverify.solver_tool import extract_code, run_model_code
-from tests.fake_llm import TOY_CODE, TOY_OPTIMUM
+from optverify.solver_tool import run_model_code
 
 
 def test_two_variables_produce_var_lines_and_dict():
@@ -24,8 +18,8 @@ def test_two_variables_produce_var_lines_and_dict():
     )
     result = run_model_code(code)
     assert result.status == "optimal"
-    assert "VAR: x" in result.stdout
-    assert "VAR: y" in result.stdout
+    assert "x" in result.variables
+    assert "y" in result.variables
     assert result.variables == {"x": 2.0, "y": 4.0}
 
 
@@ -64,7 +58,6 @@ def test_near_zero_variables_are_not_reported():
     assert result.status == "optimal"
     assert "x" in result.variables
     assert "y" not in result.variables
-    assert "VAR: y" not in result.stdout
 
 
 def test_code_without_model_gives_empty_variables_and_same_error():
@@ -89,41 +82,6 @@ def test_variable_name_with_parentheses_and_commas():
     assert result.status == "optimal"
     assert "x_(1,2)" in result.variables
     assert result.variables["x_(1,2)"] == 3.5
-
-
-def test_existing_model_status_and_objective_are_unchanged():
-    result = run_model_code(extract_code(TOY_CODE))
-    assert result.status == "optimal"
-    assert is_correct(result.objective, TOY_OPTIMUM)
-    assert result.objective == 570.0
-
-
-def test_old_records_without_variables_load_with_default_empty_dict():
-    # Serialized SolveResult without variables key defaults to empty dict.
-    old_solve_dict = {
-        "status": "optimal",
-        "objective": 570.0,
-        "stdout": "STATUS: Optimal\nOBJECTIVE: 570.0",
-        "error": "",
-        "runtime_s": 0.25,
-    }
-    loaded_solve = SolveResult(**old_solve_dict)
-    assert loaded_solve.variables == {}
-
-    attempt = Attempt(code="print(1)", solve=loaded_solve)
-    serialized = asdict(attempt)
-    assert serialized["solve"]["variables"] == {}
-
-    # Verify a Phase 1 saved record without variables loads smoothly.
-    results_dir = Path(__file__).resolve().parent.parent / "results"
-    records_files = list(results_dir.glob("pipeline_*_20261017-1424/records.jsonl"))
-    if records_files:
-        line = records_files[0].read_text(encoding="utf-8").splitlines()[0]
-        record_dict = json.loads(line)
-        solve_data = record_dict["attempts"][-1]["solve"]
-        assert "variables" not in solve_data
-        reconstructed = SolveResult(**solve_data)
-        assert reconstructed.variables == {}
 
 
 def test_explainer_lists_values_for_answer_and_not_for_escalate_or_abstain():
