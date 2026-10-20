@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 import random
 
+import pulp
+
 
 @dataclass(frozen=True)
 class EquipmentUnit:
@@ -35,8 +37,10 @@ class EquipmentDispatchScenario:
             numbers.extend([unit.fixed_cost, unit.max_hours])
         for req in self.requests:
             numbers.append(req.required_hours)
-        for cost in self.transit_costs.values():
-            numbers.append(cost)
+        for unit in self.units:
+            for req in self.requests:
+                if unit.unit_type == req.required_type:
+                    numbers.append(self.transit_costs[(unit.unit_id, req.request_id)])
         return numbers
 
 
@@ -95,7 +99,7 @@ def build_equipment_dispatch_question(scenario: EquipmentDispatchScenario) -> st
     """Build natural-language question text stating all parameters."""
     lines = [
         "An airport operations manager must dispatch ground support equipment to service aircraft stands, minimizing the total cost.",
-        "The total cost is the sum of fixed activation costs for deployed units plus transit costs between units and stands.",
+        "The total cost is the sum of fixed activation costs for deployed units plus transit costs between units and stands. All fixed and transit costs are in dollars.",
         "",
         "Available Ground Equipment Units:",
     ]
@@ -117,6 +121,7 @@ def build_equipment_dispatch_question(scenario: EquipmentDispatchScenario) -> st
         unit_costs = [
             f"{req.request_id}: {scenario.transit_costs[(unit.unit_id, req.request_id)]}"
             for req in scenario.requests
+            if unit.unit_type == req.required_type
         ]
         lines.append(f"- {unit.unit_id} -> {', '.join(unit_costs)}")
 
@@ -126,6 +131,7 @@ def build_equipment_dispatch_question(scenario: EquipmentDispatchScenario) -> st
     lines.append("2. An equipment unit can only service requests that require its specific equipment type (a loader cannot service a tug request, and vice versa).")
     lines.append("3. If an equipment unit is assigned to one or more requests, its fixed activation cost is incurred.")
     lines.append("4. Total service hours assigned to an active unit cannot exceed its maximum operating hours capacity.")
+    lines.append("5. Each assigned request uses its required duration in hours from the unit's capacity.")
     lines.append("")
     lines.append("Objective:")
     lines.append("Determine the valid dispatch assignment that minimizes total cost (sum of activation costs for active units plus transit costs for assigned requests).")
@@ -140,8 +146,6 @@ def unit_type_label(u_type: str) -> str:
 
 def build_equipment_reference_model(scenario: EquipmentDispatchScenario) -> pulp.LpProblem:
     """Construct the exact PuLP mixed-integer reference model for equipment dispatch."""
-    import pulp
-
     model = pulp.LpProblem("Airport_Equipment_Dispatch", pulp.LpMinimize)
 
     # Decision variables
@@ -208,8 +212,6 @@ def build_equipment_reference_model(scenario: EquipmentDispatchScenario) -> pulp
 
 def solve_equipment_dispatch(scenario: EquipmentDispatchScenario) -> float:
     """Solve the equipment dispatch reference model with HiGHS and return the exact optimal value."""
-    import pulp
-
     model = build_equipment_reference_model(scenario)
     solver = pulp.HiGHS(msg=False)
     status = model.solve(solver)
@@ -260,7 +262,10 @@ def create_equipment_dispatch_instance(size: int, seed: int) -> OpsORInstance:
             for r in scenario.requests
         ],
         "transit_costs": {
-            f"{u_id}->{r_id}": cost for (u_id, r_id), cost in scenario.transit_costs.items()
+            f"{u.unit_id}->{r.request_id}": scenario.transit_costs[(u.unit_id, r.request_id)]
+            for u in scenario.units
+            for r in scenario.requests
+            if u.unit_type == r.required_type
         },
     }
 
