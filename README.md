@@ -34,7 +34,8 @@ operations questions into optimization models, verify those models, and answer, 
 | Output cap fitted to the per-minute token limit (a rejected request is sent once more) | All | `optverify/llm.py` `fitted_output_cap` | Done |
 | Failed paraphrase runs retried once and left out of the agreement; number coverage ignores item labels, accepts percentages written as fractions and reads commas in code as separators between values | Gap 1 | `optverify/systems.py`, `optverify/verifier.py` | Done; checked on the 10 Phase 1 problems (see below) |
 | Main provider switched to Amazon Bedrock (same model) | All | `optverify/llm.py` `BedrockLLM` | Done; all Phase 1 results rerun on Bedrock |
-| Fixed evaluation samples, OpsOR-Bench, interactive interface | All | | Planned (Phase 2 schedule, report Table 8) |
+| Fixed evaluation samples | All | samples/, scripts/make_samples.py | Done |
+| OpsOR-Bench, interactive interface | All | | Planned (Phase 2 schedule, report Table 8) |
 | Requirement coverage, calibrated threshold | Gaps 1 and 2 | | Planned (Phase 2 schedule, report Table 8) |
 
 ## Setup
@@ -182,7 +183,9 @@ optverify/
   systems.py      baseline (B0/B1), single agent B2 and proposed pipeline
   grading.py      correctness rule and run summaries
   run.py          command line entry point
+samples/          fixed evaluation sample ID files (canonical, ablation, linguistic, constraint pairs)
 scripts/download_data.py     pinned data download
+scripts/make_samples.py      regenerates the sample files with seed 0
 scripts/analyze_e3.py        E3 equal-budget analysis from saved records
 scripts/compare_baselines.py B0 and B1 per class and the base-paper comparison
 scripts/plot_e3.py           E3 accuracy-cost and risk-coverage plots
