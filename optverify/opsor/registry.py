@@ -6,13 +6,13 @@ import json
 from pathlib import Path
 
 from optverify.contracts import Problem
+from optverify.data import OPSOR_DIR
 from .base import OpsORInstance
 from .crew_rostering import create_crew_rostering_instance
 from .equipment_dispatch import create_equipment_dispatch_instance
 from .gate_assignment import create_gate_assignment_instance
 
-OPSOR_DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "opsor"
-DEFAULT_OPSOR_PATH = OPSOR_DATA_DIR / "opsor_bench.jsonl"
+DEFAULT_OPSOR_PATH = OPSOR_DIR / "opsor_bench.jsonl"
 
 # Family instance generator dispatch
 FAMILY_GENERATORS = {
