@@ -1,0 +1,43 @@
+{
+  "run": "baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_100_r1_20261020-1622",
+  "config": {
+    "system": "baseline",
+    "model": "bedrock:openai.gpt-oss-120b-1:0",
+    "split": "canonical",
+    "sample_file": "samples\\canonical_100.json",
+    "per_class": null,
+    "seed": null,
+    "repairs": 1,
+    "paraphrases": 2,
+    "threshold": 0.8,
+    "budget_tokens": null,
+    "max_samples": 10,
+    "sample_temperature": 0.7,
+    "workers": 2,
+    "env_file": ".env",
+    "endpoint": "bedrock us-east-1"
+  },
+  "failed_problems": [],
+  "problems": 100,
+  "accuracy": 0.8,
+  "solved_rate": 1.0,
+  "status_counts": {
+    "optimal": 100
+  },
+  "mean_input_tokens": 902.01,
+  "mean_output_tokens": 1819.33,
+  "mean_llm_calls": 1.03,
+  "mean_latency_s": 13.673836735994556,
+  "accuracy_by_class": {
+    "BinPacking": 1.0,
+    "Inventory": 0.4,
+    "JobShop": 1.0,
+    "Knapsack": 1.0,
+    "NetworkFlow": 1.0,
+    "Pollution": 0.0,
+    "Portfolio": 0.7,
+    "Production": 0.9,
+    "TSP": 1.0,
+    "Transportation": 1.0
+  }
+}
