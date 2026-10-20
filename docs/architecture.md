@@ -60,6 +60,7 @@ All stages exchange the dataclasses in `optverify/contracts.py`:
 - `VerifierReport`: feasibility, number coverage, missing numbers, paraphrase agreement, reworded-run objectives, score
 - `Decision`: action (answer, abstain, escalate), answer, reasons
 - `RunRecord`: problem identifiers and reference answer, attempts (each with its solve result), parser specification, verifier report, decision, explanation, token usage and latency; saved one per line in `results/<run>/records.jsonl`
+- `RunRecord.usage_by_step`: token use of each step (`parse`, `formalize`, `repair`, and `paraphrase_1` ... `paraphrase_k`, each covering that run's paraphraser and formalizer calls); the steps add up to `usage`. Records saved before Phase 2 have no steps
 
 ## Tools and external systems
 
