@@ -1,8 +1,9 @@
 """Model clients.
 
 Both clients return the same LLMReply, so the rest of the code does not depend on the provider.
-Model spec format: "openai:<model name>" (any OpenAI-compatible endpoint, the default route for the
-free tiers listed in .env.example) or "bedrock:<model id>" (paid, optional).
+Model spec format: "bedrock:<model id>" (Amazon Bedrock, the main provider, for example
+bedrock:openai.gpt-oss-120b-1:0) or "openai:<model name>" (any OpenAI-compatible endpoint, such as the free
+tiers listed in .env.example).
 """
 
 import copy

@@ -1,0 +1,50 @@
+{
+  "run": "pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_r1_20261020-1320",
+  "config": {
+    "system": "pipeline",
+    "model": "bedrock:openai.gpt-oss-120b-1:0",
+    "split": "canonical",
+    "per_class": 1,
+    "seed": 0,
+    "repairs": 1,
+    "paraphrases": 2,
+    "threshold": 0.8,
+    "budget_tokens": null,
+    "max_samples": 10,
+    "sample_temperature": 0.7,
+    "workers": 2,
+    "env_file": ".env"
+  },
+  "failed_problems": [],
+  "problems": 10,
+  "accuracy": 0.8,
+  "solved_rate": 0.8,
+  "status_counts": {
+    "error": 2,
+    "optimal": 8
+  },
+  "mean_input_tokens": 7836.0,
+  "mean_output_tokens": 10354.2,
+  "mean_llm_calls": 6.4,
+  "mean_latency_s": 58.17577635999769,
+  "accuracy_by_class": {
+    "BinPacking": 1.0,
+    "Inventory": 1.0,
+    "JobShop": 0.0,
+    "Knapsack": 1.0,
+    "NetworkFlow": 1.0,
+    "Pollution": 0.0,
+    "Portfolio": 1.0,
+    "Production": 1.0,
+    "TSP": 1.0,
+    "Transportation": 1.0
+  },
+  "decision_counts": {
+    "abstain": 2,
+    "answer": 7,
+    "escalate": 1
+  },
+  "coverage": 0.7,
+  "selective_accuracy": 1.0,
+  "wrong_accept_rate": 0.0
+}
