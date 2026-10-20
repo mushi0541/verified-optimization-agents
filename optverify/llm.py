@@ -5,6 +5,7 @@ Model spec format: "openai:<model name>" (any OpenAI-compatible endpoint, the de
 free tiers listed in .env.example) or "bedrock:<model id>" (paid, optional).
 """
 
+import copy
 import os
 import threading
 import time
@@ -17,6 +18,23 @@ class LLM(Protocol):
     name: str
 
     def complete(self, prompt: str, max_tokens: int = 4096) -> LLMReply: ...
+
+
+class _Pacer:
+    """Spaces out requests so that at most one starts every min_interval_s seconds."""
+
+    def __init__(self, min_interval_s: float):
+        self.min_interval_s = min_interval_s
+        self._lock = threading.Lock()
+        self._next_request_at = 0.0
+
+    def wait_for_turn(self) -> None:
+        with self._lock:
+            now = time.monotonic()
+            wait_s = self._next_request_at - now
+            self._next_request_at = max(now, self._next_request_at) + self.min_interval_s
+        if wait_s > 0:
+            time.sleep(wait_s)
 
 
 class BedrockLLM:
@@ -68,20 +86,10 @@ class OpenAICompatibleLLM:
             timeout=300,
         )
         max_rpm = float(os.getenv("LLM_MAX_RPM", "0") or 0)
-        self.min_interval_s = 60.0 / max_rpm if max_rpm > 0 else 0.0
-        self._lock = threading.Lock()
-        self._next_request_at = 0.0
-
-    def _wait_for_turn(self) -> None:
-        with self._lock:
-            now = time.monotonic()
-            wait_s = self._next_request_at - now
-            self._next_request_at = max(now, self._next_request_at) + self.min_interval_s
-        if wait_s > 0:
-            time.sleep(wait_s)
+        self._pacer = _Pacer(60.0 / max_rpm if max_rpm > 0 else 0.0)
 
     def complete(self, prompt: str, max_tokens: int = 4096) -> LLMReply:
-        self._wait_for_turn()
+        self._pacer.wait_for_turn()
         start = time.perf_counter()
         response = self.client.chat.completions.create(
             model=self.name,
@@ -104,3 +112,11 @@ def make_llm(spec: str, temperature: float = 0.0) -> LLM:
     if provider == "openai":
         return OpenAICompatibleLLM(model, temperature)
     raise ValueError(f"Unknown provider in '{spec}'. Use 'bedrock:<model id>' or 'openai:<model>'.")
+
+
+def with_temperature(llm: LLM, temperature: float) -> LLM:
+    """A copy of a client that samples at another temperature. The copy shares the connection and the
+    request pacing of the original, so both together still respect LLM_MAX_RPM."""
+    other = copy.copy(llm)
+    other.temperature = temperature
+    return other
