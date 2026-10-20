@@ -15,7 +15,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from .data import SPLIT_FILES, load_split, sample_per_class
+from .data import SPLIT_FILES, load_sample_file, load_split, sample_per_class
 from .grading import summarize
 from .llm import make_llm, with_temperature
 from .systems import run_baseline, run_pipeline, run_single_agent
@@ -23,13 +23,14 @@ from .systems import run_baseline, run_pipeline, run_single_agent
 RESULTS_DIR = Path(__file__).resolve().parent.parent / "results"
 
 
-def main() -> None:
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run a baseline (B0/B1 or B2) or the proposed pipeline on OPT-Engine data.")
     parser.add_argument("system", choices=["baseline", "pipeline", "b2"])
     parser.add_argument("--model", required=True, help="e.g. openai:openai/gpt-oss-120b or bedrock:qwen.qwen3-32b-v1:0")
     parser.add_argument("--split", choices=sorted(SPLIT_FILES), default="canonical")
-    parser.add_argument("--per-class", type=int, default=5, help="problems sampled from each problem class")
-    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--sample-file", type=Path, help="path to a fixed evaluation sample JSON file")
+    parser.add_argument("--per-class", type=int, default=None, help="problems sampled from each problem class")
+    parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--repairs", type=int, default=0, help="solver-feedback repair rounds")
     parser.add_argument("--paraphrases", type=int, default=2, help="pipeline only: reworded runs for the verifier")
     parser.add_argument("--threshold", type=float, default=0.8, help="pipeline and b2: minimum score to answer")
@@ -40,14 +41,35 @@ def main() -> None:
     parser.add_argument("--sample-temperature", type=float, default=0.7, help="b2 only: temperature of samples 2, 3, ...")
     parser.add_argument("--workers", type=int, default=2, help="parallel problems (keep low on free tiers)")
     parser.add_argument("--env-file", default=".env")
-    args = parser.parse_args()
+    return parser
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = build_parser()
+    args = parser.parse_args(argv)
     if args.system == "b2" and not args.budget_tokens:
         parser.error("b2 needs --budget-tokens")
+    if args.sample_file:
+        if args.per_class is not None or args.seed is not None:
+            parser.error("--sample-file cannot be combined with --per-class or --seed")
+    else:
+        if args.per_class is None:
+            args.per_class = 5
+        if args.seed is None:
+            args.seed = 0
+    return args
+
+
+def main() -> None:
+    args = parse_args()
 
     load_dotenv(args.env_file, override=False)
     llm = make_llm(args.model)
     sample_llm = with_temperature(llm, args.sample_temperature)
-    problems = sample_per_class(load_split(args.split), args.per_class, args.seed)
+    if args.sample_file:
+        problems = load_sample_file(args.sample_file)
+    else:
+        problems = sample_per_class(load_split(args.split), args.per_class, args.seed)
 
     def solve(problem):
         if args.system == "baseline":
@@ -58,7 +80,8 @@ def main() -> None:
             )
         return run_pipeline(problem, llm, args.paraphrases, args.repairs, args.threshold)
 
-    run_name = f"{args.system}_{_slug(args.model)}_{args.split}_r{args.repairs}_{datetime.now():%Y%m%d-%H%M}"
+    split_tag = args.sample_file.stem if args.sample_file else args.split
+    run_name = f"{args.system}_{_slug(args.model)}_{split_tag}_r{args.repairs}_{datetime.now():%Y%m%d-%H%M}"
     out_dir = RESULTS_DIR / run_name
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -81,7 +104,7 @@ def main() -> None:
     finished = [record for record in records if "failed" not in record]
     summary = {
         "run": run_name,
-        "config": vars(args),
+        "config": {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
         "failed_problems": [record["problem_id"] for record in records if "failed" in record],
         **summarize(finished),
     }
