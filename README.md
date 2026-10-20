@@ -104,6 +104,18 @@ Each run writes `results/<run name>/records.jsonl` (one record per problem: code
 verifier report, decision) and `results/<run name>/summary.json` (accuracy, solved rate, tokens, latency,
 accuracy per class, and for the pipeline: coverage, selective accuracy and wrong-accept rate).
 
+### Fixed evaluation samples
+
+The fixed problem sets are stored as ID lists in `samples/`. To run on one, pass `--sample-file`:
+
+    python -m optverify.run baseline --model <model> --sample-file samples/canonical_100.json
+
+`--sample-file` cannot be combined with `--per-class` or `--seed`.
+
+To regenerate the sample files (needs the downloaded data):
+
+    python scripts/make_samples.py
+
 ## E3 analysis (Gap 3, no API calls)
 
 Compares the pipeline and B2 at k = 1, 2, 3 from saved records. The pipeline records must come from a run with
