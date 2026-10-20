@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 import random
 
+import pulp
+
 
 @dataclass(frozen=True)
 class Gate:
@@ -118,7 +120,9 @@ def build_gate_assignment_question(scenario: GateAssignmentScenario) -> str:
     lines.append("Constraints and Rules:")
     lines.append("1. Each flight must be assigned to exactly one gate.")
     lines.append("2. Widebody aircraft can only be assigned to gates that accept widebody aircraft. Narrowbody aircraft can use any gate.")
-    lines.append(f"3. Two flights assigned to the same gate cannot overlap in time: if flight A departs at minute D and flight B arrives at minute A' at the same gate with A' >= D, then A' must be at least D + {scenario.buffer_minutes} minutes.")
+    lines.append(
+        f"3. Each flight occupies its gate from its arrival minute to its departure minute. Two flights at the same gate must not overlap: the later-arriving flight must arrive at least {scenario.buffer_minutes} minutes after the earlier flight departs. Arriving exactly {scenario.buffer_minutes} minutes after is allowed."
+    )
     lines.append("")
     lines.append("Objective:")
     lines.append("Determine the valid gate assignment that minimizes the total passenger walking distance (the sum of passenger counts multiplied by the assigned gate walking distance for each flight).")
@@ -129,8 +133,6 @@ def build_gate_assignment_question(scenario: GateAssignmentScenario) -> str:
 
 def build_gate_reference_model(scenario: GateAssignmentScenario) -> pulp.LpProblem:
     """Construct the exact PuLP mixed-integer reference model for gate assignment."""
-    import pulp
-
     model = pulp.LpProblem("Airport_Gate_Assignment", pulp.LpMinimize)
 
     # Decision variables: x[f, g] = 1 if flight f is assigned to gate g
@@ -185,8 +187,6 @@ def build_gate_reference_model(scenario: GateAssignmentScenario) -> pulp.LpProbl
 
 def solve_gate_assignment(scenario: GateAssignmentScenario) -> float:
     """Solve the gate assignment reference model with HiGHS and return the exact optimal value."""
-    import pulp
-
     model = build_gate_reference_model(scenario)
     solver = pulp.HiGHS(msg=False)
     status = model.solve(solver)
