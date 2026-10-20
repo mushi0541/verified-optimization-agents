@@ -83,7 +83,8 @@ def run_model_code(code: str | None, timeout_s: int = 180) -> SolveResult:
     error = "" if status_text else "The script ran but did not define a PuLP problem named `model`."
     objective = _to_float(_last_match(r"^OBJECTIVE:\s*(\S+)\s*$", stdout)) if status == "optimal" else None
     variables = _parse_variables(stdout) if status == "optimal" else {}
-    return SolveResult(status, objective, _tail(stdout), error, runtime, variables)
+    kept = re.sub(r"^VAR: .*\n?", "", stdout, flags=re.MULTILINE)
+    return SolveResult(status, objective, _tail(kept), error, runtime, variables)
 
 
 def _parse_variables(text: str) -> dict[str, float]:
