@@ -111,6 +111,17 @@ differences, and whether H3 holds at k = 3. Several record files per system (one
 Seeds are fixed, so a rerun gives the same numbers. `--out` writes `e3.json` and `accuracy_cost.csv` (points for the
 accuracy-cost curves).
 
+The plots are drawn from the same files (PDF for the report, PNG for this README):
+
+```bash
+python scripts/plot_e3.py --curve results/e3/accuracy_cost.csv --pipeline results/<pipeline run>/records.jsonl \
+    --b2 results/<b2 run>/records.jsonl --out results/e3
+```
+
+It writes `accuracy_cost.pdf/.png` (mean tokens per problem against accuracy for the pipeline and B2 at k = 1, 2, 3,
+with B0 and B1 as points) and `risk_coverage_k3.pdf/.png` (wrong-accept rate against coverage at k = 3, with a dashed
+line at the 50% coverage used for H3).
+
 ## B0 and B1 against the base paper (no API calls)
 
 ```bash
@@ -147,6 +158,7 @@ optverify/
 scripts/download_data.py     pinned data download
 scripts/analyze_e3.py        E3 equal-budget analysis from saved records
 scripts/compare_baselines.py B0 and B1 per class and the base-paper comparison
+scripts/plot_e3.py           E3 accuracy-cost and risk-coverage plots
 tests/
 docs/architecture.md
 docs/phase1/      submitted Phase 1 report (PDF and LaTeX source)
