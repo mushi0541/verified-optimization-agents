@@ -19,4 +19,5 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
+      - run: python scripts/download_data.py  # pinned benchmark data, so tests that read it also run here
       - run: python -m pytest -q
