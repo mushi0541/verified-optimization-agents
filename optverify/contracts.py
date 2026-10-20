@@ -100,6 +100,12 @@ class RunRecord:
     # Token use of each step (parse, formalize, repair, paraphrase_1 ... paraphrase_k); the steps add up to usage.
     # Empty in records saved before Phase 2.
     usage_by_step: dict[str, TokenUsage] = field(default_factory=dict)
+    # Single agent B2 only. samples[i] holds the attempts of sample i + 1 (its tokens are usage_by_step["sample_<i + 1>"]);
+    # samples[0] is the B1 run at temperature 0 and is also stored in attempts.
+    samples: list[list[Attempt]] = field(default_factory=list)
+    token_budget: float | None = None  # tokens per problem the samples were drawn up to
+    sample_agreement: float | None = None  # B2's score: share of the used samples that reach its answer
+    samples_used: int | None = None  # B2's answer and usage come from samples[:samples_used] only
 
     def to_json(self) -> dict:
         return asdict(self)

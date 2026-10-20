@@ -63,7 +63,20 @@ def decide(report: VerifierReport, objective: float | None, threshold: float) ->
         reasons.append("Numbers from the question not used in the model: " + ", ".join(report.missing_numbers[:10]) + ".")
     if report.paraphrase_agreement is not None and report.paraphrase_agreement < 1:
         reasons.append("Reworded versions of the question gave different optimal values.")
+    return _answer_or_escalate(report.score, objective, threshold, reasons)
 
-    if report.score >= threshold:
+
+def decide_by_agreement(answer: float | None, agreement: float, samples: int, threshold: float) -> Decision:
+    """The same decision rule for the single agent B2, with its sample agreement rate as the score (Gap 3)."""
+    if answer is None:
+        return Decision("abstain", None, ["No sample produced a feasible optimal model after repairs."])
+    reasons = []
+    if agreement < 1:
+        reasons.append(f"Only {round(agreement * samples)} of {samples} independent samples reached this optimal value.")
+    return _answer_or_escalate(agreement, answer, threshold, reasons)
+
+
+def _answer_or_escalate(score: float, objective: float | None, threshold: float, reasons: list[str]) -> Decision:
+    if score >= threshold:
         return Decision("answer", objective, reasons)
-    return Decision("escalate", objective, reasons or [f"Verifier score {report.score:.2f} is below {threshold:.2f}."])
+    return Decision("escalate", objective, reasons or [f"Verifier score {score:.2f} is below {threshold:.2f}."])

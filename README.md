@@ -69,7 +69,15 @@ python -m optverify.run baseline --model openai:openai/gpt-oss-120b --split cano
 
 # Proposed pipeline with 2 reworded runs for the verifier
 python -m optverify.run pipeline --model openai:openai/gpt-oss-120b --split canonical --per-class 1 --paraphrases 2 --repairs 1
+
+# Single agent B2 (Gap 3): B1, then new samples at temperature 0.7 until the problem has used about
+# --budget-tokens tokens (set it to the pipeline's mean tokens per problem at the largest k)
+python -m optverify.run b2 --model openai:openai/gpt-oss-120b --split canonical --per-class 10 --repairs 1 --budget-tokens 17000
 ```
+
+B2 answers with the most frequent optimum among its samples and uses their agreement rate as its score, in the
+same answer / abstain / escalate rule as the pipeline. Each sample's tokens are saved (`usage_by_step["sample_<i>"]`),
+so smaller budgets are read from the same records by keeping the first samples.
 
 Each run writes `results/<run name>/records.jsonl` (one record per problem: code, solver status, tokens,
 verifier report, decision) and `results/<run name>/summary.json` (accuracy, solved rate, tokens, latency,
@@ -91,7 +99,7 @@ optverify/
   roles.py        parser, formalizer with repair, paraphraser, explainer
   solver_tool.py  runs generated PuLP code with HiGHS
   verifier.py     verifier signals and the answer / abstain / escalate decision
-  systems.py      baseline and proposed pipeline
+  systems.py      baseline (B0/B1), single agent B2 and proposed pipeline
   grading.py      correctness rule and run summaries
   run.py          command line entry point
 scripts/download_data.py

@@ -49,7 +49,7 @@ flowchart LR
 |---|---|---|
 | Gap 1. Verifiers do not check requirement-level coverage or invariance to rewording | `optverify/verifier.py`: `number_coverage`, `paraphrase_agreement` | Implemented (Phase 1); requirement coverage (each parser requirement linked to a named constraint) in Phase 2 |
 | Gap 2. Refusal rules have no error-rate guarantee that holds on new problem classes | `optverify/verifier.py`: `decide` threshold | Fixed placeholder threshold now; calibrated threshold with leave-one-class-out tests in Phase 2 |
-| Gap 3. No equal-token-budget comparison of single vs multi-agent designs | `TokenUsage` on every call (`optverify/contracts.py`) | Token metering implemented; single-agent variant in Phase 2 |
+| Gap 3. No equal-token-budget comparison of single vs multi-agent designs | `TokenUsage` on every call (`optverify/contracts.py`), `usage_by_step` per record; `optverify/systems.py`: `run_single_agent` (B2) | Token metering per step and the single-agent variant B2 implemented (Phase 2) |
 
 ## State and contracts
 
@@ -61,6 +61,8 @@ All stages exchange the dataclasses in `optverify/contracts.py`:
 - `Decision`: action (answer, abstain, escalate), answer, reasons
 - `RunRecord`: problem identifiers and reference answer, attempts (each with its solve result), parser specification, verifier report, decision, explanation, token usage and latency; saved one per line in `results/<run>/records.jsonl`
 - `RunRecord.usage_by_step`: token use of each step (`parse`, `formalize`, `repair`, and `paraphrase_1` ... `paraphrase_k`, each covering that run's paraphraser and formalizer calls); the steps add up to `usage`. Records saved before Phase 2 have no steps
+- B2 records also have `samples` (the attempts of each sample; sample 1 is B1 and is also stored in `attempts`), `token_budget` and `sample_agreement` (B2's score); each sample's tokens are in `usage_by_step["sample_<i>"]`
+- B2 answers with the first `samples_used` samples (the ones whose tokens are closest to the budget), and `usage` counts only those samples; any sample drawn after them stays in `samples` and `usage_by_step`
 
 ## Tools and external systems
 
