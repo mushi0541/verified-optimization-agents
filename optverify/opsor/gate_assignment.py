@@ -125,3 +125,122 @@ def build_gate_assignment_question(scenario: GateAssignmentScenario) -> str:
     lines.append("What is the minimum total passenger walking distance in meters?")
 
     return "\n".join(lines)
+
+
+def build_gate_reference_model(scenario: GateAssignmentScenario) -> pulp.LpProblem:
+    """Construct the exact PuLP mixed-integer reference model for gate assignment."""
+    import pulp
+
+    model = pulp.LpProblem("Airport_Gate_Assignment", pulp.LpMinimize)
+
+    # Decision variables: x[f, g] = 1 if flight f is assigned to gate g
+    x: dict[tuple[str, str], pulp.LpVariable] = {}
+    for flight in scenario.flights:
+        for gate in scenario.gates:
+            x[(flight.flight_id, gate.gate_id)] = pulp.LpVariable(
+                f"assign_{flight.flight_id}_{gate.gate_id}", cat=pulp.LpBinary
+            )
+
+    # Objective: Minimize total passenger walking distance
+    model += pulp.lpSum(
+        flight.passengers * gate.walking_distance * x[(flight.flight_id, gate.gate_id)]
+        for flight in scenario.flights
+        for gate in scenario.gates
+    )
+
+    # Constraint 1: Every flight must be assigned to exactly one gate
+    for flight in scenario.flights:
+        model += (
+            pulp.lpSum(x[(flight.flight_id, gate.gate_id)] for gate in scenario.gates) == 1,
+            f"assign_once_{flight.flight_id}",
+        )
+
+    # Constraint 2: Aircraft type compatibility
+    for flight in scenario.flights:
+        if flight.aircraft_type == "widebody":
+            for gate in scenario.gates:
+                if gate.gate_type != "widebody":
+                    model += (
+                        x[(flight.flight_id, gate.gate_id)] == 0,
+                        f"incompatible_{flight.flight_id}_{gate.gate_id}",
+                    )
+
+    # Constraint 3: Non-overlapping gate occupancies (with separation buffer)
+    buffer = scenario.buffer_minutes
+    for i, f1 in enumerate(scenario.flights):
+        for f2 in scenario.flights[i + 1 :]:
+            # Conflict if time windows overlap including the required buffer
+            overlap = max(f1.arrival_minute, f2.arrival_minute) < min(
+                f1.departure_minute + buffer, f2.departure_minute + buffer
+            )
+            if overlap:
+                for gate in scenario.gates:
+                    model += (
+                        x[(f1.flight_id, gate.gate_id)] + x[(f2.flight_id, gate.gate_id)] <= 1,
+                        f"no_overlap_{f1.flight_id}_{f2.flight_id}_{gate.gate_id}",
+                    )
+
+    return model
+
+
+def solve_gate_assignment(scenario: GateAssignmentScenario) -> float:
+    """Solve the gate assignment reference model with HiGHS and return the exact optimal value."""
+    import pulp
+
+    model = build_gate_reference_model(scenario)
+    solver = pulp.HiGHS(msg=False)
+    status = model.solve(solver)
+    status_str = pulp.LpStatus[status]
+    if status_str != "Optimal":
+        raise ValueError(f"Gate assignment scenario did not solve to Optimal: status={status_str}")
+    return round(float(pulp.value(model.objective)), 2)
+
+
+def create_gate_assignment_instance(size: int, seed: int) -> OpsORInstance:
+    """Create a complete OpsORInstance for gate assignment at a given size and seed."""
+    from .base import OpsORInstance, assert_question_contains_numbers
+
+    # Map instance size (number of flights) to proportional gate capacity
+    num_flights = size
+    if size <= 5:
+        num_gates = 3
+    elif size <= 8:
+        num_gates = 4
+    else:
+        num_gates = 5
+
+    scenario = generate_gate_scenario(num_flights=num_flights, num_gates=num_gates, seed=seed)
+    question = build_gate_assignment_question(scenario)
+    answer = solve_gate_assignment(scenario)
+
+    # Verify that all numbers used by the model are in the question text
+    assert_question_contains_numbers(question, scenario.all_numbers())
+
+    params = {
+        "num_flights": num_flights,
+        "num_gates": num_gates,
+        "buffer_minutes": scenario.buffer_minutes,
+        "gates": [
+            {"gate_id": g.gate_id, "gate_type": g.gate_type, "walking_distance": g.walking_distance}
+            for g in scenario.gates
+        ],
+        "flights": [
+            {
+                "flight_id": f.flight_id,
+                "arrival_minute": f.arrival_minute,
+                "departure_minute": f.departure_minute,
+                "passengers": f.passengers,
+                "aircraft_type": f.aircraft_type,
+            }
+            for f in scenario.flights
+        ],
+    }
+
+    return OpsORInstance(
+        family="GateAssignment",
+        size=size,
+        seed=seed,
+        question=question,
+        answer=answer,
+        params=params,
+    )
