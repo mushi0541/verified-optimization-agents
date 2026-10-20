@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from optverify.data import load_sample_file
-from optverify.run import parse_args
+from optverify.run import _endpoint, parse_args
 
 
 def test_default_arguments_without_sample_file():
@@ -52,3 +52,10 @@ def test_sample_file_loads_problems_and_pairs():
     pairs_args = parse_args(["baseline", "--model", "dummy", "--sample-file", "samples/constraint_pairs_30.json"])
     pairs_probs = load_sample_file(pairs_args.sample_file)
     assert len(pairs_probs) == 60
+
+
+def test_endpoint_records_the_provider_host_only(monkeypatch):
+    monkeypatch.setenv("LLM_BASE_URL", "https://user:secret@api.cerebras.ai/v1")
+    assert _endpoint("openai:gpt-oss-120b") == "api.cerebras.ai"  # never the credentials in the URL
+    monkeypatch.setenv("AWS_REGION", "us-east-1")
+    assert _endpoint("bedrock:openai.gpt-oss-120b-1:0") == "bedrock us-east-1"

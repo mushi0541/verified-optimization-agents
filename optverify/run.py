@@ -8,10 +8,12 @@ Examples:
 
 import argparse
 import json
+import os
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 
@@ -26,7 +28,7 @@ RESULTS_DIR = Path(__file__).resolve().parent.parent / "results"
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run a baseline (B0/B1 or B2) or the proposed pipeline on OPT-Engine data.")
     parser.add_argument("system", choices=["baseline", "pipeline", "b2"])
-    parser.add_argument("--model", required=True, help="e.g. openai:openai/gpt-oss-120b or bedrock:qwen.qwen3-32b-v1:0")
+    parser.add_argument("--model", required=True, help="e.g. bedrock:openai.gpt-oss-120b-1:0 or openai:openai/gpt-oss-120b")
     parser.add_argument("--split", choices=sorted(SPLIT_FILES), default="canonical")
     parser.add_argument("--sample-file", type=Path, help="path to a fixed evaluation sample JSON file")
     parser.add_argument("--per-class", type=int, default=None, help="problems sampled from each problem class")
@@ -104,7 +106,7 @@ def main() -> None:
     finished = [record for record in records if "failed" not in record]
     summary = {
         "run": run_name,
-        "config": {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
+        "config": {**{k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()}, "endpoint": _endpoint(args.model)},
         "failed_problems": [record["problem_id"] for record in records if "failed" in record],
         **summarize(finished),
     }
@@ -114,6 +116,13 @@ def main() -> None:
 
 def _slug(text: str) -> str:
     return re.sub(r"[^A-Za-z0-9.-]+", "-", text).strip("-")
+
+
+def _endpoint(model: str) -> str:
+    """Where the model was served (host name only, never credentials), so runs on different providers are not mixed."""
+    if model.startswith("bedrock:"):
+        return f"bedrock {os.getenv('AWS_REGION', 'us-east-1')}"
+    return urlparse(os.getenv("LLM_BASE_URL", "")).hostname or "unknown"
 
 
 if __name__ == "__main__":
