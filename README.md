@@ -99,6 +99,20 @@ differences, and whether H3 holds at k = 3. Several record files per system (one
 Seeds are fixed, so a rerun gives the same numbers. `--out` writes `e3.json` and `accuracy_cost.csv` (points for the
 accuracy-cost curves).
 
+## B0 and B1 against the base paper (no API calls)
+
+```bash
+python scripts/compare_baselines.py --baseline results/<baseline r1 run>/records.jsonl --paper paper_sir.json --markdown
+```
+
+B0 is read from the first attempt of each B1 record. Per class and overall, the script reports B0 and B1 accuracy at
+the 0.2% rule and at the paper's stricter 0.1% rule (with exact 95% intervals), solved rate, silent failures (optimal
+status but a wrong value), problems fixed and broken by the repair round with a McNemar test, and tokens and calls.
+`--paper` is optional: a JSON file with the base paper's SIR accuracy per class, entered by hand from the paper, for
+example `{"Knapsack": {"sir_accuracy": 0.95, "source": "Table 3, DeepSeek-V3.2"}}`. Class names must match the data
+(`BinPacking`, `Inventory`, `JobShop`, `Knapsack`, `NetworkFlow`, `Pollution`, `Portfolio`, `Production`, `TSP`,
+`Transportation`).
+
 ## Evaluation rule
 
 A predicted objective counts as correct when `|predicted - reference| <= 0.002 * |reference|`, the same rule as the
@@ -120,6 +134,7 @@ optverify/
   run.py          command line entry point
 scripts/download_data.py     pinned data download
 scripts/analyze_e3.py        E3 equal-budget analysis from saved records
+scripts/compare_baselines.py B0 and B1 per class and the base-paper comparison
 tests/
 docs/architecture.md
 docs/phase1/      submitted Phase 1 report (PDF and LaTeX source)
