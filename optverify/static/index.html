@@ -488,7 +488,19 @@
         .then(function (res) {
           if (!res.ok) {
             return res.text().then(function (t) {
-              throw new Error("Server error (" + res.status + "): " + t);
+              var errorMsg = "";
+              try {
+                var errObj = JSON.parse(t);
+                if (errObj && errObj.error) {
+                  errorMsg = String(errObj.error);
+                }
+              } catch (e) {
+                // response is not valid json
+              }
+              if (!errorMsg) {
+                errorMsg = "Server error (" + res.status + ").";
+              }
+              throw new Error(errorMsg);
             });
           }
           return res.json();
