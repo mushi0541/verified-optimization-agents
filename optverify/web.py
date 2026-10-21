@@ -51,7 +51,17 @@ class WebRequestHandler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _local_hosts(self) -> set[str]:
+        port = self.server.server_address[1]
+        return {f"127.0.0.1:{port}", f"localhost:{port}"}
+
     def do_POST(self) -> None:
+        if self.headers.get("Host") not in self._local_hosts():
+            return self._send_json(403, {"error": "Requests must come from this machine."})
+        origin = self.headers.get("Origin")
+        if origin is not None and origin.removeprefix("http://") not in self._local_hosts():
+            return self._send_json(403, {"error": "Requests must come from this page."})
+
         if self.path != "/api/solve":
             return self._send_json(404, {"error": "Not Found"})
 
