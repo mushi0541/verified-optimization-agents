@@ -7,8 +7,6 @@ interactive optimization problems with automated verification.
 import argparse
 import http.server
 import json
-import os
-import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -161,27 +159,6 @@ def make_server(host: str, port: int, llm: LLM) -> WebServer:
     return WebServer((host, port), WebRequestHandler, llm)
 
 
-def _validate_api_credentials(model_spec: str) -> None:
-    """Ensure required environment variables for the selected model exist."""
-    provider, _, _ = model_spec.partition(":")
-    if provider == "bedrock":
-        has_token = bool(os.getenv("AWS_BEARER_TOKEN_BEDROCK"))
-        has_access_keys = bool(os.getenv("AWS_ACCESS_KEY_ID") and os.getenv("AWS_SECRET_ACCESS_KEY"))
-        has_profile = bool(os.getenv("AWS_PROFILE"))
-        if not (has_token or has_access_keys or has_profile):
-            sys.exit(
-                "Error: No Amazon Bedrock credentials found. "
-                "Set AWS_BEARER_TOKEN_BEDROCK, AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY, "
-                "or AWS_PROFILE in .env."
-            )
-    elif provider == "openai":
-        if not os.getenv("LLM_BASE_URL"):
-            sys.exit("Error: LLM_BASE_URL is not set in .env.")
-        base_url = os.getenv("LLM_BASE_URL", "")
-        if "localhost" not in base_url and "127.0.0.1" not in base_url and not os.getenv("LLM_API_KEY"):
-            sys.exit("Error: LLM_API_KEY is not set in .env.")
-
-
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Start the interactive web server for verified optimization agents.")
     parser.add_argument("--port", type=int, default=8000, help="port to listen on (default 8000)")
@@ -190,7 +167,6 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
 
     load_dotenv(args.env_file, override=False)
-    _validate_api_credentials(args.model)
     llm = make_llm(args.model)
 
     server = make_server("127.0.0.1", args.port, llm)
