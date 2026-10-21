@@ -38,7 +38,7 @@ operations questions into optimization models, verify those models, and answer, 
 | Paraphrase agreement treats a value and its negative as the same optimum | Gap 1 | | Planned (false alarm in the Phase 1 pipeline run) |
 | Fixed evaluation samples | All | samples/, scripts/make_samples.py | Done |
 | OpsOR-Bench: 36 problems in three families (gate assignment, ground-crew rostering, equipment dispatch) | Gap 2 | `optverify/opsor/`, `data/opsor/opsor_bench.jsonl`, `scripts/make_opsor.py` | Done |
-| Interactive interface | All | | Planned (Phase 2 schedule, report Table 6) |
+| Interactive interface | All | `optverify/web.py`, `optverify/static/index.html` | Done |
 | Requirement coverage, calibrated threshold | Gaps 1 and 2 | | Planned (Phase 2 schedule, report Table 6) |
 
 ## Setup
@@ -98,6 +98,9 @@ python -m optverify.run pipeline --model bedrock:openai.gpt-oss-120b-1:0 --split
 # Single agent B2 (Gap 3): B1, then new samples at temperature 0.7 until the problem has used about
 # --budget-tokens tokens (set it to the pipeline's mean tokens per problem at the largest k)
 python -m optverify.run b2 --model bedrock:openai.gpt-oss-120b-1:0 --split canonical --per-class 10 --repairs 1 --budget-tokens 24000
+
+# Interactive web interface (serves at http://127.0.0.1:8000)
+python -m optverify.web
 ```
 
 B2 answers with the most frequent optimum among its samples and uses their agreement rate as its score, in the
@@ -186,15 +189,18 @@ base paper's evaluation script. The reference answer is used only for grading; i
 optverify/
   contracts.py    shared data records
   data.py         OPT-Engine loader and per-class sampling
+  interactive.py  shared interactive problem solver helper
   llm.py          provider clients with token counting; request pacing in the OpenAI-compatible client
   opsor/          OpsOR-Bench problem families and reference models
   prompts.py      prompt templates
   roles.py        parser, formalizer with repair, paraphraser, explainer
   solver_tool.py  runs generated PuLP code with HiGHS
+  static/         interactive interface template (index.html)
   verifier.py     verifier signals and the answer / abstain / escalate decision
   systems.py      baseline (B0/B1), single agent B2 and proposed pipeline
   grading.py      correctness rule and run summaries
   run.py          command line entry point
+  web.py          interactive web interface entry point
 data/opsor/       generated OpsOR-Bench problem file
 samples/          fixed evaluation sample ID files (canonical, ablation, linguistic, constraint pairs)
 scripts/download_data.py     pinned data download
