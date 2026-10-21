@@ -179,3 +179,34 @@ def test_html_contains_no_forbidden_dom_methods():
     assert "innerHTML" not in html_text
     assert "insertAdjacentHTML" not in html_text
     assert "document.write" not in html_text
+
+
+class RaisingLLM(FakeLLM):
+    def complete(self, prompt: str, max_tokens: int = 4096):
+        raise RuntimeError("boom\nline two é")
+
+
+def test_pipeline_error_with_unicode_and_newline_returns_json_500():
+    server = make_server("127.0.0.1", 0, RaisingLLM())
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    port = server.server_address[1]
+    url = f"http://127.0.0.1:{port}"
+    try:
+        req = urllib.request.Request(
+            f"{url}/api/solve",
+            data=json.dumps({"question": TOY_QUESTION, "threshold": 0.8}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with pytest.raises(urllib.error.HTTPError) as exc_info:
+            urllib.request.urlopen(req)
+        assert exc_info.value.code == 500
+        assert "application/json" in exc_info.value.headers.get("Content-Type", "")
+        data = json.loads(exc_info.value.read().decode("utf-8"))
+        assert "error" in data
+        assert "Pipeline error: boom\nline two é" in data["error"]
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)

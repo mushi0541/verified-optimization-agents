@@ -94,8 +94,7 @@ class WebRequestHandler(http.server.BaseHTTPRequestHandler):
         except ValueError as err:
             return self._send_json(400, {"error": str(err)})
         except Exception as err:
-            self.send_error(500, f"Pipeline error: {err}")
-            return
+            return self._send_json(500, {"error": f"Pipeline error: {str(err)}"})
 
         final_attempt = record.attempts[-1] if record.attempts else None
         solve = final_attempt.solve if final_attempt else None
