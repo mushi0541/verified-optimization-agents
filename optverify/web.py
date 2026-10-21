@@ -43,47 +43,47 @@ class WebRequestHandler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(content)
 
+    def _send_json(self, status: int, payload: dict) -> None:
+        body = json.dumps(payload).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
     def do_POST(self) -> None:
         if self.path != "/api/solve":
-            self.send_error(404, "Not Found")
-            return
+            return self._send_json(404, {"error": "Not Found"})
 
         content_length_str = self.headers.get("Content-Length")
         if not content_length_str or not content_length_str.isdigit():
-            self.send_error(400, "Missing or invalid Content-Length")
-            return
+            return self._send_json(400, {"error": "Missing or invalid Content-Length."})
 
         content_length = int(content_length_str)
         if content_length > MAX_POST_BODY_BYTES:
-            self.send_error(413, f"Request body too large (maximum {MAX_POST_BODY_BYTES} bytes)")
-            return
+            return self._send_json(413, {"error": f"Request body too large (maximum {MAX_POST_BODY_BYTES} bytes)."})
 
         raw_body = self.rfile.read(content_length)
         try:
             payload = json.loads(raw_body.decode("utf-8"))
         except (json.JSONDecodeError, UnicodeDecodeError):
-            self.send_error(400, "Invalid JSON in request body")
-            return
+            return self._send_json(400, {"error": "Invalid JSON in request body."})
 
         if not isinstance(payload, dict):
-            self.send_error(400, "Request body must be a JSON object")
-            return
+            return self._send_json(400, {"error": "Request body must be a JSON object."})
 
         question = payload.get("question")
         if not question or not isinstance(question, str) or not question.strip():
-            self.send_error(400, "Missing or empty question")
-            return
+            return self._send_json(400, {"error": "Missing or empty question."})
 
         raw_threshold = payload.get("threshold", 0.8)
         try:
             threshold = float(raw_threshold)
         except (TypeError, ValueError):
-            self.send_error(400, "Threshold must be a float")
-            return
+            return self._send_json(400, {"error": "Threshold must be a float."})
 
         if not (0.0 <= threshold <= 1.0):
-            self.send_error(400, "Threshold must be between 0.0 and 1.0")
-            return
+            return self._send_json(400, {"error": "Threshold must be between 0.0 and 1.0."})
 
         try:
             record = solve_interactive_problem(
@@ -92,8 +92,7 @@ class WebRequestHandler(http.server.BaseHTTPRequestHandler):
                 threshold=threshold,
             )
         except ValueError as err:
-            self.send_error(400, str(err))
-            return
+            return self._send_json(400, {"error": str(err)})
         except Exception as err:
             self.send_error(500, f"Pipeline error: {err}")
             return
@@ -129,13 +128,7 @@ class WebRequestHandler(http.server.BaseHTTPRequestHandler):
             "latency_s": record.latency_s,
             "threshold": threshold,
         }
-
-        response_bytes = json.dumps(response_dict).encode("utf-8")
-        self.send_response(200)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Content-Length", str(len(response_bytes)))
-        self.end_headers()
-        self.wfile.write(response_bytes)
+        self._send_json(200, response_dict)
 
     def log_message(self, format: str, *args: object) -> None:
         """Keep standard output clean unless debugging."""

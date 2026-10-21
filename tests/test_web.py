@@ -87,6 +87,9 @@ def test_post_bad_json_returns_400(running_server):
     with pytest.raises(urllib.error.HTTPError) as exc_info:
         urllib.request.urlopen(req)
     assert exc_info.value.code == 400
+    assert "application/json" in exc_info.value.headers.get("Content-Type", "")
+    data = json.loads(exc_info.value.read().decode("utf-8"))
+    assert "error" in data
 
 
 def test_post_missing_question_returns_400(running_server):
@@ -99,6 +102,9 @@ def test_post_missing_question_returns_400(running_server):
     with pytest.raises(urllib.error.HTTPError) as exc_info:
         urllib.request.urlopen(req)
     assert exc_info.value.code == 400
+    assert "application/json" in exc_info.value.headers.get("Content-Type", "")
+    data = json.loads(exc_info.value.read().decode("utf-8"))
+    assert "error" in data
 
 
 def test_post_invalid_threshold_returns_400(running_server):
@@ -112,6 +118,9 @@ def test_post_invalid_threshold_returns_400(running_server):
         with pytest.raises(urllib.error.HTTPError) as exc_info:
             urllib.request.urlopen(req)
         assert exc_info.value.code == 400
+        assert "application/json" in exc_info.value.headers.get("Content-Type", "")
+        data = json.loads(exc_info.value.read().decode("utf-8"))
+        assert "error" in data
 
 
 def test_post_oversized_body_returns_413(running_server):
@@ -125,6 +134,9 @@ def test_post_oversized_body_returns_413(running_server):
     with pytest.raises(urllib.error.HTTPError) as exc_info:
         urllib.request.urlopen(req)
     assert exc_info.value.code == 413
+    assert "application/json" in exc_info.value.headers.get("Content-Type", "")
+    data = json.loads(exc_info.value.read().decode("utf-8"))
+    assert "error" in data
 
 
 def test_post_solve_returns_expected_keys(running_server):
