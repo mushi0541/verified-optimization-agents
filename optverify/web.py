@@ -61,6 +61,8 @@ class WebRequestHandler(http.server.BaseHTTPRequestHandler):
         origin = self.headers.get("Origin")
         if origin is not None and origin.removeprefix("http://") not in self._local_hosts():
             return self._send_json(403, {"error": "Requests must come from this page."})
+        if self.headers.get_content_type() != "application/json":
+            return self._send_json(415, {"error": "Send JSON with Content-Type: application/json."})
 
         if self.path != "/api/solve":
             return self._send_json(404, {"error": "Not Found"})
