@@ -1,5 +1,6 @@
 """Offline tests for the interactive web server and helper."""
 
+import http.client
 import json
 import threading
 import urllib.error
@@ -148,6 +149,7 @@ def test_post_solve_returns_expected_keys(running_server):
     )
     with urllib.request.urlopen(req) as response:
         assert response.status == 200
+        assert response.headers.get("Content-Type") == "application/json; charset=utf-8"
         data = json.loads(response.read().decode("utf-8"))
 
     expected_keys = {
@@ -202,7 +204,7 @@ def test_pipeline_error_with_unicode_and_newline_returns_json_500():
         with pytest.raises(urllib.error.HTTPError) as exc_info:
             urllib.request.urlopen(req)
         assert exc_info.value.code == 500
-        assert "application/json" in exc_info.value.headers.get("Content-Type", "")
+        assert exc_info.value.headers.get("Content-Type") == "application/json; charset=utf-8"
         data = json.loads(exc_info.value.read().decode("utf-8"))
         assert "error" in data
         assert "Pipeline error: boom\nline two é" in data["error"]
@@ -210,3 +212,76 @@ def test_pipeline_error_with_unicode_and_newline_returns_json_500():
         server.shutdown()
         server.server_close()
         thread.join(timeout=2)
+
+
+def test_post_text_plain_returns_415(running_server):
+    req = urllib.request.Request(
+        f"{running_server}/api/solve",
+        data=b'{"question": "test"}',
+        headers={"Content-Type": "text/plain"},
+        method="POST",
+    )
+    with pytest.raises(urllib.error.HTTPError) as exc_info:
+        urllib.request.urlopen(req)
+    assert exc_info.value.code == 415
+    assert exc_info.value.headers.get("Content-Type") == "application/json; charset=utf-8"
+    data = json.loads(exc_info.value.read().decode("utf-8"))
+    assert "error" in data
+    assert "application/json" in data["error"]
+
+
+def test_post_foreign_host_returns_403(running_server):
+    port = int(running_server.split(":")[-1])
+    conn = http.client.HTTPConnection("127.0.0.1", port)
+    conn.putrequest("POST", "/api/solve", skip_host=True)
+    conn.putheader("Host", f"evil.example:{port}")
+    conn.putheader("Content-Type", "application/json")
+    body = json.dumps({"question": TOY_QUESTION}).encode("utf-8")
+    conn.putheader("Content-Length", str(len(body)))
+    conn.endheaders()
+    conn.send(body)
+    resp = conn.getresponse()
+    try:
+        assert resp.status == 403
+        assert resp.headers.get("Content-Type") == "application/json; charset=utf-8"
+        data = json.loads(resp.read().decode("utf-8"))
+        assert "error" in data
+        assert "Requests must come from this machine." in data["error"]
+    finally:
+        conn.close()
+
+
+def test_post_foreign_origin_returns_403(running_server):
+    req = urllib.request.Request(
+        f"{running_server}/api/solve",
+        data=json.dumps({"question": TOY_QUESTION}).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "Origin": "http://evil.example",
+        },
+        method="POST",
+    )
+    with pytest.raises(urllib.error.HTTPError) as exc_info:
+        urllib.request.urlopen(req)
+    assert exc_info.value.code == 403
+    assert exc_info.value.headers.get("Content-Type") == "application/json; charset=utf-8"
+    data = json.loads(exc_info.value.read().decode("utf-8"))
+    assert "error" in data
+    assert "Requests must come from this page." in data["error"]
+
+
+def test_post_local_origin_succeeds(running_server):
+    req = urllib.request.Request(
+        f"{running_server}/api/solve",
+        data=json.dumps({"question": TOY_QUESTION, "threshold": 0.8}).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "Origin": running_server,
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(req) as resp:
+        assert resp.status == 200
+        assert resp.headers.get("Content-Type") == "application/json; charset=utf-8"
+        data = json.loads(resp.read().decode("utf-8"))
+        assert "action" in data
