@@ -178,6 +178,20 @@ paper does not say which sizes belong to each tier. The paper grades at a 0.1% r
 at the 0.1% rule. The model and the solver differ from ours (DeepSeek-V3.2 and Gurobi), so this column gives context;
 our own B0 on the same problems is the baseline.
 
+## E6: efficiency and reliability (no API calls)
+
+```bash
+python scripts/efficiency.py --out-dir results/e6
+```
+
+Reads every run in `results/` (or only the folders given with `--runs`). Runs with the same system, model, endpoint
+and problem set are treated as repeats, so each number is the mean and standard deviation over the repeats:
+input and output tokens, LLM calls, solver calls, latency and cost per problem, the failed-run rate (target under 5%,
+report objective D1), solver error and timeout rates, and the repair success rate. Cost uses the Bedrock price for
+`openai.gpt-oss-120b-1:0` in us-east-1, US$0.15 and US$0.60 per million input and output tokens (checked
+2026-10-20). It writes `efficiency.csv`, `tokens_by_step.csv` (where each system spends its tokens, from
+`usage_by_step`) and `efficiency.json`.
+
 ## Evaluation rule
 
 A predicted objective counts as correct when `|predicted - reference| <= 0.002 * |reference|`, the same rule as the
@@ -209,6 +223,7 @@ scripts/make_samples.py      regenerates the sample files with seed 0
 scripts/analyze_e3.py        E3 equal-budget analysis from saved records
 scripts/compare_baselines.py B0 and B1 per class and the base-paper comparison
 scripts/plot_e3.py           E3 accuracy-cost and risk-coverage plots
+scripts/efficiency.py        E6 efficiency and reliability from saved runs
 tests/
 docs/architecture.md
 docs/paper_sir.json  base-paper SIR accuracy per class, for compare_baselines.py
