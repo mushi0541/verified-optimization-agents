@@ -171,6 +171,18 @@ status but a wrong value), problems fixed and broken by the repair round with a 
 Class names must match the data (`BinPacking`, `Inventory`, `JobShop`, `Knapsack`, `NetworkFlow`, `Pollution`,
 `Portfolio`, `Production`, `TSP`, `Transportation`).
 
+For the course E1 and E2 tables, pass each repeat of the B1 run with its own `--repeat`:
+
+```bash
+python scripts/compare_baselines.py --repeat results/<B1 repeat 1>/records.jsonl --repeat results/<B1 repeat 2>/records.jsonl \
+    --repeat results/<B1 repeat 3>/records.jsonl --paper docs/paper_sir.json --out-dir results/e1_e2
+```
+
+This writes `e1_e2.md`, `e1_e2.csv` and `e1_e2.json`: B0 and B1 accuracy at both rules as the mean and standard
+deviation over the repeats. Our numbers are labelled "reproduced (gpt-oss-120b, our runs)" and the paper's numbers
+"reported in OPT-Engine (DeepSeek-V3.2, Table 2)". The repeats must cover the same problems, and the JSON keeps every
+repeat in full so each mean can be traced back to its runs.
+
 `docs/paper_sir.json` holds the values we use. They come from the paper's Table 2 (DeepSeek-V3.2, SIR), the only
 per-class SIR numbers the paper gives in a table: TSP, Knapsack and NetworkFlow. The other seven classes are shown
 only in plots, so they have no paper value. Each value is the mean of the Easy, Medium and Hard accuracy, because the
