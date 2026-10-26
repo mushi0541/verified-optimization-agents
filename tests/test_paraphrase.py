@@ -1,9 +1,15 @@
 import json
 from pathlib import Path
 
+from optverify import interactive
+from optverify.run import parse_args
+from optverify.systems import PARAPHRASE_TEMPERATURE, run_pipeline
 from optverify.verifier import combined_score, paraphrase_agreement
+from tests.fake_llm import FakeLLM
+from tests.test_verifier_and_systems import TOY_PROBLEM
 
 RESULTS = Path(__file__).resolve().parent.parent / "results"
+PARAPHRASER_PROMPT = "Rewrite the optimization problem"
 
 
 def test_agreement_treats_a_value_and_its_negative_as_the_same_optimum():
@@ -33,3 +39,36 @@ def test_phase1_production_false_alarm_is_now_answered():
     assert agreement == 1.0
     assert combined_score(True, report["number_coverage"], agreement) >= 0.8  # answered at the Phase 1 threshold
 
+
+def test_pipeline_rewords_with_the_paraphrase_client_only():
+    main, paraphraser = FakeLLM(), FakeLLM()
+    record = run_pipeline(TOY_PROBLEM, main, paraphrases=2, paraphrase_llm=paraphraser)
+    assert len(paraphraser.prompts) == 2 and all(PARAPHRASER_PROMPT in prompt for prompt in paraphraser.prompts)
+    assert not any(PARAPHRASER_PROMPT in prompt for prompt in main.prompts)  # parse, formalize and reworded formalize
+    assert len(main.prompts) == 4
+    assert record.usage_by_step["paraphrase_1"].calls == 2  # the paraphraser call still counts in its run's step
+    assert record.decision.action == "answer"
+
+
+def test_pipeline_without_a_paraphrase_client_uses_the_main_client():
+    main = FakeLLM()
+    run_pipeline(TOY_PROBLEM, main, paraphrases=2)
+    assert sum(PARAPHRASER_PROMPT in prompt for prompt in main.prompts) == 2
+
+
+def test_cli_records_the_paraphrase_temperature():
+    assert parse_args(["pipeline", "--model", "dummy"]).paraphrase_temperature == PARAPHRASE_TEMPERATURE == 0.7
+    assert parse_args(["pipeline", "--model", "dummy", "--paraphrase-temperature", "0.3"]).paraphrase_temperature == 0.3
+
+
+def test_interface_rewords_at_the_paraphrase_temperature(monkeypatch):
+    seen = {}
+
+    def fake_run_pipeline(problem, llm, **settings):
+        seen.update(settings, main_llm=llm)
+
+    monkeypatch.setattr(interactive, "run_pipeline", fake_run_pipeline)
+    main = FakeLLM()
+    interactive.solve_interactive_problem("Maximize 3x with x <= 4.", main)
+    assert seen["paraphrase_llm"].temperature == PARAPHRASE_TEMPERATURE
+    assert seen["main_llm"] is main and not hasattr(main, "temperature")  # the main client is left unchanged

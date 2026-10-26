@@ -20,7 +20,7 @@ from dotenv import load_dotenv
 from .data import SPLIT_FILES, load_sample_file, load_split, sample_per_class
 from .grading import summarize
 from .llm import make_llm, with_temperature
-from .systems import run_baseline, run_pipeline, run_single_agent
+from .systems import PARAPHRASE_TEMPERATURE, run_baseline, run_pipeline, run_single_agent
 
 RESULTS_DIR = Path(__file__).resolve().parent.parent / "results"
 
@@ -41,6 +41,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--max-samples", type=int, default=10, help="b2 only: most samples per problem")
     parser.add_argument("--sample-temperature", type=float, default=0.7, help="b2 only: temperature of samples 2, 3, ...")
+    parser.add_argument(
+        "--paraphrase-temperature", type=float, default=PARAPHRASE_TEMPERATURE, help="pipeline only: temperature of the paraphraser"
+    )
     parser.add_argument("--workers", type=int, default=2, help="parallel problems (keep low on free tiers)")
     parser.add_argument("--env-file", default=".env")
     return parser
@@ -68,6 +71,7 @@ def main() -> None:
     load_dotenv(args.env_file, override=False)
     llm = make_llm(args.model)
     sample_llm = with_temperature(llm, args.sample_temperature)
+    paraphrase_llm = with_temperature(llm, args.paraphrase_temperature)
     if args.sample_file:
         problems = load_sample_file(args.sample_file)
     else:
@@ -80,7 +84,7 @@ def main() -> None:
             return run_single_agent(
                 problem, llm, sample_llm, args.budget_tokens, args.repairs, args.threshold, args.max_samples
             )
-        return run_pipeline(problem, llm, args.paraphrases, args.repairs, args.threshold)
+        return run_pipeline(problem, llm, args.paraphrases, args.repairs, args.threshold, paraphrase_llm)
 
     split_tag = args.sample_file.stem if args.sample_file else args.split
     run_name = f"{args.system}_{_slug(args.model)}_{split_tag}_r{args.repairs}_{datetime.now():%Y%m%d-%H%M}"
