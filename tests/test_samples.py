@@ -127,8 +127,57 @@ def test_constraint_pairs_integrity():
     assert all(count == 10 for count in by_class.values())
 
 
+def test_dev_sample_integrity():
+    dev_file = SAMPLES_DIR / "dev_30.json"
+    ids = json.loads(dev_file.read_text(encoding="utf-8"))
+    assert len(ids) == 30
+    assert len(set(ids)) == 30
+
+    problems = load_sample_file(dev_file)
+    assert len(problems) == 30
+
+    canonical_problems = {p.problem_id: p for p in load_split("canonical", data_dir=DATA_DIR)}
+    for pid in ids:
+        assert pid in canonical_problems
+
+    by_class: dict[str, int] = {}
+    for problem in problems:
+        assert problem.split == "canonical"
+        assert problem.question.strip()
+        by_class[problem.problem_class] = by_class.get(problem.problem_class, 0) + 1
+
+    assert len(by_class) == 10
+    assert all(count == 3 for count in by_class.values())
+
+    canonical_ids = set(json.loads((SAMPLES_DIR / "canonical_100.json").read_text(encoding="utf-8")))
+    ablation_ids = set(json.loads((SAMPLES_DIR / "ablation_30.json").read_text(encoding="utf-8")))
+    linguistic_ids = set(json.loads((SAMPLES_DIR / "linguistic_30.json").read_text(encoding="utf-8")))
+    constraint_pairs = json.loads((SAMPLES_DIR / "constraint_pairs_30.json").read_text(encoding="utf-8"))
+    constraint_ids = {p["original"] for p in constraint_pairs} | {p["augmented"] for p in constraint_pairs}
+
+    dev_set = set(ids)
+    assert dev_set.isdisjoint(canonical_ids)
+    assert dev_set.isdisjoint(ablation_ids)
+    assert dev_set.isdisjoint(linguistic_ids)
+    assert dev_set.isdisjoint(constraint_ids)
+
+
+def test_dev_sample_regeneration_is_identical(tmp_path):
+    dir1 = tmp_path / "run1"
+    dir2 = tmp_path / "run2"
+    generate_samples(output_dir=dir1, data_dir=DATA_DIR)
+    generate_samples(output_dir=dir2, data_dir=DATA_DIR)
+
+    hash1 = hashlib.sha256((dir1 / "dev_30.json").read_bytes()).hexdigest()
+    hash2 = hashlib.sha256((dir2 / "dev_30.json").read_bytes()).hexdigest()
+    assert hash1 == hash2
+
+    checked_in_hash = hashlib.sha256((SAMPLES_DIR / "dev_30.json").read_bytes()).hexdigest()
+    assert hash1 == checked_in_hash
+
+
 def test_sample_files_formatting():
-    for name in ["canonical_100.json", "ablation_30.json", "linguistic_30.json", "constraint_pairs_30.json"]:
+    for name in ["canonical_100.json", "ablation_30.json", "linguistic_30.json", "constraint_pairs_30.json", "dev_30.json"]:
         file_path = SAMPLES_DIR / name
         raw_bytes = file_path.read_bytes()
         assert raw_bytes.endswith(b"\n")
@@ -143,7 +192,7 @@ def test_sample_files_formatting():
 def test_sample_generation_determinism_via_hashes(tmp_path):
     generated = generate_samples(output_dir=tmp_path, data_dir=DATA_DIR)
 
-    for name in ["canonical_100.json", "ablation_30.json", "linguistic_30.json", "constraint_pairs_30.json"]:
+    for name in ["canonical_100.json", "ablation_30.json", "linguistic_30.json", "constraint_pairs_30.json", "dev_30.json"]:
         checked_in = SAMPLES_DIR / name
         new_file = tmp_path / name
 
