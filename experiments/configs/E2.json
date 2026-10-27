@@ -1,0 +1,25 @@
+{
+  "name": "E2",
+  "description": "Base paper B0 setting reproduced with gpt-oss-120b, plus reported DeepSeek-V3.2 numbers",
+  "system": "baseline",
+  "sample_file": "samples/canonical_100.json",
+  "paraphrases": null,
+  "repairs": 0,
+  "budget": null,
+  "repeats": 3,
+  "reported": {
+    "TSP": {
+      "sir_accuracy": 0.859,
+      "source": "OPT-Engine Table 2, DeepSeek-V3.2, SIR: mean of Easy 91.7%, Medium 86.0%, Hard 80.0%"
+    },
+    "Knapsack": {
+      "sir_accuracy": 0.932,
+      "source": "OPT-Engine Table 2, DeepSeek-V3.2, SIR: mean of Easy 92.3%, Medium 91.7%, Hard 95.7%"
+    },
+    "NetworkFlow": {
+      "sir_accuracy": 1.0,
+      "source": "OPT-Engine Table 2 (Netflow), DeepSeek-V3.2, SIR: 100% at Easy, Medium and Hard"
+    }
+  },
+  "notes": "Base paper B0 setting (SIR: zero-shot without repair, r = 0). Reported DeepSeek-V3.2 SIR numbers are taken from docs/paper_sir.json (OPT-Engine Table 2)."
+}

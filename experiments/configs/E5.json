@@ -1,0 +1,20 @@
+{
+  "name": "E5",
+  "description": "Ablation study on ablation_30 sample",
+  "system": "pipeline",
+  "sample_file": "samples/ablation_30.json",
+  "paraphrases": 3,
+  "repairs": 1,
+  "budget": null,
+  "repeats": 3,
+  "ablations": [
+    "(i) Without number coverage",
+    "(ii) Without requirement coverage",
+    "(iii) Without paraphrase-optimum agreement",
+    "(iv) Without the parser, formalizing from the question alone",
+    "(v) k = 1, 2, 3 paraphrases",
+    "(vi) Fixed against calibrated threshold",
+    "(vii) r = 0, 1, 2 repair rounds"
+  ],
+  "notes": "Ablations (i) to (vii) from Phase 1 report Section 2.12. Evaluated on samples/ablation_30.json."
+}

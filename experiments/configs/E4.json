@@ -1,0 +1,12 @@
+{
+  "name": "E4",
+  "description": "Gap-wise analysis of E1 to E3 and OpsOR-Bench",
+  "system": null,
+  "analysis": true,
+  "sample_file": null,
+  "paraphrases": null,
+  "repairs": null,
+  "budget": null,
+  "repeats": null,
+  "notes": "Analysis only (not a run). Gap 1 = AUROC (H1) on E3 records; Gap 2 = leave-one-class-out (H2) on canonical_100 plus OpsOR (data/opsor/opsor_bench.jsonl); Gap 3 = pipeline vs B2 at equal token budget (H3)."
+}

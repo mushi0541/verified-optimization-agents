@@ -183,9 +183,48 @@ our own B0 on the same problems is the baseline.
 A predicted objective counts as correct when `|predicted - reference| <= 0.002 * |reference|`, the same rule as the
 base paper's evaluation script. The reference answer is used only for grading; it is never shown to any agent.
 
+## Reproduce the experiments
+
+To run an experiment, use `experiments/run.py` with the experiment name:
+
+```bash
+# Run all repeats configured for an experiment
+python experiments/run.py E1
+
+# Run a single repeat (0-based)
+python experiments/run.py E3 --repeat 0
+```
+
+The runner saves each repeat to `results/<exp>/<repeat>/` with `records.jsonl`, `summary.json`, and `config.json`.
+Analysis-only experiments (E4 and E6) refuse to run; aggregate E1, E2, and E3 instead.
+
+To aggregate results across repeats and compute mean and sample standard deviation:
+
+```bash
+python experiments/aggregate.py E1
+```
+
+This writes `results/<exp>/summary.json` and `results/<exp>/summary.csv`, and updates `results/manifest.json`.
+
+The `experiments/` folder contains experiment runner scripts and configuration files under `experiments/configs/`:
+
+| Course | Our experiment | Config | What it runs |
+|---|---|---|---|
+| E1 | Baseline B1 | experiments/configs/E1.json | Single pass with one repair, canonical test sample |
+| E2 | Base paper B0 plus reported DeepSeek-V3.2 numbers | experiments/configs/E2.json | Paper's SIR setting with gpt-oss-120b; reported numbers labelled |
+| E3 | Proposed pipeline (k=3, r=1) | experiments/configs/E3.json | Full system on canonical test sample |
+| E4 | Gap-wise tests (H1, H2, H3) | experiments/configs/E4.json | Analysis of E1 to E3 and OpsOR-Bench |
+| E5 | Ablations (i) to (vii) | experiments/configs/E5.json | Ablation sample |
+| E6 | Efficiency and reliability | experiments/configs/E6.json | Metrics from E1 to E3 records |
+
 ## Repository layout
 
 ```
+experiments/
+  configs/        experiment definitions E1.json to E6.json
+  prompt_version.py prompt template SHA-256 and git commit hash
+  run.py          experiment runner with repeats
+  aggregate.py    summary statistics aggregator and manifest updater
 optverify/
   contracts.py    shared data records
   data.py         OPT-Engine loader and per-class sampling
@@ -214,6 +253,7 @@ docs/architecture.md
 docs/paper_sir.json  base-paper SIR accuracy per class, for compare_baselines.py
 docs/phase1/      submitted Phase 1 report (PDF and LaTeX source)
 results/          saved runs
+results/manifest.json completed experiment runs and config hashes
 ```
 
 ## Team
