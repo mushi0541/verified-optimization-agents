@@ -21,6 +21,7 @@ from .data import SPLIT_FILES, load_sample_file, load_split, sample_per_class
 from .grading import summarize
 from .llm import make_llm, with_temperature
 from .systems import run_baseline, run_pipeline, run_single_agent
+from .trace import TraceWriter
 
 RESULTS_DIR = Path(__file__).resolve().parent.parent / "results"
 
@@ -43,6 +44,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--sample-temperature", type=float, default=0.7, help="b2 only: temperature of samples 2, 3, ...")
     parser.add_argument("--workers", type=int, default=2, help="parallel problems (keep low on free tiers)")
     parser.add_argument("--env-file", default=".env")
+    parser.add_argument("--trace", action="store_true", help="write per-step trace logs to logs/<run_name>/<problem_id>.jsonl")
     return parser
 
 
@@ -73,19 +75,21 @@ def main() -> None:
     else:
         problems = sample_per_class(load_split(args.split), args.per_class, args.seed)
 
-    def solve(problem):
-        if args.system == "baseline":
-            return run_baseline(problem, llm, max_repairs=args.repairs)
-        if args.system == "b2":
-            return run_single_agent(
-                problem, llm, sample_llm, args.budget_tokens, args.repairs, args.threshold, args.max_samples
-            )
-        return run_pipeline(problem, llm, args.paraphrases, args.repairs, args.threshold)
-
     split_tag = args.sample_file.stem if args.sample_file else args.split
     run_name = f"{args.system}_{_slug(args.model)}_{split_tag}_r{args.repairs}_{datetime.now():%Y%m%d-%H%M}"
     out_dir = RESULTS_DIR / run_name
     out_dir.mkdir(parents=True, exist_ok=True)
+    log_dir = Path("logs") / run_name if args.trace else None
+
+    def solve(problem):
+        trace = TraceWriter(log_dir / f"{problem.problem_id}.jsonl") if log_dir else None
+        if args.system == "baseline":
+            return run_baseline(problem, llm, max_repairs=args.repairs, trace=trace)
+        if args.system == "b2":
+            return run_single_agent(
+                problem, llm, sample_llm, args.budget_tokens, args.repairs, args.threshold, args.max_samples, trace=trace
+            )
+        return run_pipeline(problem, llm, args.paraphrases, args.repairs, args.threshold, trace=trace)
 
     records = []
     with ThreadPoolExecutor(max_workers=args.workers) as pool, (out_dir / "records.jsonl").open("w", encoding="utf-8") as out:

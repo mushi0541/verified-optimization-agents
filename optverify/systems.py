@@ -7,21 +7,38 @@
              is used; answers with the most frequent optimum, scored by the agreement rate among samples.
 """
 
+from __future__ import annotations
+
 import json
 import time
+from typing import TYPE_CHECKING
 
 from . import prompts, roles, verifier
 from .contracts import Problem, RunRecord, TokenUsage
 from .grading import is_correct, same_optimum
 from .llm import LLM
 
+if TYPE_CHECKING:
+    from .trace import TraceWriter
 
-def run_baseline(problem: Problem, llm: LLM, max_repairs: int = 0) -> RunRecord:
+
+def run_baseline(
+    problem: Problem,
+    llm: LLM,
+    max_repairs: int = 0,
+    trace: TraceWriter | None = None,
+) -> RunRecord:
     start = time.perf_counter()
     steps = {"formalize": TokenUsage(), "repair": TokenUsage()}
     first_prompt = prompts.BASELINE_FORMALIZE.format(question=problem.question)
     attempts = roles.formalize_and_solve(
-        first_prompt, problem.question, llm, steps["formalize"], max_repairs, repair_usage=steps["repair"]
+        first_prompt,
+        problem.question,
+        llm,
+        steps["formalize"],
+        max_repairs,
+        repair_usage=steps["repair"],
+        trace=trace,
     )
     predicted = attempts[-1].solve.objective
     return RunRecord(
@@ -46,30 +63,55 @@ def run_pipeline(
     paraphrases: int = 2,
     max_repairs: int = 1,
     threshold: float = 0.8,
+    trace: TraceWriter | None = None,
 ) -> RunRecord:
     start = time.perf_counter()
     steps = {"parse": TokenUsage(), "formalize": TokenUsage(), "repair": TokenUsage()}
 
-    spec = roles.parse_problem(problem.question, llm, steps["parse"])
+    spec = roles.parse_problem(problem.question, llm, steps["parse"], trace=trace)
     first_prompt = prompts.FORMALIZE_FROM_SPEC.format(question=problem.question, spec=json.dumps(spec, indent=1))
     attempts = roles.formalize_and_solve(
-        first_prompt, problem.question, llm, steps["formalize"], max_repairs, repair_usage=steps["repair"]
+        first_prompt,
+        problem.question,
+        llm,
+        steps["formalize"],
+        max_repairs,
+        repair_usage=steps["repair"],
+        trace=trace,
     )
     final = attempts[-1]
 
     other_objectives = []
     if final.solve.status == "optimal":
         for run_number in range(1, paraphrases + 1):
-            # One step per paraphrase run (paraphraser call plus its formalizer call, and the retry when the first
-            # try returns no optimum), so lower k can be read from saved records by dropping the last runs.
             step = steps[f"paraphrase_{run_number}"] = TokenUsage()
-            objective = _reworded_optimum(problem.question, llm, step)
-            if objective is None:  # retry once, so a failed run is not mistaken for a disagreement
-                objective = _reworded_optimum(problem.question, llm, step)
+            paraphrase_role = f"paraphrase_{run_number}"
+            objective = _reworded_optimum(problem.question, llm, step, trace=trace, role=paraphrase_role)
+            if objective is None:
+                objective = _reworded_optimum(problem.question, llm, step, trace=trace, role=paraphrase_role)
             other_objectives.append(objective)
 
     report = verifier.build_report(problem.question, final.code, final.solve.status, final.solve.objective, other_objectives)
+    if trace is not None:
+        trace.record(
+            "verifier",
+            {"code": final.code, "status": final.solve.status, "objective": final.solve.objective, "other_objectives": other_objectives},
+            {"feasible": report.feasible, "number_coverage": report.number_coverage, "missing_numbers": report.missing_numbers, "paraphrase_agreement": report.paraphrase_agreement, "paraphrase_objectives": report.paraphrase_objectives, "score": report.score},
+        )
     decision = verifier.decide(report, final.solve.objective, threshold)
+    if trace is not None:
+        trace.record(
+            "decision",
+            {"score": report.score, "threshold": threshold, "objective": final.solve.objective},
+            {"action": decision.action, "reasons": decision.reasons, "answer": decision.answer},
+        )
+    explanation = roles.explain(decision, report, final.solve.variables)
+    if trace is not None:
+        trace.record(
+            "explainer",
+            {"action": decision.action, "reasons": decision.reasons},
+            explanation,
+        )
     return RunRecord(
         problem_id=problem.problem_id,
         problem_class=problem.problem_class,
@@ -85,16 +127,22 @@ def run_pipeline(
         spec=spec,
         verifier=report,
         decision=decision,
-        explanation=roles.explain(decision, report, final.solve.variables),
+        explanation=explanation,
         usage_by_step=steps,
     )
 
 
-def _reworded_optimum(question: str, llm: LLM, usage: TokenUsage) -> float | None:
+def _reworded_optimum(
+    question: str,
+    llm: LLM,
+    usage: TokenUsage,
+    trace: TraceWriter | None = None,
+    role: str = "paraphraser",
+) -> float | None:
     """Reword the question and solve it with the baseline prompt and no repair; None if no optimum is found."""
-    reworded = roles.paraphrase(question, llm, usage)
+    reworded = roles.paraphrase(question, llm, usage, trace=trace, role=role)
     reworded_prompt = prompts.BASELINE_FORMALIZE.format(question=reworded)
-    attempts = roles.formalize_and_solve(reworded_prompt, reworded, llm, usage, max_repairs=0)
+    attempts = roles.formalize_and_solve(reworded_prompt, reworded, llm, usage, max_repairs=0, trace=trace)
     return attempts[-1].solve.objective
 
 
@@ -106,6 +154,7 @@ def run_single_agent(
     max_repairs: int = 1,
     threshold: float = 0.8,
     max_samples: int = 10,
+    trace: TraceWriter | None = None,
 ) -> RunRecord:
     """B2. Sample 1 is B1 (llm, temperature 0); later samples use sample_llm (temperature 0.7 in the main runs).
 
@@ -120,13 +169,26 @@ def run_single_agent(
     while len(samples) < max_samples and (not samples or _tokens(TokenUsage.total(steps)) < token_budget):
         step = steps[f"sample_{len(samples) + 1}"] = TokenUsage()
         sampler = llm if not samples else sample_llm
-        samples.append(roles.formalize_and_solve(first_prompt, problem.question, sampler, step, max_repairs))
+        samples.append(roles.formalize_and_solve(first_prompt, problem.question, sampler, step, max_repairs, trace=trace))
 
     used = samples_within_budget([_tokens(usage) for usage in steps.values()], token_budget)
     # B2 is charged only for the samples behind its answer; later samples stay in samples and usage_by_step.
     used_steps = {name: steps[name] for name in list(steps)[:used]}
     answer, agreement = majority_vote([attempts[-1].solve.objective for attempts in samples[:used]])
     decision = verifier.decide_by_agreement(answer, agreement, used, threshold)
+    if trace is not None:
+        trace.record(
+            "decision",
+            {"agreement": agreement, "threshold": threshold, "answer": answer},
+            {"action": decision.action, "reasons": decision.reasons, "answer": decision.answer},
+        )
+    explanation = " ".join(decision.reasons)
+    if trace is not None:
+        trace.record(
+            "explainer",
+            {"action": decision.action, "reasons": decision.reasons},
+            explanation,
+        )
     return RunRecord(
         problem_id=problem.problem_id,
         problem_class=problem.problem_class,
@@ -140,7 +202,7 @@ def run_single_agent(
         usage=TokenUsage.total(used_steps),
         latency_s=time.perf_counter() - start,
         decision=decision,
-        explanation=" ".join(decision.reasons),
+        explanation=explanation,
         usage_by_step=steps,
         samples=samples,
         token_budget=token_budget,
