@@ -12,6 +12,7 @@
 \usepackage[T1]{fontenc}
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
+\usepackage{array}
 \usepackage{graphicx}
 \usepackage{xcolor}
 \usepackage{cite}
@@ -62,22 +63,166 @@ optimization modeling, large language models, multi-agent systems, verification,
 
 % ---------------------------------------------------------------------------------------------------------------
 \section{Introduction}
-\plan{Motivation: a model that runs and returns an optimum can still be wrong, and an operations user cannot tell.
-The three research gaps from Phase 1 (label-free verification, error control under shift, cost against a single
-agent at equal tokens), the research questions, and a short list of contributions.}
+\label{sec:intro}
+
+Operations teams describe planning problems in plain language, and answering them needs a formal optimization model.
+Large language models (LLMs) can now write such models as solver code: fine-tuned systems reach about 60\% to 70\%
+macro accuracy on standard benchmarks~\cite{chen2025sirl,lu2025optmath,huang2025orlm}. Accuracy falls sharply on
+larger and more realistic problems. On the industrial MIPLIB-NL benchmark the best model solves only 39\% of the
+instances, and SIRL-32B falls from 87.40\% on MAMO-Complex to 1.43\%~\cite{li2026miplibnl}.
+
+The more serious problem is that these systems always answer. A generated model that runs and returns an
+``optimal'' value can still miss a stated requirement. Missing constraints are the most common error type in the
+analyses of OptiTree~\cite{liu2025optitree} and ORLM~\cite{huang2025orlm}, and a common modelling error on
+MIPLIB-NL~\cite{li2026miplibnl}. The checks proposed so far are weak for this purpose: self-review by the same
+model~\cite{jiang2025llmopt}, uncalibrated LLM verdicts~\cite{liu2026optverifier}, or solver queries that cannot see
+an omitted requirement~\cite{abdulrahman2026verisimpl}. In operations a confident wrong plan is worse than no plan,
+because a silently dropped crew limit or capacity can produce a schedule that cannot be carried out. An operations
+user needs a system that answers only when its checks support the answer, and otherwise abstains or hands the case to
+an analyst with reasons.
+
+Our base paper, OPT-Engine~\cite{chen2026optengine}, measures where LLM-written models fail as problems grow, and
+shows that solver-integrated reasoning (SIR) is needed but that added constraints still lower accuracy. It does not
+detect failures at run time. From a review of ten recent papers we identified three gaps, which define the research
+questions of this work:
+\begin{itemize}
+\item \textbf{Gap~1, label-free verification.} No reviewed system checks at inference time, without reference
+answers, whether a model uses every number of the question or reaches the same optimum when the question is reworded.
+Checks of the stated requirements exist only in part, as structure verdicts~\cite{liu2026optverifier} and
+per-constraint solver queries~\cite{abdulrahman2026verisimpl}. \textbf{RQ1:} do such requirement-level signals detect wrong models better than
+solver feasibility alone?
+\item \textbf{Gap~2, error control under shift.} No reviewed system can refuse to answer with a controlled error
+rate, and the closest recent attempt saw its error bound fail on new problems~\cite{lian2026admitor}. \textbf{RQ2:}
+does a threshold calibrated on nine problem classes keep the wrong-accept rate at or below its target on the unseen
+tenth class?
+\item \textbf{Gap~3, cost.} No reviewed study compares a multi-agent design with a single agent that spends the same
+number of tokens. \textbf{RQ3:} at the same token budget, does the multi-agent pipeline give a better trade-off between
+accuracy and wrongly accepted answers than a single agent that resamples?
+\end{itemize}
+
+\noindent Our contributions are:
+\begin{enumerate}
+\item a verifier with three label-free signals: number coverage, requirement coverage (each parsed requirement is
+linked to a named constraint of the generated model) and paraphrase-optimum agreement, combined with solver
+feasibility into one score;
+\item a decision layer that answers, abstains or escalates, with a threshold calibrated to a target wrong-accept rate
+by an exact binomial bound, tested on held-out problem classes and on OpsOR-Bench, a small set of operations problems
+we built as a shift test;
+\item a single-agent baseline matched to the pipeline's token use within 10\%, and per-step token accounting
+that shows where each system spends its tokens;
+\item an open implementation in which every ablation and every number in this paper is computed from saved run
+records by a script.
+\end{enumerate}
 
 \section{Related Work}
-\plan{Synthesis of the Phase 1 review, grouped by theme, not paper by paper. Benchmarks and the base paper
-\cite{chen2026optengine,li2026miplibnl,yang2025optibench,lu2025optmath}; training and search methods
-\cite{chen2025sirl,huang2025orlm,jiang2025llmopt,liu2025optitree,zhang2025optimind}; verification of generated
-models \cite{liu2026optverifier,abdulrahman2026verisimpl,lian2026reloop,li2026falsification}; and answering with
-an error guarantee \cite{lian2026admitor}. Compare in detail with ReLoop and AdmitOR (supervisor feedback). Grow
-the list to 25 to 30 references, each with a DOI link or official URL.}
+\label{sec:related}
+
+\textbf{Benchmarks.} OPT-Engine~\cite{chen2026optengine} generates problems from parametric generators in ten classes
+of linear and mixed-integer programs, so that difficulty can be raised in a controlled way, and computes each optimum
+with a solver. It compares pure-text reasoning, text reasoning with computational tools, and SIR, and finds that only
+SIR stays reliable as problems grow, while constraint augmentation lowers the accuracy of both pure-text
+reasoning and SIR. OptiBench and
+ReSocratic~\cite{yang2025optibench} and OptMATH~\cite{lu2025optmath} provide fixed collections and synthesized
+training data, and MIPLIB-NL~\cite{li2026miplibnl} reverse-builds industrial instances from MIPLIB 2017. Reference
+answers are not always reliable: one audit found 50\% of IndustryOR and 41\% of OptMATH-Bench instances
+incorrect~\cite{zhang2025optimind}. We therefore use generated problems with computed optima, and check doubtful
+references by hand.
+
+\textbf{Training and search.} ORLM~\cite{huang2025orlm} and OptMATH~\cite{lu2025optmath} fine-tune models on
+synthesized problems, SIRL~\cite{chen2025sirl} uses the solver as a reward in reinforcement learning,
+LLMOPT~\cite{jiang2025llmopt} adds a self-correction loop, and OptiTree~\cite{liu2025optitree} searches over
+hierarchical decompositions. All of them raise accuracy, but
+all answer every question, and none reports the token cost of its extra calls. The error analyses of these papers
+motivate our verifier: missing constraints account for 61.9\% to 82.6\% of the remaining errors of
+OptiTree~\cite{liu2025optitree}, and ignored constraints or implicit conditions for 56.3\% of the modelling errors of
+ORLM~\cite{huang2025orlm}.
+
+\textbf{Verifying generated models.} Opt-Verifier~\cite{liu2026optverifier} asks LLMs for binary verdicts on a
+model's structure. It reaches 68\% recall on hard structure errors, ignores numerical values, and uses about nine
+calls and 5,300 to 8,500 tokens per problem. VeriSimpl~\cite{abdulrahman2026verisimpl} queries the solver on
+simplified versions of the problem; its precision of 78.5\% to 91.5\% comes with a recall of only 23.0\% to 34.2\%, and
+its queries cannot detect a requirement that the program omits entirely. ReLoop~\cite{lian2026reloop} and a
+falsification-based test battery~\cite{li2026falsification} change the input data of a generated model and test
+whether the solver's answer responds as the text implies. These checks find real errors, but none of them is turned
+into a rule for refusing to answer at a known error rate.
+
+\textbf{Answering with an error guarantee.} AdmitOR~\cite{lian2026admitor} is the closest work. It answers,
+abstains or escalates using the agreement of three model families, with a finite-sample bound on wrong acceptances.
+The bound held on its calibration problems but failed on a benchmark stream, where 22 of 138 accepted answers
+(15.9\%) were wrong, against a 5\% target. The authors trace 20 of the 22 cases to questions that omit needed numbers
+or print them with too little precision; their check for values missing from the text flags 9 of the 15
+omitted-number cases. This result motivates two choices in our design: a data-level signal (number coverage) and an
+error bound that is always tested on problem types the calibration has not seen. Table~\ref{tab:related} compares
+the closest systems with ours.
+
+\begin{table}[t]
+\centering
+\caption{Closest work compared with ours. ``Refuses'': the system can decline to answer with a target error rate.
+``Shift'': that error control is tested on problems unlike the calibration set.}
+\label{tab:related}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.05cm}>{\raggedright\arraybackslash}p{2.55cm}ccc@{}}
+\toprule
+\textbf{System} & \textbf{Check at inference} & \textbf{Refuses} & \textbf{Shift} & \textbf{Tokens} \\
+\midrule
+Opt-Verifier~\cite{liu2026optverifier} & LLM verdicts on structure & no & -- & yes \\
+VeriSimpl~\cite{abdulrahman2026verisimpl} & solver queries on simplified problems & no & -- & no \\
+ReLoop~\cite{lian2026reloop} & responses to changed data & no & -- & \plan{check} \\
+Test battery~\cite{li2026falsification} & sound test batteries & no & -- & \plan{check} \\
+AdmitOR~\cite{lian2026admitor} & agreement of three model families & yes & yes & no \\
+\textbf{Ours} & number and requirement coverage, agreement of rewordings & yes & yes & yes \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{Problem Formulation}
-\plan{The task: input a natural-language problem; output an optimal value with a decision (answer, abstain or
-escalate) and an explanation. Correctness: relative error below $10^{-3}$, as in the base paper. Define the
-wrong-accept rate and coverage, and state hypotheses H1, H2 and H3.}
+\label{sec:problem}
+
+\textbf{Task.} The input is a question $q$ in natural language that states an optimization problem together with all
+its data. The system returns a tuple $(\hat{a}, d, e)$: a predicted optimal value $\hat{a} \in \mathbb{R} \cup
+\{\varnothing\}$, a decision $d \in \{\textit{answer}, \textit{abstain}, \textit{escalate}\}$ and a short explanation
+$e$ for the user. It abstains when it cannot build a model that the solver finds feasible and optimal, and escalates
+when it has such a model but its checks do not support it, giving the failed checks as reasons. Only an answered value
+is shown as a result.
+
+\textbf{Correctness.} With the reference optimum $y$, a value is correct when $|\hat{a} - y| \le 0.002\,|y|$, the rule
+of the base paper's evaluation code~\cite{chen2026optengine}. Correctness is used only for evaluation; the system never
+sees $y$.
+
+\textbf{Score and decision.} The verifier gives each problem a score $s(q) \in [0, 1]$ from label-free signals, and
+$s(q) = 0$ when no feasible model exists. For a threshold $\tau$ the system answers when the model is feasible and
+$s(q) \ge \tau$. Over a set of $N$ problems with answered set $A_\tau$,
+\begin{equation}
+\mathrm{coverage}(\tau) = \frac{|A_\tau|}{N}, \qquad
+\mathrm{WAR}(\tau) = \frac{|W_\tau|}{|A_\tau|},
+\end{equation}
+where $W_\tau \subseteq A_\tau$ holds the answered problems whose value is wrong. WAR is the wrong-accept rate and
+$1 - \mathrm{WAR}$ the selective accuracy. A system that never abstains, such
+as the SIR baseline, answers whenever the solver returns an optimal status, so its coverage is its share of models
+solved to optimality.
+
+\textbf{Calibration.} Given a target $\alpha$, the threshold is chosen on calibration problems only. Candidate
+thresholds are scanned in a fixed order from strict to lenient, and the scan stops before the first one whose one-sided
+exact 95\% upper bound on the calibration wrong-accept rate exceeds $\alpha$; the fixed order keeps the bound valid
+across thresholds. A threshold needs at least 29 accepted problems, since with fewer even zero wrong answers cannot
+give a bound below 10\%. When no threshold passes, the system answers nothing. It is tested
+leave-one-class-out: calibrated on nine of the ten problem classes and applied to the tenth, so that each problem is
+scored once, in the fold that holds out its class.
+
+\textbf{Cost.} Every LLM call is metered in input and output tokens. Two systems are compared at an equal budget when
+their mean tokens per problem differ by at most 10\%.
+
+\textbf{Hypotheses.} Each research question has one testable prediction.
+\begin{itemize}
+\item \textbf{H1.} Adding the signals to feasibility raises the area under the ROC curve (AUROC) for separating correct
+from wrong answers by at least 0.10, and removing any one signal lowers it.
+\item \textbf{H2.} With $\alpha = 10\%$, the pooled held-out wrong-accept rate is at most $\alpha$, reported with its
+exact 95\% interval, while at least 50\% of all problems are answered.
+\item \textbf{H3.} With $k = 3$ reworded runs, the pipeline has a lower wrong-accept rate than the single-agent
+baseline B2, which samples answers up to the pipeline's mean token budget, at equal coverage (50\%); this holds only if
+the 95\% bootstrap interval of the paired difference at $k = 3$ lies below zero.
+\end{itemize}
 
 \section{Proposed System}
 \plan{Architecture diagram; the roles (parser, formalizer with solver-feedback repair, solver-runner, paraphraser,
@@ -87,8 +232,8 @@ the verifier signals (Gap 1), the calibrated threshold (Gap 2) and per-step toke
 \section{Experimental Setup}
 \plan{\cthree{} \cite{chen2026optengine}: classes, splits and the fixed samples (20 problems per class, the
 development split, linguistic and constraint-pair samples, and the exclusions found while checking the
-references). OpsOR-Bench for the shift test. Baselines B0, B1 and B2. Models (gpt-oss-120b, and DeepSeek-V3.2 for
-the base-paper reproduction), temperatures, repairs, paraphrases, repeats and the solver.}
+references). OpsOR-Bench for the shift test. Baselines B0, B1 and B2. Models (gpt-oss-120b, DeepSeek-V3.2 for
+the base-paper reproduction, and the optional second paraphrase model), temperatures, repairs, paraphrases, repeats and the solver.}
 
 \section{Evaluation Methodology}
 \plan{Metrics and how each is computed: accuracy, coverage, selective accuracy, wrong-accept rate with exact
@@ -121,8 +266,8 @@ How the base-paper comparison is made (reported numbers and our reproduction).}
 \plan{Failure categories, how often each occurs, and representative cases taken from the trace logs.}
 
 \section{Limitations and Threats to Validity}
-\plan{Limits of the data (synthetic \cthree{} problems, excluded references), of the method (the paraphraser and
-formalizer share one model; number coverage may not separate correct from wrong models), and of the evaluation
+\plan{Limits of the data (synthetic \cthree{} problems, excluded references), of the method (by default the paraphraser and
+formalizer share one model, and a second paraphrase model is optional; number coverage may not separate correct from wrong models), and of the evaluation
 (sample size, one main model, repeats); what may affect generalization.}
 
 \section{Conclusion}
