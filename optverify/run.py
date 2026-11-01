@@ -222,8 +222,12 @@ def resume_state(out_dir: Path, config: dict) -> tuple[list[dict], int]:
     summary = json.loads(summary_file.read_text(encoding="utf-8"))
     earlier = summary["config"]
     config = json.loads(json.dumps(config))  # compare as saved: tuples become lists
+    free = RESUME_FREE_KEYS
+    if config.get("system") != "pipeline":
+        # Only the pipeline has a paraphraser; older baseline and b2 runs saved a paraphrase endpoint they never used.
+        free = free | {"paraphrase_model", "paraphrase_endpoint"}
     different = sorted(
-        key for key in (set(earlier) | set(config)) - RESUME_FREE_KEYS if earlier.get(key) != config.get(key)
+        key for key in (set(earlier) | set(config)) - free if earlier.get(key) != config.get(key)
     )
     if different:
         raise SystemExit(f"--resume: the settings differ from the earlier run in {', '.join(different)}")
