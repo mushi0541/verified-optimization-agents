@@ -81,16 +81,25 @@ def parse_inventory(question: str) -> dict | None:
               or re.search(rf"from {NUMBER} to {NUMBER}", text))
     capacity = (re.search(rf"capacity[^.0-9]{{0,40}}?{NUMBER}", text, re.I)
                 or re.search(rf"(?:must not exceed|cannot exceed|may not exceed|must not surpass|cannot surpass)[^.0-9]{{0,40}}?{NUMBER}", text))
-    lead = re.search(rf"(?:lead time of|requires a|requires an?|delay of) {NUMBER}[- ](?:day|week|month|period|hour|leg|shift)", text, re.I)
-    if not lead:
-        lead = re.search(rf"{NUMBER}[- ](?:day|week|month|period|hour|leg|shift)s?(?:\(s\))? (?:transit|lead|delivery|shipping) ", text, re.I)
+    units = r"(?:day|week|month|period|hour|leg|shift|quarter)"
+    lead = (re.search(rf"(?:lead time of|requires an?|require an?|delay of|takes|needs) {NUMBER}[- ]{units}", text, re.I)
+            or re.search(rf"{NUMBER}[- ]{units}s?(?:\(s\))?(?:\s+\w+){{0,3}}?\s+(?:transit|lead|deliver|arriv|ship|delay|transmission)",
+                         text, re.I))
+    if lead:
+        lead_time = int(float(lead.group(1)))
+    elif re.search(r"instant|immediately|same (?:day|period)|without delay|no delay", text, re.I):
+        lead_time = 0
+    elif re.search(r"transit|arriv|lead time|delay|shipping time|deliver(?:ed|y)? after", text, re.I):
+        return None  # the text names a delay that could not be read: not checked, never guessed as 0
+    else:
+        lead_time = 0
     demand = [float(n) for n in re.findall(rf"^\s*\* [A-Za-z]+ \d+:[^0-9]*{NUMBER}", text, re.M)]
     cost_text = text[text.lower().find("three"):] if "three" in text.lower() else text
     costs = [float(n) for n in re.findall(rf"{NUMBER}\s*(?:[A-Za-z$]+\s+){{0,2}}per", cost_text)][:3]
     if not (initial and bounds and capacity and demand and len(costs) == 3):
         return None
     return {"initial": float(initial.group(1)), "low": float(bounds.group(1)), "high": float(bounds.group(2)),
-            "capacity": float(capacity.group(1)), "lead": int(float(lead.group(1))) if lead else 0, "demand": demand,
+            "capacity": float(capacity.group(1)), "lead": lead_time, "demand": demand,
             "order_cost": costs[0], "hold_cost": costs[1], "short_cost": costs[2]}
 
 

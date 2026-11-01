@@ -49,6 +49,16 @@ def test_inventory_is_read_and_the_two_capacity_readings_differ():
     assert solve_inventory(tight, True) == pytest.approx(203.0)
 
 
+def test_lead_times_are_read_or_the_question_is_not_checked():
+    # canonical-0622's wording: words between the time unit and "transit".
+    transit = INVENTORY.replace("Unmet demand is lost.", "Each requested shipment will require 4 week(s) for transit. Unmet demand is lost.")
+    assert parse_inventory(transit)["lead"] == 4
+    assert parse_inventory(INVENTORY.replace("Unmet demand is lost.", "There is a 2-hour transmission delay. Unmet demand is lost."))["lead"] == 2
+    assert parse_inventory(INVENTORY.replace("Unmet demand is lost.", "Shipments are delivered instantly. Unmet demand is lost."))["lead"] == 0
+    # A delay the parser cannot read must not be solved as lead 0.
+    assert parse_inventory(INVENTORY.replace("Unmet demand is lost.", "Shipments arrive after a short transit. Unmet demand is lost.")) is None
+
+
 def test_capacity_wording():
     assert capacity_wording("The stock at the end of any day must not exceed the capacity of 5.") == "end of period"
     assert capacity_wording(INVENTORY) == "any moment"
