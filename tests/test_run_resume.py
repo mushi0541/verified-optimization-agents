@@ -24,12 +24,12 @@ def offline(monkeypatch, tmp_path):
     real_baseline = run_module.run_baseline
     state = {"failed": None, "calls": []}
 
-    def flaky_baseline(problem, llm, max_repairs=0):
+    def flaky_baseline(problem, llm, max_repairs=0, trace=None):
         state["calls"].append(problem.problem_id)
         if state["failed"] is None:
             state["failed"] = problem.problem_id
             raise ConnectionError("Could not connect to the endpoint URL")
-        return real_baseline(problem, llm, max_repairs)
+        return real_baseline(problem, llm, max_repairs, trace=trace)
 
     monkeypatch.setattr(run_module, "run_baseline", flaky_baseline)
     return state
@@ -52,6 +52,15 @@ def test_resume_runs_only_the_missing_problems(monkeypatch, tmp_path, offline):
     assert summary["failed_problems"] == [] and summary["resumes"] == 1
     assert summary["run"] == out_dir.name and summary["problems"] == len(records)
     assert len(list((tmp_path / "results").iterdir())) == 1  # no new folder
+
+
+def test_a_resumed_run_writes_its_traces_under_the_original_run(monkeypatch, tmp_path, offline):
+    monkeypatch.setattr(run_module, "LOGS_DIR", tmp_path / "logs")
+    _run(monkeypatch, tmp_path)  # without --trace
+    (out_dir,) = (tmp_path / "results").iterdir()
+    _run(monkeypatch, tmp_path, "--resume", str(out_dir), "--trace")  # tracing may be switched on when resuming
+    assert [path.name for path in (tmp_path / "logs").iterdir()] == [out_dir.name]
+    assert [path.stem for path in (tmp_path / "logs" / out_dir.name).iterdir()] == [offline["failed"]]
 
 
 def test_resume_refuses_other_settings_or_an_unfinished_folder(monkeypatch, tmp_path, offline):

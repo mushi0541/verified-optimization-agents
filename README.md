@@ -330,6 +330,18 @@ usage is saved for a failed problem, so the cost is a lower bound when runs fail
 A predicted objective counts as correct when `|predicted - reference| <= 0.002 * |reference|`, the same rule as the
 base paper's evaluation script. The reference answer is used only for grading; it is never shown to any agent.
 
+## Observability
+
+Pass `--trace` to write per-step JSON lines to `logs/<run_name>/<problem_id>.jsonl`. Each line records one step with the following keys:
+- `time`: UTC ISO 8601 timestamp.
+- `role`: One of `parser`, `formalizer`, `repair`, `solver`, `paraphrase_<j>`, `verifier`, `decision`, `explainer`.
+- `input`: The prompt text or step inputs.
+- `output`: The model reply text, solver status and objective, or decision summary.
+- `tokens`: Token counts (`input_tokens`, `output_tokens`, `calls`).
+- `latency_s`: Step duration in seconds.
+
+Sensitive environment variable values and keys are automatically redacted.
+
 ## Repository layout
 
 ```
@@ -345,12 +357,14 @@ optverify/
   roles.py        parser, formalizer with repair, paraphraser, explainer
   solver_tool.py  runs generated PuLP code with HiGHS
   static/         interactive interface template (index.html)
+  trace.py        per-step trace writer with secret redaction
   verifier.py     verifier signals and the answer / abstain / escalate decision
   systems.py      baseline (B0/B1), single agent B2 and proposed pipeline
   grading.py      correctness rule and run summaries
   run.py          command line entry point
   web.py          interactive web interface entry point
 data/opsor/       generated OpsOR-Bench problem file
+logs/sample/      sample trace files for answered and escalated cases
 samples/          fixed evaluation sample ID files (canonical, ablation, linguistic, constraint pairs)
 scripts/download_data.py     pinned data download
 scripts/make_opsor.py        regenerates the OpsOR-Bench file with fixed seeds

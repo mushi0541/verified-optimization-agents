@@ -23,9 +23,11 @@ from .data import SPLIT_FILES, load_sample_file, load_split, sample_per_class
 from .grading import summarize
 from .llm import LLM, make_llm, with_temperature
 from .systems import PARAPHRASE_TEMPERATURE, run_baseline, run_pipeline, run_single_agent
+from .trace import TraceWriter
 from .verifier import SIGNALS
 
 RESULTS_DIR = Path(__file__).resolve().parent.parent / "results"
+LOGS_DIR = Path(__file__).resolve().parent.parent / "logs"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -67,6 +69,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--workers", type=int, default=2, help="parallel problems (keep low on free tiers)")
     parser.add_argument("--env-file", default=".env")
+    parser.add_argument("--trace", action="store_true", help="write per-step trace logs to logs/<run_name>/<problem_id>.jsonl")
     parser.add_argument(
         "--resume",
         type=Path,
@@ -77,7 +80,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 # Settings that may differ when a run is resumed: they do not change any record.
-RESUME_FREE_KEYS = {"resume", "workers", "env_file"}
+RESUME_FREE_KEYS = {"resume", "workers", "env_file", "trace"}
 
 
 def parse_signals(text: str) -> tuple[str, ...]:
@@ -132,18 +135,6 @@ def main() -> None:
     else:
         problems = sample_per_class(load_split(args.split), args.per_class, args.seed)
 
-    def solve(problem):
-        if args.system == "baseline":
-            return run_baseline(problem, llm, max_repairs=args.repairs)
-        if args.system == "b2":
-            return run_single_agent(
-                problem, llm, sample_llm, args.budget_tokens, args.repairs, args.threshold, args.max_samples
-            )
-        return run_pipeline(
-            problem, llm, args.paraphrases, args.repairs, args.threshold,
-            signals=args.signals, use_parser=not args.no_parser, paraphrase_llm=paraphrase_llm,
-        )
-
     config = run_config(args)
     records, resumes = [], 0
     if args.resume:
@@ -158,6 +149,27 @@ def main() -> None:
         run_name = f"{args.system}_{_slug(args.model)}{paraphraser_tag}_{split_tag}_r{args.repairs}_{datetime.now():%Y%m%d-%H%M}"
         out_dir = RESULTS_DIR / run_name
         out_dir.mkdir(parents=True, exist_ok=True)
+    log_dir = LOGS_DIR / out_dir.name if args.trace else None  # a resumed run keeps its log folder
+
+    def solve(problem):
+        trace = TraceWriter(log_dir / f"{problem.problem_id}.jsonl") if log_dir else None
+        if args.system == "baseline":
+            return run_baseline(problem, llm, max_repairs=args.repairs, trace=trace)
+        if args.system == "b2":
+            return run_single_agent(
+                problem, llm, sample_llm, args.budget_tokens, args.repairs, args.threshold, args.max_samples, trace=trace
+            )
+        return run_pipeline(
+            problem,
+            llm,
+            args.paraphrases,
+            args.repairs,
+            args.threshold,
+            signals=args.signals,
+            use_parser=not args.no_parser,
+            paraphrase_llm=paraphrase_llm,
+            trace=trace,
+        )
 
     mode = "a" if args.resume else "w"
     with ThreadPoolExecutor(max_workers=args.workers) as pool, (out_dir / "records.jsonl").open(mode, encoding="utf-8") as out:
