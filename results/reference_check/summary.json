@@ -1,0 +1,31 @@
+{
+  "records": [
+    "results/pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261101-1429/records.jsonl",
+    "results/pipeline_bedrock-openai.gpt-oss-120b-1-0_dev_30_r1_20261101-1612/records.jsonl"
+  ],
+  "classes": {
+    "Pollution": {
+      "problems": 80,
+      "checked": 73,
+      "reproduced": 0,
+      "by_reading": {
+        "stated model": 0
+      },
+      "pipeline_answers": 21,
+      "pipeline_equals_reference": 0,
+      "pipeline_equals_a_stated_reading_only": 7
+    },
+    "Inventory": {
+      "problems": 160,
+      "checked": 127,
+      "reproduced": 92,
+      "by_reading": {
+        "capacity also after arrival": 92,
+        "capacity at end of period": 48
+      },
+      "pipeline_answers": 19,
+      "pipeline_equals_reference": 10,
+      "pipeline_equals_a_stated_reading_only": 4
+    }
+  }
+}
