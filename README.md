@@ -42,7 +42,8 @@ operations questions into optimization models, verify those models, and answer, 
 | Fixed evaluation samples | All | samples/, scripts/make_samples.py | Done |
 | OpsOR-Bench: 36 problems in three families (gate assignment, ground-crew rostering, equipment dispatch) | Gap 2 | `optverify/opsor/`, `data/opsor/opsor_bench.jsonl`, `scripts/make_opsor.py` | Done |
 | Interactive interface | All | `optverify/web.py`, `optverify/static/index.html` | Done |
-| Requirement coverage, calibrated threshold | Gaps 1 and 2 | | Planned (Phase 2 schedule, report Table 6) |
+| Requirement coverage: the parser's requirements get IDs (R1, R2, ...), the formalizer names each constraint after its requirement, and the verifier scores the share of requirements linked to a constraint | Gap 1 | `optverify/roles.py` `number_requirements`, `optverify/prompts.py`, `optverify/solver_tool.py`, `optverify/verifier.py` `requirement_coverage` | Done; checked on the dev split (see below) |
+| Calibrated threshold | Gap 2 | | Planned (#29) |
 
 ## Setup
 
@@ -133,6 +134,37 @@ To run on the OpsOR-Bench operations research problems:
 To regenerate the OpsOR-Bench problem file:
 
     python scripts/make_opsor.py
+
+## Requirement coverage (Gap 1)
+
+The parser's requirements are numbered R1, R2, ... and the formalizer names every constraint after the requirement it
+implements (`model += x + y <= 10, "R3_capacity"`). The solver-runner reads the IDs from the constraint names of the
+final model, and requirement coverage is the share of requirements linked to at least one constraint. It is added
+to the score as the mean of the available signals; with no requirement list it is left out. Uncovered requirements
+are given as a reason when a case is escalated.
+
+**Development check** (development split only, `samples/dev_30.json`, gpt-oss-120b, k = 2, r = 1, threshold 0.8;
+runs in `results/dev_requirement_coverage/`):
+
+| Run | Parser failures | Correct optimum | Answered | Wrong accepted | AUROC of the score |
+|---|---|---|---|---|---|
+| 0: Phase 1 prompts (no requirement IDs) | 5 | 23 / 30 | 25 | 2 | 0.85 |
+| 1: requirement IDs in the formalizer prompt | 1 | 23 / 30 | 23 | 1 | 0.96 |
+| 2: + the parser leaves out variable types, repairs keep the names | 4 | 24 / 30 | 26 | 2 | 0.78 |
+| 3: + parser output cap 12,000 tokens and one retry | 0 | 25 / 30 | 24 | 0 | 0.99 |
+
+- Run 1 showed two causes of false misses: the parser lists variable types ("all variables are binary") as
+  requirements, and a repair round dropped the constraint names.
+- Run 2 showed that most parser failures are cut-off JSON: the parser lists every number, and on large instances its
+  reply did not fit in 4,096 output tokens (9 of 24 repeated calls, with the old prompt too). The rest were invalid
+  JSON that a second call fixes. Every parser failure removes the requirement signal; in run 2 two wrong answers
+  were accepted this way.
+- In run 3 requirement coverage alone has an AUROC of 0.78. It still flags some correct models, mostly when the
+  parser lists a variable type or a requirement that other constraints already imply: 5 of the 25 correct models
+  are below 100%, against 4 of the 5 wrong ones.
+
+These are 30 problems with 5 to 7 wrong answers, so the numbers move a lot between runs (compare runs 1 and 2). They
+were used only to fix the prompts; the signal is evaluated on the test samples in E4 (#35).
 
 ## E3 analysis (Gap 3, no API calls)
 

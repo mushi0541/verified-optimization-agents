@@ -76,23 +76,40 @@ def paraphrase_agreement(main_objective: float | None, other_objectives: list[fl
     return sum(same_optimum(main_objective, other) for other in solved) / len(solved)
 
 
+def requirement_coverage(required: list[str], linked: list[str]) -> tuple[float | None, list[str]]:
+    """Share of the parser's requirement IDs that name at least one constraint of the model (Gap 1).
+
+    None when the parser listed no requirements, so the signal is left out of the score instead of counting as 0.
+    """
+    if not required:
+        return None, []
+    missing = [requirement for requirement in required if requirement not in set(linked)]
+    return 1 - len(missing) / len(required), missing
+
+
 def build_report(
     question: str,
     code: str,
     status: str,
     objective: float | None,
     other_objectives: list[float | None],
+    required: list[str] = (),
+    linked: list[str] = (),
 ) -> VerifierReport:
+    """`required` holds the parser's requirement IDs and `linked` the IDs found in the model's constraint names."""
     feasible = status == "optimal" and objective is not None
     coverage, missing = number_coverage(question, code)
     agreement = paraphrase_agreement(objective, other_objectives)
-    score = combined_score(feasible, coverage, agreement)
-    return VerifierReport(feasible, coverage, missing, agreement, list(other_objectives), score)
+    requirements, missing_requirements = requirement_coverage(list(required), list(linked))
+    score = combined_score(feasible, coverage, agreement, requirements)
+    return VerifierReport(
+        feasible, coverage, missing, agreement, list(other_objectives), score, requirements, missing_requirements
+    )
 
 
-def combined_score(feasible: bool, coverage: float, agreement: float | None) -> float:
+def combined_score(feasible: bool, coverage: float, agreement: float | None, requirements: float | None = None) -> float:
     """Mean of the available signals, and 0 when no feasible model exists. Also used to rescore saved records."""
-    signals = [coverage] if agreement is None else [coverage, agreement]
+    signals = [signal for signal in (coverage, agreement, requirements) if signal is not None]
     return sum(signals) / len(signals) if feasible else 0.0
 
 
@@ -103,6 +120,10 @@ def decide(report: VerifierReport, objective: float | None, threshold: float) ->
     reasons = []
     if report.missing_numbers:
         reasons.append("Numbers from the question not used in the model: " + ", ".join(report.missing_numbers[:10]) + ".")
+    if report.missing_requirements:
+        reasons.append(
+            "Requirements not linked to any named constraint: " + ", ".join(report.missing_requirements[:10]) + "."
+        )
     if report.paraphrase_agreement is not None and report.paraphrase_agreement < 1:
         reasons.append("Reworded versions of the question gave different optimal values.")
     failed_runs = report.paraphrase_objectives.count(None)
