@@ -50,10 +50,11 @@ def run_pipeline(
     start = time.perf_counter()
     steps = {"parse": TokenUsage(), "formalize": TokenUsage(), "repair": TokenUsage()}
 
-    spec = roles.parse_problem(problem.question, llm, steps["parse"])
+    spec, required = roles.number_requirements(roles.parse_problem(problem.question, llm, steps["parse"]))
     first_prompt = prompts.FORMALIZE_FROM_SPEC.format(question=problem.question, spec=json.dumps(spec, indent=1))
     attempts = roles.formalize_and_solve(
-        first_prompt, problem.question, llm, steps["formalize"], max_repairs, repair_usage=steps["repair"]
+        first_prompt, problem.question, llm, steps["formalize"], max_repairs, repair_usage=steps["repair"],
+        repair_note=prompts.KEEP_CONSTRAINT_NAMES if required else "",
     )
     final = attempts[-1]
 
@@ -68,7 +69,10 @@ def run_pipeline(
                 objective = _reworded_optimum(problem.question, llm, step)
             other_objectives.append(objective)
 
-    report = verifier.build_report(problem.question, final.code, final.solve.status, final.solve.objective, other_objectives)
+    report = verifier.build_report(
+        problem.question, final.code, final.solve.status, final.solve.objective, other_objectives,
+        required, final.solve.requirement_ids,
+    )
     decision = verifier.decide(report, final.solve.objective, threshold)
     return RunRecord(
         problem_id=problem.problem_id,
