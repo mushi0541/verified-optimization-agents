@@ -3,16 +3,21 @@
 Runs with the same configuration (system with its repairs or k, model, endpoint and problem set) are repeats of one
 configuration, so each measure is given as the mean and sample standard deviation over its repeats:
 - input and output tokens, LLM calls, solver calls and latency per problem;
-- cost per problem in US$ at the Bedrock price below, stated with the date of the price;
+- cost per problem in US$, at the price of the run's model in PRICES, stated with the date the price was read;
 - reliability: failed-run rate (crashes or rejected requests; report objective D1 asks for under 5%), solver error
   and timeout rates over all solver calls of the main attempts, and the repair success rate (share of problems whose
   first model was not optimal that reached an optimal model after repair);
 - tokens per step from usage_by_step, to show where each system spends its budget.
 
 Counting rules, so the numbers match the records:
+- tokens, calls, latency and cost cover finished problems only: no usage is saved for a failed problem, so when runs
+  fail the cost is a lower bound;
 - solver calls are the main attempts, plus one per paraphrase try in the pipeline (each try is one paraphraser and one
   formalizer call, so tries = calls / 2 of each paraphrase_<j> step), and for B2 the attempts of the samples it used;
 - B2's tokens are those of the samples it used (its usage), as in the equal-budget comparison;
+- a model missing from PRICES gets no cost (an empty cell), never another model's price;
+- a measure a repeat cannot have (the repair success rate when nothing needed repair) is left out of the mean, and
+  the output says how many repeats had a value;
 - runs saved before Phase 2 have no endpoint in their config and no per-step tokens, and are labelled as such;
 - repeats must come from the same code; pass --runs to choose the runs for a table.
 
@@ -29,10 +34,10 @@ import statistics
 from pathlib import Path
 
 RESULTS_DIR = Path(__file__).resolve().parent.parent / "results"
-# Amazon Bedrock on-demand price for openai.gpt-oss-120b-1:0 in us-east-1, US$ per million tokens (PR #14).
-PRICE_INPUT_PER_MILLION = 0.15
-PRICE_OUTPUT_PER_MILLION = 0.60
-PRICE_DATE = "2026-10-20"
+# US$ per million tokens, with the date the price was read. Amazon Bedrock on-demand prices in us-east-1 (PR #14).
+PRICES = {
+    "openai.gpt-oss-120b-1:0": {"input": 0.15, "output": 0.60, "date": "2026-10-20"},
+}
 FAILED_RUN_TARGET = 0.05  # report objective D1
 RUN_METRICS = (
     "mean_input_tokens",
@@ -63,34 +68,57 @@ def main() -> None:
 
 def load_run(folder: Path) -> dict:
     summary = json.loads((folder / "summary.json").read_text(encoding="utf-8"))
-    lines = (folder / "records.jsonl").read_text(encoding="utf-8").splitlines()
+    records_file = folder / "records.jsonl"
+    lines = records_file.read_text(encoding="utf-8").splitlines() if records_file.exists() else []
     return {"name": folder.name, "summary": summary, "records": [json.loads(line) for line in lines if line.strip()]}
+
+
+def run_system(run: dict) -> str:
+    """The system with its setting, as records name it (baseline_r1, pipeline_p3, b2_r1). From summary.json when no
+    problem finished, so a run where every problem failed still has a configuration."""
+    if run["records"]:
+        return run["records"][0]["system"]
+    config = run["summary"].get("config", {})
+    system = config.get("system", "unknown")
+    if system == "pipeline":
+        return f"pipeline_p{config.get('paraphrases')}"
+    return f"{system}_r{config.get('repairs')}" if system in ("baseline", "b2") else system
+
+
+def run_model(run: dict) -> str:
+    """The model name as records store it (no provider prefix), so it matches the keys of PRICES."""
+    if run["records"]:
+        return run["records"][0]["model"]
+    spec = run["summary"].get("config", {}).get("model", "unknown")
+    return spec.partition(":")[2] or spec
 
 
 def configuration(run: dict) -> str:
     """The key that makes runs repeats of each other. It ends with the problem set (the problems attempted, counting
     failed ones, and a short fingerprint of their IDs), so runs on different problems are never averaged together."""
     config = run["summary"].get("config", {})
-    first = run["records"][0]
     endpoint = config.get("endpoint") or "endpoint not recorded"
+    attempted = sorted({record["problem_id"] for record in run["records"]} | set(run["summary"].get("failed_problems", [])))
     if config.get("sample_file"):
         problems = Path(str(config["sample_file"]).replace("\\", "/")).stem
     elif config:
         problems = f"{config['split']}, {config['per_class']} per class, seed {config['seed']}"
     else:
-        problems = f"{first['problem_id'].split('-')[0]}, sample not recorded"
-    attempted = sorted({record["problem_id"] for record in run["records"]} | set(run["summary"].get("failed_problems", [])))
+        problems = f"{attempted[0].split('-')[0] if attempted else 'unknown'}, sample not recorded"
     fingerprint = hashlib.sha256(" ".join(attempted).encode()).hexdigest()[:6]
-    return f"{first['system']} | {first['model']} | {endpoint} | {problems} | {len(attempted)} problems [{fingerprint}]"
+    return f"{run_system(run)} | {run_model(run)} | {endpoint} | {problems} | {len(attempted)} problems [{fingerprint}]"
 
 
 def run_metrics(run: dict) -> dict:
     records = run["records"]
     failed = len(run["summary"].get("failed_problems", []))
     solves = [attempt["solve"]["status"] for record in records for attempt in main_attempts(record)]
-    needed_repair = [record for record in records if first_attempts(record)[0]["solve"]["status"] != "optimal"]
+    started = [record for record in records if first_attempts(record)]
+    needed_repair = [record for record in started if first_attempts(record)[0]["solve"]["status"] != "optimal"]
+    price = PRICES.get(run_model(run))
     input_tokens = [record["usage"]["input_tokens"] for record in records]
     output_tokens = [record["usage"]["output_tokens"] for record in records]
+    attempted = len(records) + failed
     return {
         "problems": len(records),
         "failed_runs": failed,
@@ -99,13 +127,13 @@ def run_metrics(run: dict) -> dict:
         "mean_llm_calls": _mean(record["usage"]["calls"] for record in records),
         "mean_solver_calls": _mean(solver_calls(record) for record in records),
         "mean_latency_s": _mean(record["latency_s"] for record in records),
-        "mean_cost_usd": _mean(cost_usd(i, o) for i, o in zip(input_tokens, output_tokens)),
-        "failed_run_rate": failed / (len(records) + failed),
+        "mean_cost_usd": _mean(cost_usd(i, o, price) for i, o in zip(input_tokens, output_tokens)) if price else None,
+        "failed_run_rate": failed / attempted if attempted else None,
         "solver_error_rate": solves.count("error") / len(solves) if solves else None,
         "solver_timeout_rate": solves.count("timeout") / len(solves) if solves else None,
         "repair_success_rate": (
             _mean(first_attempts(record)[-1]["solve"]["status"] == "optimal" for record in needed_repair)
-            if needed_repair and any(len(first_attempts(record)) > 1 for record in needed_repair)
+            if any(len(first_attempts(record)) > 1 for record in needed_repair)
             else None
         ),
         "tokens_by_step": tokens_by_step(records),
@@ -114,14 +142,14 @@ def run_metrics(run: dict) -> dict:
 
 def first_attempts(record: dict) -> list[dict]:
     """The first formalize-and-repair round: the record's attempts (for B2 this is sample 1, its B1 run)."""
-    return record["attempts"]
+    return record.get("attempts") or []
 
 
 def main_attempts(record: dict) -> list[dict]:
     """Every solver call that the record's answer rests on (all used samples for B2)."""
     if record.get("samples"):
         return [attempt for sample in record["samples"][: record.get("samples_used") or len(record["samples"])] for attempt in sample]
-    return record["attempts"]
+    return first_attempts(record)
 
 
 def solver_calls(record: dict) -> int:
@@ -136,13 +164,13 @@ def solver_calls(record: dict) -> int:
     return calls
 
 
-def cost_usd(input_tokens: int, output_tokens: int) -> float:
-    return (input_tokens * PRICE_INPUT_PER_MILLION + output_tokens * PRICE_OUTPUT_PER_MILLION) / 1_000_000
+def cost_usd(input_tokens: int, output_tokens: int, price: dict) -> float:
+    return (input_tokens * price["input"] + output_tokens * price["output"]) / 1_000_000
 
 
 def tokens_by_step(records: list[dict]) -> dict[str, float] | None:
     """Mean tokens per problem for each step; a step a problem did not run counts as 0. B2's unused samples are left out."""
-    if not all(record.get("usage_by_step") for record in records):
+    if not records or not all(record.get("usage_by_step") for record in records):
         return None
     totals: dict[str, int] = {}
     for record in records:
@@ -161,36 +189,37 @@ def efficiency(runs: list[dict]) -> dict:
     configurations = []
     for key, members in groups.items():
         per_run = [run_metrics(run) for run in members]
-        metrics = {name: mean_and_sd([m[name] for m in per_run]) for name in RUN_METRICS}
         total_failed = sum(m["failed_runs"] for m in per_run)
         total_attempted = sum(m["problems"] + m["failed_runs"] for m in per_run)
+        model = run_model(members[0])
         configurations.append(
             {
                 "configuration": key,
                 "runs": [run["name"] for run in members],
                 "problems_per_run": [m["problems"] for m in per_run],
-                "metrics": metrics,
-                "meets_failed_run_target": total_failed / total_attempted < FAILED_RUN_TARGET,
+                "metrics": {name: mean_and_sd([m[name] for m in per_run]) for name in RUN_METRICS},
+                "price": {"model": model, **PRICES[model]} if model in PRICES else None,
+                "meets_failed_run_target": total_attempted > 0 and total_failed / total_attempted < FAILED_RUN_TARGET,
                 "tokens_by_step": _mean_steps([m["tokens_by_step"] for m in per_run]),
             }
         )
     return {
-        "price": {
-            "input_per_million_usd": PRICE_INPUT_PER_MILLION,
-            "output_per_million_usd": PRICE_OUTPUT_PER_MILLION,
-            "source": "Amazon Bedrock on-demand, openai.gpt-oss-120b-1:0, us-east-1",
-            "date": PRICE_DATE,
-        },
+        "prices_usd_per_million_tokens": PRICES,
+        "price_source": "Amazon Bedrock on-demand, us-east-1",
         "failed_run_target": FAILED_RUN_TARGET,
         "configurations": configurations,
     }
 
 
 def mean_and_sd(values: list) -> dict:
-    """Mean and sample standard deviation over repeats; one repeat has no deviation, and a missing value stays missing."""
-    if not values or None in values:
-        return {"mean": None, "sd": None}
-    return {"mean": statistics.mean(values), "sd": statistics.stdev(values) if len(values) >= 2 else None}
+    """Mean and sample standard deviation (n - 1) over the repeats that have a value. A repeat without the measure
+    (for example the repair success rate when nothing needed repair) is left out, and repeats_with_value says how many
+    remained. The deviation needs 2 or more of them."""
+    present = [value for value in values if value is not None]
+    if not present:
+        return {"mean": None, "sd": None, "repeats_with_value": 0}
+    sd = statistics.stdev(present) if len(present) >= 2 else None
+    return {"mean": statistics.mean(present), "sd": sd, "repeats_with_value": len(present)}
 
 
 def _mean_steps(per_run: list[dict | None]) -> dict[str, float] | None:
@@ -207,14 +236,16 @@ def write_tables(result: dict, out_dir: Path) -> None:
         writer = csv.writer(file)
         writer.writerow(
             ["configuration", "repeats", "problems per run"]
-            + [f"{name} ({part})" for name in RUN_METRICS for part in ("mean", "sd")]
-            + ["failed-run rate under 5%", "price date"]
+            + [f"{name} ({part})" for name in RUN_METRICS for part in ("mean", "sd", "repeats with value")]
+            + ["failed-run rate under 5%", "price input per million (US$)", "price output per million (US$)", "price date"]
         )
         for group in result["configurations"]:
             cells = [group["configuration"], len(group["runs"]), " ".join(map(str, group["problems_per_run"]))]
             for name in RUN_METRICS:
-                cells += [group["metrics"][name]["mean"], group["metrics"][name]["sd"]]
-            cells += [group["meets_failed_run_target"], result["price"]["date"]]
+                metric = group["metrics"][name]
+                cells += [metric["mean"], metric["sd"], metric["repeats_with_value"]]
+            price = group["price"] or {}
+            cells += [group["meets_failed_run_target"], price.get("input"), price.get("output"), price.get("date")]
             writer.writerow(["" if cell is None else cell for cell in cells])
     with (out_dir / "tokens_by_step.csv").open("w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
@@ -228,9 +259,10 @@ def write_tables(result: dict, out_dir: Path) -> None:
                 writer.writerow([group["configuration"], name, tokens, tokens / total if total else ""])
 
 
-def _mean(values) -> float:
+def _mean(values) -> float | None:
+    """Mean of the values, or None when there are none (a run in which every problem failed)."""
     values = list(values)
-    return sum(values) / len(values) if values else 0.0
+    return sum(values) / len(values) if values else None
 
 
 if __name__ == "__main__":

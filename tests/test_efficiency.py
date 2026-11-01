@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 from scripts.efficiency import (
+    PRICES,
     configuration,
     cost_usd,
     efficiency,
@@ -25,11 +26,11 @@ def _attempt(status: str) -> dict:
     return {"solve": {"status": status, "objective": 1.0 if status == "optimal" else None}}
 
 
-def _baseline(problem_id: str, statuses: list[str]) -> dict:
+def _baseline(problem_id: str, statuses: list[str], model: str = "openai.gpt-oss-120b-1:0") -> dict:
     return {
         "problem_id": problem_id,
         "system": "baseline_r1",
-        "model": "m",
+        "model": model,
         "attempts": [_attempt(status) for status in statuses],
         "usage": _usage(100 * len(statuses), len(statuses)),
         "usage_by_step": {"formalize": _usage(100, 1), "repair": _usage(100 * (len(statuses) - 1), len(statuses) - 1)},
@@ -38,7 +39,13 @@ def _baseline(problem_id: str, statuses: list[str]) -> dict:
 
 
 def _run(name: str, records: list[dict], failed: list[str] = (), sample_file: str = "samples/canonical_100.json") -> dict:
-    config = {"endpoint": "bedrock us-east-1", "sample_file": sample_file}
+    config = {
+        "endpoint": "bedrock us-east-1",
+        "sample_file": sample_file,
+        "system": "baseline",
+        "repairs": 1,
+        "model": "bedrock:openai.gpt-oss-120b-1:0",
+    }
     return {"name": name, "summary": {"config": config, "failed_problems": list(failed)}, "records": records}
 
 
@@ -63,9 +70,45 @@ def test_solver_calls_per_system():
     assert solver_calls(b2) == 3  # the third sample was drawn but not used
 
 
-def test_cost_uses_the_bedrock_price():
-    assert cost_usd(1_000_000, 1_000_000) == pytest.approx(0.15 + 0.60)
-    assert cost_usd(902, 1819) == pytest.approx(0.0012267)  # 902 x 0.15 + 1,819 x 0.60 = 1,226.7 per million
+def test_cost_uses_the_price_of_the_run_model():
+    gpt = PRICES["openai.gpt-oss-120b-1:0"]
+    assert cost_usd(1_000_000, 1_000_000, gpt) == pytest.approx(0.15 + 0.60)
+    assert cost_usd(902, 1819, gpt) == pytest.approx(0.0012267)  # 902 x 0.15 + 1,819 x 0.60 = 1,226.7 per million
+    assert run_metrics(_run("r", [_baseline("a", ["optimal"])]))["mean_cost_usd"] == pytest.approx(100 * 0.15 / 1e6)
+
+
+def test_a_model_without_a_price_gets_no_cost(tmp_path):
+    run = _run("ds", [_baseline("a", ["optimal"], model="deepseek.v3.2")])
+    assert run_metrics(run)["mean_cost_usd"] is None  # never another model's price
+    result = efficiency([run])
+    assert result["configurations"][0]["price"] is None
+    write_tables(result, tmp_path)
+    row = (tmp_path / "efficiency.csv").read_text(encoding="utf-8").splitlines()[1]
+    assert row.endswith(",,,")  # price input, output and date are empty
+
+    priced = efficiency([_run("gpt", [_baseline("a", ["optimal"])])])["configurations"][0]
+    assert priced["price"] == {"model": "openai.gpt-oss-120b-1:0", "input": 0.15, "output": 0.60, "date": "2026-10-20"}
+
+
+def test_a_run_in_which_every_problem_failed():
+    run = _run("all-failed", [], failed=["a", "b"])
+    assert configuration(run).startswith("baseline_r1 | openai.gpt-oss-120b-1:0 | bedrock us-east-1")
+    metrics = run_metrics(run)
+    assert metrics["failed_run_rate"] == 1.0 and metrics["problems"] == 0
+    assert metrics["mean_input_tokens"] is None and metrics["mean_cost_usd"] is None  # no usage is saved
+    assert metrics["solver_error_rate"] is None and metrics["tokens_by_step"] is None
+    group = efficiency([run])["configurations"][0]
+    assert not group["meets_failed_run_target"]
+    empty_attempts = dict(_baseline("c", ["optimal"]), attempts=[])
+    assert run_metrics(_run("r", [empty_attempts]))["repair_success_rate"] is None  # no crash on empty attempts
+
+
+def test_the_mean_over_repeats_skips_repeats_without_the_measure():
+    nothing_to_repair = _run("one", [_baseline("a", ["optimal"]), _baseline("b", ["optimal"])])
+    repaired = _run("two", [_baseline("a", ["error", "optimal"]), _baseline("b", ["optimal"])])
+    group = efficiency([nothing_to_repair, repaired])["configurations"][0]
+    assert group["metrics"]["repair_success_rate"] == {"mean": 1.0, "sd": None, "repeats_with_value": 1}
+    assert group["metrics"]["mean_llm_calls"]["repeats_with_value"] == 2
 
 
 def test_reliability_rates():
@@ -102,9 +145,10 @@ def test_repeats_are_grouped_only_on_the_same_configuration_and_problems(tmp_pat
     result = efficiency([one, two, other_problems])
     assert len(result["configurations"]) == 2
     group = next(g for g in result["configurations"] if g["runs"] == ["one", "two"])
-    assert group["metrics"]["mean_llm_calls"] == {"mean": 1.25, "sd": pytest.approx(0.3535534, abs=1e-6)}
+    calls = group["metrics"]["mean_llm_calls"]
+    assert calls == {"mean": 1.25, "sd": pytest.approx(0.3535534, abs=1e-6), "repeats_with_value": 2}
     assert group["meets_failed_run_target"]
-    assert result["price"]["date"] == "2026-10-20"
+    assert group["price"]["date"] == "2026-10-20"
 
     write_tables(result, tmp_path)
     assert (tmp_path / "efficiency.csv").read_text(encoding="utf-8").startswith("configuration,repeats")
