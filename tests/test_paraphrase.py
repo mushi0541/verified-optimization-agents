@@ -1,8 +1,11 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from optverify import interactive
-from optverify.run import parse_args
+from optverify import run as run_module
+from optverify.run import paraphrase_client, parse_args
 from optverify.systems import PARAPHRASE_TEMPERATURE, run_pipeline
 from optverify.verifier import combined_score, paraphrase_agreement
 from tests.fake_llm import FakeLLM
@@ -72,3 +75,51 @@ def test_interface_rewords_at_the_paraphrase_temperature(monkeypatch):
     interactive.solve_interactive_problem("Maximize 3x with x <= 4.", main)
     assert seen["paraphrase_llm"].temperature == PARAPHRASE_TEMPERATURE
     assert seen["main_llm"] is main and not hasattr(main, "temperature")  # the main client is left unchanged
+
+
+def test_paraphrase_model_defaults_to_the_main_model():
+    args = parse_args(["pipeline", "--model", "dummy"])
+    assert args.paraphrase_model is None
+    main = FakeLLM()
+    client = paraphrase_client(args, main, make=lambda spec: pytest.fail("no second model was asked for"))
+    assert client is not main and client.temperature == PARAPHRASE_TEMPERATURE
+    assert not hasattr(main, "temperature")  # the main client is left unchanged
+
+
+def test_a_second_paraphrase_model_rewords_and_the_main_model_solves():
+    args = parse_args(["pipeline", "--model", "dummy", "--paraphrase-model", "bedrock:deepseek.v3.2"])
+    main, second, asked = FakeLLM(), FakeLLM(), []
+
+    def make(spec):
+        asked.append(spec)
+        return second
+
+    paraphraser = paraphrase_client(args, main, make=make)
+    assert asked == ["bedrock:deepseek.v3.2"] and paraphraser.temperature == PARAPHRASE_TEMPERATURE
+    record = run_pipeline(TOY_PROBLEM, main, paraphrases=2, paraphrase_llm=paraphraser)
+    assert len(second.prompts) == 2 and all(PARAPHRASER_PROMPT in prompt for prompt in second.prompts)
+    assert not any(PARAPHRASER_PROMPT in prompt for prompt in main.prompts)  # rewordings are solved by the main model
+    assert record.model == main.name and record.decision.action == "answer"
+
+
+def test_the_run_records_the_paraphrase_model_and_its_endpoint(tmp_path, monkeypatch):
+    made = []
+
+    def fake_make_llm(spec, temperature=0.0):
+        made.append(spec)
+        return FakeLLM()
+
+    monkeypatch.setattr(run_module, "make_llm", fake_make_llm)
+    monkeypatch.setattr(run_module, "RESULTS_DIR", tmp_path)
+    monkeypatch.setenv("AWS_REGION", "us-east-1")
+    argv = ["run", "pipeline", "--model", "bedrock:openai.gpt-oss-120b-1:0", "--paraphrase-model", "bedrock:deepseek.v3.2",
+            "--split", "opsor", "--per-class", "1", "--paraphrases", "1", "--workers", "1", "--env-file", str(tmp_path / "none")]
+    monkeypatch.setattr("sys.argv", argv)
+    run_module.main()
+
+    assert made == ["bedrock:openai.gpt-oss-120b-1:0", "bedrock:deepseek.v3.2"]
+    (folder,) = tmp_path.iterdir()
+    assert "_para-bedrock-deepseek.v3.2_" in folder.name  # the two paraphraser settings never share a folder name
+    config = json.loads((folder / "summary.json").read_text(encoding="utf-8"))["config"]
+    assert config["paraphrase_model"] == "bedrock:deepseek.v3.2"
+    assert config["paraphrase_endpoint"] == "bedrock us-east-1" and config["endpoint"] == "bedrock us-east-1"
