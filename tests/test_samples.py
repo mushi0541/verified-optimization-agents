@@ -2,6 +2,8 @@ import hashlib
 import json
 from pathlib import Path
 
+import pytest
+
 from optverify.data import (
     DATA_DIR,
     knapsack_item_key,
@@ -12,16 +14,29 @@ from optverify.data import (
 from scripts.make_samples import generate_samples
 
 SAMPLES_DIR = Path(__file__).resolve().parent.parent / "samples"
+SAMPLE_FILES = [
+    "canonical_100.json", "canonical_200.json", "ablation_30.json", "ablation_50.json", "linguistic_30.json",
+    "linguistic_60.json", "constraint_pairs_30.json", "constraint_pairs_60.json", "dev_30.json",
+]
 
 
-def test_canonical_sample_integrity():
-    canonical_file = SAMPLES_DIR / "canonical_100.json"
+def _ids(name: str) -> list:
+    return json.loads((SAMPLES_DIR / name).read_text(encoding="utf-8"))
+
+
+def _pair_ids(name: str) -> set[str]:
+    return {pair[key] for pair in _ids(name) for key in ("original", "augmented")}
+
+
+@pytest.mark.parametrize("name, per_class", [("canonical_100.json", 10), ("canonical_200.json", 20)])
+def test_canonical_sample_integrity(name, per_class):
+    canonical_file = SAMPLES_DIR / name
     ids = json.loads(canonical_file.read_text(encoding="utf-8"))
-    assert len(ids) == 100
-    assert len(set(ids)) == 100
+    assert len(ids) == 10 * per_class
+    assert len(set(ids)) == 10 * per_class
 
     problems = load_sample_file(canonical_file)
-    assert len(problems) == 100
+    assert len(problems) == 10 * per_class
 
     by_class: dict[str, int] = {}
     for problem in problems:
@@ -30,17 +45,18 @@ def test_canonical_sample_integrity():
         by_class[problem.problem_class] = by_class.get(problem.problem_class, 0) + 1
 
     assert len(by_class) == 10
-    assert all(count == 10 for count in by_class.values())
+    assert all(count == per_class for count in by_class.values())
 
 
-def test_linguistic_sample_integrity():
-    linguistic_file = SAMPLES_DIR / "linguistic_30.json"
+@pytest.mark.parametrize("name, per_class", [("linguistic_30.json", 10), ("linguistic_60.json", 20)])
+def test_linguistic_sample_integrity(name, per_class):
+    linguistic_file = SAMPLES_DIR / name
     ids = json.loads(linguistic_file.read_text(encoding="utf-8"))
-    assert len(ids) == 30
-    assert len(set(ids)) == 30
+    assert len(ids) == 3 * per_class
+    assert len(set(ids)) == 3 * per_class
 
     problems = load_sample_file(linguistic_file)
-    assert len(problems) == 30
+    assert len(problems) == 3 * per_class
 
     by_class: dict[str, int] = {}
     for problem in problems:
@@ -49,23 +65,24 @@ def test_linguistic_sample_integrity():
         by_class[problem.problem_class] = by_class.get(problem.problem_class, 0) + 1
 
     assert set(by_class.keys()) == {"Inventory", "Knapsack", "TSP"}
-    assert all(count == 10 for count in by_class.values())
+    assert all(count == per_class for count in by_class.values())
 
 
-def test_ablation_sample_integrity():
+@pytest.mark.parametrize("name, per_class", [("ablation_30.json", 3), ("ablation_50.json", 5)])
+def test_ablation_sample_integrity(name, per_class):
     canonical_file = SAMPLES_DIR / "canonical_100.json"
-    ablation_file = SAMPLES_DIR / "ablation_30.json"
+    ablation_file = SAMPLES_DIR / name
 
     canonical_ids = set(json.loads(canonical_file.read_text(encoding="utf-8")))
     ablation_ids = json.loads(ablation_file.read_text(encoding="utf-8"))
 
-    assert len(ablation_ids) == 30
-    assert len(set(ablation_ids)) == 30
+    assert len(ablation_ids) == 10 * per_class
+    assert len(set(ablation_ids)) == 10 * per_class
     assert set(ablation_ids).issubset(canonical_ids)
     assert len(set(ablation_ids)) < len(canonical_ids)
 
     problems = load_sample_file(ablation_file)
-    assert len(problems) == 30
+    assert len(problems) == 10 * per_class
 
     by_class: dict[str, int] = {}
     for problem in problems:
@@ -73,16 +90,18 @@ def test_ablation_sample_integrity():
         by_class[problem.problem_class] = by_class.get(problem.problem_class, 0) + 1
 
     assert len(by_class) == 10
-    assert all(count == 3 for count in by_class.values())
+    assert all(count == per_class for count in by_class.values())
 
 
-def test_constraint_pairs_integrity():
-    constraint_file = SAMPLES_DIR / "constraint_pairs_30.json"
+@pytest.mark.parametrize("name, per_class", [("constraint_pairs_30.json", 10), ("constraint_pairs_60.json", 20)])
+def test_constraint_pairs_integrity(name, per_class):
+    constraint_file = SAMPLES_DIR / name
     pairs = json.loads(constraint_file.read_text(encoding="utf-8"))
-    assert len(pairs) == 30
+    assert len(pairs) == 3 * per_class
 
     constraint_problems = {p.problem_id: p for p in load_split("constraint", data_dir=DATA_DIR)}
     used_augmented_ids: set[str] = set()
+    used_original_ids: set[str] = set()
 
     by_class: dict[str, int] = {}
     for idx, pair in enumerate(pairs):
@@ -107,7 +126,9 @@ def test_constraint_pairs_integrity():
         assert aug.meta.get("constraint_type") == "augmented"
 
         assert aug_id not in used_augmented_ids
+        assert orig_id not in used_original_ids
         used_augmented_ids.add(aug_id)
+        used_original_ids.add(orig_id)
 
         if p_class == "Inventory":
             assert pair["pairing"] == "class_and_size"
@@ -124,7 +145,21 @@ def test_constraint_pairs_integrity():
             raise AssertionError(f"Unexpected class {p_class}")
 
     assert set(by_class.keys()) == {"Inventory", "Knapsack", "TSP"}
-    assert all(count == 10 for count in by_class.values())
+    assert all(count == per_class for count in by_class.values())
+
+
+@pytest.mark.parametrize(
+    "small, large", [
+        ("canonical_100.json", "canonical_200.json"),
+        ("ablation_30.json", "ablation_50.json"),
+        ("linguistic_30.json", "linguistic_60.json"),
+        ("constraint_pairs_30.json", "constraint_pairs_60.json"),
+    ],
+)
+def test_larger_samples_start_with_the_smaller_ones(small, large):
+    # Results already run on the Phase 1 samples stay valid: each larger file begins with the smaller one.
+    small_items, large_items = _ids(small), _ids(large)
+    assert large_items[: len(small_items)] == small_items
 
 
 def test_dev_sample_integrity():
@@ -149,17 +184,12 @@ def test_dev_sample_integrity():
     assert len(by_class) == 10
     assert all(count == 3 for count in by_class.values())
 
-    canonical_ids = set(json.loads((SAMPLES_DIR / "canonical_100.json").read_text(encoding="utf-8")))
-    ablation_ids = set(json.loads((SAMPLES_DIR / "ablation_30.json").read_text(encoding="utf-8")))
-    linguistic_ids = set(json.loads((SAMPLES_DIR / "linguistic_30.json").read_text(encoding="utf-8")))
-    constraint_pairs = json.loads((SAMPLES_DIR / "constraint_pairs_30.json").read_text(encoding="utf-8"))
-    constraint_ids = {p["original"] for p in constraint_pairs} | {p["augmented"] for p in constraint_pairs}
-
     dev_set = set(ids)
-    assert dev_set.isdisjoint(canonical_ids)
-    assert dev_set.isdisjoint(ablation_ids)
-    assert dev_set.isdisjoint(linguistic_ids)
-    assert dev_set.isdisjoint(constraint_ids)
+    for name in SAMPLE_FILES:
+        if name.startswith("constraint_pairs"):
+            assert dev_set.isdisjoint(_pair_ids(name)), name
+        elif name != "dev_30.json":
+            assert dev_set.isdisjoint(_ids(name)), name
 
 
 def test_dev_sample_regeneration_is_identical(tmp_path):
@@ -177,7 +207,7 @@ def test_dev_sample_regeneration_is_identical(tmp_path):
 
 
 def test_sample_files_formatting():
-    for name in ["canonical_100.json", "ablation_30.json", "linguistic_30.json", "constraint_pairs_30.json", "dev_30.json"]:
+    for name in SAMPLE_FILES:
         file_path = SAMPLES_DIR / name
         raw_bytes = file_path.read_bytes()
         assert raw_bytes.endswith(b"\n")
@@ -192,7 +222,8 @@ def test_sample_files_formatting():
 def test_sample_generation_determinism_via_hashes(tmp_path):
     generated = generate_samples(output_dir=tmp_path, data_dir=DATA_DIR)
 
-    for name in ["canonical_100.json", "ablation_30.json", "linguistic_30.json", "constraint_pairs_30.json", "dev_30.json"]:
+    assert sorted(path.name for path in generated.values()) == sorted(SAMPLE_FILES)
+    for name in SAMPLE_FILES:
         checked_in = SAMPLES_DIR / name
         new_file = tmp_path / name
 

@@ -89,7 +89,9 @@ def pipeline_at(record: dict, k: int) -> dict:
     dropped = [f"paraphrase_{j}" for j in range(k + 1, len(others) + 1)]
     return {
         "answer": objective,
-        "score": combined_score(report["feasible"], report["number_coverage"], agreement),
+        "score": combined_score(
+            report["feasible"], report["number_coverage"], agreement, report.get("requirement_coverage")
+        ),
         "correct": is_correct(objective, record["reference"]),
         **_usage_without(record, dropped),
     }

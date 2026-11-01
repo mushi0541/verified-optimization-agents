@@ -12,10 +12,31 @@ from .llm import LLM
 from .solver_tool import extract_code, run_model_code
 
 
+# The parser lists every number of the problem, so on large instances (network flow with 100 arcs, TSP with 100 edges)
+# its JSON did not fit in the default 4,096 output tokens and was cut off: 9 of 24 dev-split calls failed this way.
+PARSE_MAX_TOKENS = 12000
+
+
 def parse_problem(question: str, llm: LLM, usage: TokenUsage) -> dict | None:
-    reply = llm.complete(prompts.PARSE.format(question=question))
-    usage.add(reply.usage)
-    return _first_json_object(reply.text)
+    """The parser's JSON spec, or None. A reply that is not valid JSON is asked for once more (2 of 9 dev calls)."""
+    for _ in range(2):
+        reply = llm.complete(prompts.PARSE.format(question=question), max_tokens=PARSE_MAX_TOKENS)
+        usage.add(reply.usage)
+        spec = _first_json_object(reply.text)
+        if spec is not None:
+            return spec
+    return None
+
+
+def number_requirements(spec: dict | None) -> tuple[dict | None, list[str]]:
+    """The parser output with its requirements keyed by ID ("R1", "R2", ...), as the formalizer sees it, and the IDs.
+
+    Without a requirement list (the parser failed or returned another shape) the spec is kept and there are no IDs.
+    """
+    if not spec or not isinstance(spec.get("requirements"), list) or not spec["requirements"]:
+        return spec, []
+    numbered = {f"R{i}": text for i, text in enumerate(spec["requirements"], start=1)}
+    return {**spec, "requirements": numbered}, list(numbered)
 
 
 def formalize_and_solve(
@@ -25,10 +46,12 @@ def formalize_and_solve(
     usage: TokenUsage,
     max_repairs: int,
     repair_usage: TokenUsage | None = None,
+    repair_note: str = "",
 ) -> list[Attempt]:
     """Write model code, run it, and repair it from solver/runtime errors only (never from the reference answer).
 
-    Repair calls are counted in repair_usage when it is given, otherwise in usage."""
+    Repair calls are counted in repair_usage when it is given, otherwise in usage. repair_note is added to the
+    repair instruction (the pipeline uses it to keep the constraint names)."""
     attempts = []
     prompt = first_prompt
     for round_number in range(max_repairs + 1):
@@ -40,7 +63,9 @@ def formalize_and_solve(
         if result.status == "optimal":
             break
         problem_text = result.error or f"The solver finished with status '{result.status}'."
-        prompt = prompts.REPAIR.format(question=question, code=code or "(no code returned)", error=problem_text)
+        prompt = prompts.REPAIR.format(
+            question=question, code=code or "(no code returned)", error=problem_text, note=repair_note
+        )
     return attempts
 
 
@@ -63,6 +88,8 @@ def explain(
     else:
         opening = "The system could not build a working model, so it is not giving an answer."
     checks = f"Checks: number coverage {report.number_coverage:.0%}"
+    if report.requirement_coverage is not None:
+        checks += f", requirement coverage {report.requirement_coverage:.0%}"
     if report.paraphrase_agreement is not None:
         checks += f", reworded-question agreement {report.paraphrase_agreement:.0%}"
     summary = " ".join([opening, checks + ".", *decision.reasons])

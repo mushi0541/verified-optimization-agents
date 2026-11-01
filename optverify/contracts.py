@@ -54,6 +54,8 @@ class SolveResult:
     error: str = ""
     runtime_s: float = 0.0
     variables: dict[str, float] = field(default_factory=dict)
+    # Requirement IDs (R1, R2, ...) found in the constraint names of the model, sorted (Gap 1, requirement coverage).
+    requirement_ids: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -72,6 +74,10 @@ class VerifierReport:
     paraphrase_agreement: float | None  # share of reworded runs that reach the same optimum
     paraphrase_objectives: list[float | None]
     score: float
+    # Share of the parser's requirements linked to a named constraint; None when the parser listed no requirements
+    # (and in records saved before Phase 2).
+    requirement_coverage: float | None = None
+    missing_requirements: list[str] = field(default_factory=list)
 
 
 @dataclass
