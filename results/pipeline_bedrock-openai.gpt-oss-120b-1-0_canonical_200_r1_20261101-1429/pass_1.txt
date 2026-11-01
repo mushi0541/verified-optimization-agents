@@ -1,0 +1,390 @@
+[1/200] canonical-0041 BinPacking: correct=True
+[2/200] canonical-0430 BinPacking: correct=True
+[3/200] canonical-0265 BinPacking: correct=True
+[4/200] canonical-0523 BinPacking: correct=True
+[5/200] canonical-0310 BinPacking: correct=False
+[6/200] canonical-0394 BinPacking: correct=True
+[7/200] canonical-0497 BinPacking: correct=True
+[8/200] canonical-0488 BinPacking: correct=True
+[9/200] canonical-0366 BinPacking: correct=True
+[10/200] canonical-0414 BinPacking: correct=True
+[11/200] canonical-0769 Inventory: correct=True
+[12/200] canonical-0675 Inventory: correct=True
+[13/200] canonical-0749 Inventory: correct=True
+[14/200] canonical-0655 Inventory: correct=True
+[15/200] canonical-0644 Inventory: correct=False
+[16/200] canonical-0778 Inventory: correct=True
+[17/200] canonical-0692 Inventory: correct=True
+[18/200] canonical-0684 Inventory: correct=True
+[19/200] canonical-0756 Inventory: correct=False
+[20/200] canonical-0774 Inventory: correct=False
+[21/200] canonical-0817 JobShop: correct=True
+[22/200] canonical-0805 JobShop: correct=True
+[23/200] canonical-0798 JobShop: correct=True
+[24/200] canonical-0864 JobShop: correct=True
+[25/200] canonical-0870 JobShop: correct=True
+[26/200] canonical-0900 JobShop: correct=True
+[27/200] canonical-0860 JobShop: correct=True
+[28/200] canonical-0891 JobShop: correct=True
+[29/200] canonical-1044 Knapsack: correct=True
+[30/200] canonical-1184 Knapsack: correct=True
+[31/200] canonical-1166 Knapsack: correct=True
+[32/200] canonical-0923 JobShop: correct=True
+[33/200] canonical-1073 Knapsack: correct=True
+[34/200] canonical-0971 Knapsack: correct=True
+[35/200] canonical-0947 Knapsack: correct=True
+[36/200] canonical-0987 Knapsack: correct=True
+[37/200] canonical-0940 Knapsack: correct=True
+[38/200] canonical-1144 Knapsack: correct=True
+[39/200] canonical-1215 NetworkFlow: correct=False
+[40/200] canonical-1192 Knapsack: correct=True
+[41/200] canonical-0859 JobShop: correct=True
+[42/200] canonical-1245 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[43/200] canonical-1221 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[44/200] canonical-1204 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[45/200] canonical-1212 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[46/200] canonical-1236 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[47/200] canonical-1214 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[48/200] canonical-1248 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[49/200] canonical-1588 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[50/200] canonical-1639 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[51/200] canonical-1627 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[52/200] canonical-1581 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[53/200] canonical-1610 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[54/200] canonical-1635 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[55/200] canonical-1632 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[56/200] canonical-1583 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[57/200] canonical-1608 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[58/200] canonical-1391 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[59/200] canonical-1324 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[60/200] canonical-1281 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[61/200] canonical-1390 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[62/200] canonical-1335 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[63/200] canonical-1388 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[64/200] canonical-1302 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[65/200] canonical-1404 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[66/200] canonical-1400 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[67/200] canonical-1323 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[68/200] canonical-1706 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[69/200] canonical-1661 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[70/200] canonical-1726 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[71/200] canonical-1699 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[72/200] canonical-1690 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[73/200] canonical-1723 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[74/200] canonical-1680 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[75/200] canonical-1687 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[76/200] canonical-1673 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[77/200] canonical-1674 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[78/200] canonical-1457 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[79/200] canonical-1418 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[80/200] canonical-1566 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[81/200] canonical-1476 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[82/200] canonical-1531 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[83/200] canonical-1427 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[84/200] canonical-1432 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[85/200] canonical-1443 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[86/200] canonical-1448 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[87/200] canonical-1419 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[88/200] canonical-1740 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[89/200] canonical-1799 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[90/200] canonical-1780 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[91/200] canonical-1797 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[92/200] canonical-1765 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[93/200] canonical-1796 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[94/200] canonical-1760 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[95/200] canonical-1757 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[96/200] canonical-1783 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[97/200] canonical-1805 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[98/200] canonical-0399 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[99/200] canonical-0437 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[100/200] canonical-0042 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[101/200] canonical-0267 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[102/200] canonical-0533 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[103/200] canonical-0506 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[104/200] canonical-0420 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[105/200] canonical-0313 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[106/200] canonical-0496 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[107/200] canonical-0370 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[108/200] canonical-0779 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[109/200] canonical-0678 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[110/200] canonical-0755 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[111/200] canonical-0657 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[112/200] canonical-0697 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[113/200] canonical-0645 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[114/200] canonical-0688 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[115/200] canonical-0763 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[116/200] canonical-0659 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[117/200] canonical-0704 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[118/200] canonical-0807 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[119/200] canonical-0799 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[120/200] canonical-0871 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[121/200] canonical-0909 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[122/200] canonical-0933 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[123/200] canonical-0877 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[124/200] canonical-0899 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[125/200] canonical-0866 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[126/200] canonical-0835 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[127/200] canonical-0931 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[128/200] canonical-1067 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[129/200] canonical-1058 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[130/200] canonical-1169 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[131/200] canonical-1079 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[132/200] canonical-1010 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[133/200] canonical-0957 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[134/200] canonical-1153 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[135/200] canonical-1183 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[136/200] canonical-1086 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[137/200] canonical-1182 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[138/200] canonical-1200 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[139/200] canonical-1206 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[140/200] canonical-1231 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[141/200] canonical-1249 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[142/200] canonical-1238 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[143/200] canonical-1227 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[144/200] canonical-1219 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[145/200] canonical-1226 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[146/200] canonical-1205 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[147/200] canonical-1207 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[148/200] canonical-1602 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[149/200] canonical-1604 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[150/200] canonical-1592 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[151/200] canonical-1636 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[152/200] canonical-1584 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[153/200] canonical-1582 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[154/200] canonical-1616 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[155/200] canonical-1634 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[156/200] canonical-1606 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[157/200] canonical-1638 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[158/200] canonical-1380 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[159/200] canonical-1277 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[160/200] canonical-1331 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[161/200] canonical-1399 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[162/200] canonical-1328 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[163/200] canonical-1282 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[164/200] canonical-1398 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[165/200] canonical-1340 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[166/200] canonical-1396 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[167/200] canonical-1304 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[168/200] canonical-1692 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[169/200] canonical-1714 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[170/200] canonical-1662 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[171/200] canonical-1707 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[172/200] canonical-1696 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[173/200] canonical-1684 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[174/200] canonical-1693 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[175/200] canonical-1727 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[176/200] canonical-1663 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[177/200] canonical-1710 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[178/200] canonical-1464 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[179/200] canonical-1420 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[180/200] canonical-1484 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[181/200] canonical-1540 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[182/200] canonical-1430 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[183/200] canonical-1436 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[184/200] canonical-1449 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[185/200] canonical-1454 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[186/200] canonical-1421 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[187/200] canonical-1434 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[188/200] canonical-1809 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[189/200] canonical-1786 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[190/200] canonical-1807 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[191/200] canonical-1769 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[192/200] canonical-1763 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[193/200] canonical-1759 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[194/200] canonical-1789 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[195/200] canonical-1771 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[196/200] canonical-1748 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[197/200] canonical-1761 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[198/200] canonical-1246 FAILED: Read timeout on endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[199/200] canonical-1220 FAILED: Read timeout on endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[200/200] canonical-1580 FAILED: Connection was closed before we received a valid response from endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse".
+{
+  "run": "pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261101-1429",
+  "failed_problems": [
+    "canonical-1245",
+    "canonical-1221",
+    "canonical-1204",
+    "canonical-1212",
+    "canonical-1236",
+    "canonical-1214",
+    "canonical-1248",
+    "canonical-1588",
+    "canonical-1639",
+    "canonical-1627",
+    "canonical-1581",
+    "canonical-1610",
+    "canonical-1635",
+    "canonical-1632",
+    "canonical-1583",
+    "canonical-1608",
+    "canonical-1391",
+    "canonical-1324",
+    "canonical-1281",
+    "canonical-1390",
+    "canonical-1335",
+    "canonical-1388",
+    "canonical-1302",
+    "canonical-1404",
+    "canonical-1400",
+    "canonical-1323",
+    "canonical-1706",
+    "canonical-1661",
+    "canonical-1726",
+    "canonical-1699",
+    "canonical-1690",
+    "canonical-1723",
+    "canonical-1680",
+    "canonical-1687",
+    "canonical-1673",
+    "canonical-1674",
+    "canonical-1457",
+    "canonical-1418",
+    "canonical-1566",
+    "canonical-1476",
+    "canonical-1531",
+    "canonical-1427",
+    "canonical-1432",
+    "canonical-1443",
+    "canonical-1448",
+    "canonical-1419",
+    "canonical-1740",
+    "canonical-1799",
+    "canonical-1780",
+    "canonical-1797",
+    "canonical-1765",
+    "canonical-1796",
+    "canonical-1760",
+    "canonical-1757",
+    "canonical-1783",
+    "canonical-1805",
+    "canonical-0399",
+    "canonical-0437",
+    "canonical-0042",
+    "canonical-0267",
+    "canonical-0533",
+    "canonical-0506",
+    "canonical-0420",
+    "canonical-0313",
+    "canonical-0496",
+    "canonical-0370",
+    "canonical-0779",
+    "canonical-0678",
+    "canonical-0755",
+    "canonical-0657",
+    "canonical-0697",
+    "canonical-0645",
+    "canonical-0688",
+    "canonical-0763",
+    "canonical-0659",
+    "canonical-0704",
+    "canonical-0807",
+    "canonical-0799",
+    "canonical-0871",
+    "canonical-0909",
+    "canonical-0933",
+    "canonical-0877",
+    "canonical-0899",
+    "canonical-0866",
+    "canonical-0835",
+    "canonical-0931",
+    "canonical-1067",
+    "canonical-1058",
+    "canonical-1169",
+    "canonical-1079",
+    "canonical-1010",
+    "canonical-0957",
+    "canonical-1153",
+    "canonical-1183",
+    "canonical-1086",
+    "canonical-1182",
+    "canonical-1200",
+    "canonical-1206",
+    "canonical-1231",
+    "canonical-1249",
+    "canonical-1238",
+    "canonical-1227",
+    "canonical-1219",
+    "canonical-1226",
+    "canonical-1205",
+    "canonical-1207",
+    "canonical-1602",
+    "canonical-1604",
+    "canonical-1592",
+    "canonical-1636",
+    "canonical-1584",
+    "canonical-1582",
+    "canonical-1616",
+    "canonical-1634",
+    "canonical-1606",
+    "canonical-1638",
+    "canonical-1380",
+    "canonical-1277",
+    "canonical-1331",
+    "canonical-1399",
+    "canonical-1328",
+    "canonical-1282",
+    "canonical-1398",
+    "canonical-1340",
+    "canonical-1396",
+    "canonical-1304",
+    "canonical-1692",
+    "canonical-1714",
+    "canonical-1662",
+    "canonical-1707",
+    "canonical-1696",
+    "canonical-1684",
+    "canonical-1693",
+    "canonical-1727",
+    "canonical-1663",
+    "canonical-1710",
+    "canonical-1464",
+    "canonical-1420",
+    "canonical-1484",
+    "canonical-1540",
+    "canonical-1430",
+    "canonical-1436",
+    "canonical-1449",
+    "canonical-1454",
+    "canonical-1421",
+    "canonical-1434",
+    "canonical-1809",
+    "canonical-1786",
+    "canonical-1807",
+    "canonical-1769",
+    "canonical-1763",
+    "canonical-1759",
+    "canonical-1789",
+    "canonical-1771",
+    "canonical-1748",
+    "canonical-1761",
+    "canonical-1246",
+    "canonical-1220",
+    "canonical-1580"
+  ],
+  "problems": 41,
+  "accuracy": 0.8780487804878049,
+  "solved_rate": 0.975609756097561,
+  "status_counts": {
+    "error": 1,
+    "optimal": 40
+  },
+  "mean_input_tokens": 5828.512195121952,
+  "mean_output_tokens": 9772.487804878048,
+  "mean_llm_calls": 8.121951219512194,
+  "mean_latency_s": 91.09447879512034,
+  "accuracy_by_class": {
+    "BinPacking": 0.9,
+    "Inventory": 0.7,
+    "JobShop": 1.0,
+    "Knapsack": 1.0,
+    "NetworkFlow": 0.0
+  },
+  "decision_counts": {
+    "abstain": 1,
+    "answer": 33,
+    "escalate": 7
+  },
+  "coverage": 0.8048780487804879,
+  "selective_accuracy": 0.9696969696969697,
+  "wrong_accept_rate": 0.030303030303030304
+}

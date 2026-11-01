@@ -1,0 +1,107 @@
+Resuming pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261101-1429: 132 problems already finished, 68 to run
+[1/68] canonical-0957 Knapsack: correct=True
+[2/68] canonical-1010 Knapsack: correct=True
+[3/68] canonical-1153 Knapsack: correct=True
+[4/68] canonical-1183 Knapsack: correct=True
+[5/68] canonical-1086 Knapsack: correct=True
+[6/68] canonical-1182 Knapsack: correct=True
+[7/68] canonical-1206 NetworkFlow: correct=True
+[8/68] canonical-1200 NetworkFlow: correct=True
+[9/68] canonical-1231 NetworkFlow: correct=True
+[10/68] canonical-1249 NetworkFlow: correct=True
+[11/68] canonical-1238 NetworkFlow: correct=True
+[12/68] canonical-1227 NetworkFlow: correct=True
+[13/68] canonical-1219 NetworkFlow: correct=True
+[14/68] canonical-0933 JobShop: correct=False
+[15/68] canonical-1205 NetworkFlow: correct=True
+[16/68] canonical-1226 NetworkFlow: correct=True
+[17/68] canonical-1207 NetworkFlow: correct=True
+[18/68] canonical-1602 Pollution: correct=False
+[19/68] canonical-0931 JobShop: correct=True
+[20/68] canonical-1592 Pollution: correct=False
+[21/68] canonical-1604 Pollution: correct=False
+[22/68] canonical-1636 Pollution: correct=False
+[23/68] canonical-1616 Pollution: correct=False
+[24/68] canonical-1582 Pollution: correct=False
+[25/68] canonical-1584 Pollution: correct=False
+[26/68] canonical-1634 Pollution: correct=False
+[27/68] canonical-1606 Pollution: correct=False
+[28/68] canonical-1380 Portfolio: correct=True
+[29/68] canonical-1638 Pollution: correct=False
+[30/68] canonical-1277 Portfolio: correct=True
+[31/68] canonical-1331 Portfolio: correct=True
+[32/68] canonical-1399 Portfolio: correct=True
+[33/68] canonical-1328 Portfolio: correct=True
+[34/68] canonical-1282 Portfolio: correct=True
+[35/68] canonical-1398 Portfolio: correct=True
+[36/68] canonical-1340 Portfolio: correct=True
+[37/68] canonical-1304 Portfolio: correct=True
+[38/68] canonical-1396 Portfolio: correct=True
+[39/68] canonical-1692 Production: correct=False
+[40/68] canonical-1662 Production: correct=True
+[41/68] canonical-1714 Production: correct=True
+[42/68] canonical-1707 Production: correct=True
+[43/68] canonical-1696 Production: correct=True
+[44/68] canonical-1693 Production: correct=True
+[45/68] canonical-1684 Production: correct=True
+[46/68] canonical-1663 Production: correct=True
+[47/68] canonical-1727 Production: correct=True
+[48/68] canonical-1710 Production: correct=False
+[49/68] canonical-1464 TSP: correct=True
+[50/68] canonical-1420 TSP: correct=True
+[51/68] canonical-1430 TSP: correct=False
+[52/68] canonical-1540 TSP: correct=False
+[53/68] canonical-1484 TSP: correct=True
+[54/68] canonical-1436 TSP: correct=True
+[55/68] canonical-1434 TSP: correct=False
+[56/68] canonical-1449 TSP: correct=True
+[57/68] canonical-1454 TSP: correct=True
+[58/68] canonical-1421 TSP: correct=True
+[59/68] canonical-1809 Transportation: correct=True
+[60/68] canonical-1769 Transportation: correct=True
+[61/68] canonical-1786 Transportation: correct=True
+[62/68] canonical-1807 Transportation: correct=True
+[63/68] canonical-1763 Transportation: correct=True
+[64/68] canonical-1759 Transportation: correct=True
+[65/68] canonical-1789 Transportation: correct=True
+[66/68] canonical-1748 Transportation: correct=True
+[67/68] canonical-1771 Transportation: correct=True
+[68/68] canonical-1761 Transportation: correct=True
+{
+  "run": "pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261101-1429",
+  "resumes": 1,
+  "failed_problems": [],
+  "problems": 200,
+  "accuracy": 0.78,
+  "solved_rate": 0.965,
+  "status_counts": {
+    "error": 1,
+    "infeasible": 5,
+    "no_code": 1,
+    "optimal": 193
+  },
+  "mean_input_tokens": 8710.74,
+  "mean_output_tokens": 12072.46,
+  "mean_llm_calls": 8.17,
+  "mean_latency_s": 83.99753488849936,
+  "accuracy_by_class": {
+    "BinPacking": 0.95,
+    "Inventory": 0.55,
+    "JobShop": 0.95,
+    "Knapsack": 1.0,
+    "NetworkFlow": 0.95,
+    "Pollution": 0.0,
+    "Portfolio": 0.85,
+    "Production": 0.85,
+    "TSP": 0.7,
+    "Transportation": 1.0
+  },
+  "decision_counts": {
+    "abstain": 7,
+    "answer": 163,
+    "escalate": 30
+  },
+  "coverage": 0.815,
+  "selective_accuracy": 0.9202453987730062,
+  "wrong_accept_rate": 0.07975460122699386
+}
