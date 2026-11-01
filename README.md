@@ -33,19 +33,19 @@ where. Measured effects are in the [development log](docs/devlog.md).
 | Change | Why | Pull requests |
 |---|---|---|
 | Main provider moved from the Groq free plan to Amazon Bedrock, with the same model (gpt-oss-120b); all Phase 1 results rerun on Bedrock | Groq's limits (200K tokens a day, 8,000 a minute) were far too small for the planned runs, and some members could not get a key | #10, #14, #16 |
-| Number coverage ignores item labels ("Package 3"), accepts percentages written as fractions, and reads commas in code as separators | False alarms on correct models in the Phase 1 pipeline run | #10, #12 |
+| Number coverage ignores item labels ("Package 3"), accepts percentages written as fractions, and reads commas in code as separators | False alarms on correct models in the Phase 1 pipeline run | #10, #12, #14 |
 | A failed reworded run is retried once and left out of the agreement instead of counting as a disagreement | A failed run is not evidence of a different answer; it escalated correct answers | #10 |
 | Generated code runs in UTF-8 mode | On Windows, code that printed symbols such as `≤` crashed and counted as a modelling error | #19 |
 | Paraphrase agreement treats a value and its negative as the same optimum; the paraphraser runs at temperature 0.7 as the report states | A correct answer was escalated because a rewording minimized the negative; rewordings at temperature 0 are near copies | #49 |
 | Token use is saved per step, and B2 is charged only for the samples behind its answer | Needed to compare the pipeline with a single agent at an equal token budget (Gap 3) | #2, #3 |
 | Fixed sample files, and a separate development split that shares no problem with any test sample | The Phase 2 brief forbids tuning on the test set | #17, #52 |
-| Test samples grow to 20 problems per class (`canonical_200`, `ablation_50`, `linguistic_60`, `constraint_pairs_60`), each starting with the Phase 1 sample | Supervisor feedback: 10 per class gives wide intervals, especially per held-out class in Gap 2 | #58 |
+| Test samples grow to 20 problems per class (`canonical_200`, `linguistic_60`, `constraint_pairs_60`) and the ablation sample to 5 per class (`ablation_50`), each starting with the Phase 1 sample | Supervisor feedback: 10 per class gives wide intervals, especially per held-out class in Gap 2 | #58 |
 | Requirement coverage, the third Gap 1 signal, is measured by linking each parser requirement (R1, R2, ...) to named constraints; the parser gets a larger output cap and one retry | Planned in Phase 1; on the dev split the parser's JSON was cut off on large instances, which removed the signal | #60 |
 | The fixed 0.8 threshold is replaced by a threshold calibrated to a target wrong-accept rate, tested leave-one-class-out; B2 is calibrated on its own agreement rate, and a calibration is used only for the configuration it was made from | Gap 2 as planned; the scores of different systems and settings are not comparable | #57, #61 |
 | Each Gap 1 signal and the parser can be switched off, and ablations are read from saved records | The Phase 2 brief requires switchable gap components; rescoring avoids paying for repeated runs | #61 |
 | An optional second model writes the rewordings (`--paraphrase-model`) | Supervisor feedback: the paraphraser and the formalizer share a model, so their errors can be correlated | #62 |
 | B0 and B1 are reported over repeats, grouped by model, next to the base paper's reported values, so B0 can also be reproduced with the paper's own model (DeepSeek-V3.2, runs in #33) | Supervisor feedback: compare properly with the base paper | #50 |
-| A run can be resumed after failed problems (`--resume`) | A network outage during an E3 run failed most problems; rerunning everything would pay twice | #64 |
+| A run can be resumed after failed problems (`--resume`) | A network outage during an E3 run failed most problems; rerunning everything would pay twice | #64, #66 |
 | A development log records each failure, fix and measured effect | The Phase 2 brief asks for it, and the paper's failure analysis uses it | #48 |
 
 Supervisor feedback on Phase 1 and where each point is handled: issue #23.
