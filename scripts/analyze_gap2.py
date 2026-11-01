@@ -24,6 +24,8 @@ Two extra analyses, reported next to H2 and never in place of it:
 - --alpha-scan: the same leave-one-class-out test for every alpha from 5% to 30% in steps of 1%, and the smallest
   alpha that meets H2's rule (point rate at most alpha, at least 50% answered) and the smallest one whose one-sided
   exact bound is also at most alpha. This shows which error rate the data can support (alpha_scan.csv and .png).
+- --shift: the shift test (#36). Each repeat's threshold, calibrated on all of its classes, is applied unchanged to a
+  run on another benchmark (OpsOR-Bench), and the wrong-accept rate and coverage are reported per family.
 - --exclude-classes: the same analysis without some problem classes, for the sensitivity analysis the reference
   check (#40) asks for when a class's references are wrong. It is always reported next to the full result.
 - Combined calibration data: one repeat can be several runs joined with "+", for example the canonical,
@@ -84,6 +86,23 @@ def alpha_scan(records: list[dict], alphas: list[float] = SCAN_ALPHAS) -> dict:
         "smallest_alpha_meeting_h2_rule": next((p["alpha"] for p in points if p["supported"]), None),
         "smallest_alpha_meeting_the_bound_too": next((p["alpha"] for p in points if p["supported"] and p["upper_bound_ok"]), None),
     }
+
+
+def shift_test(records: list[dict], shift_records: list[dict], alphas: list[float], fixed: float) -> dict:
+    """Apply the thresholds calibrated on every class of `records` to another benchmark's records, per family."""
+    families = sorted({r["problem_class"] for r in shift_records})
+    result = {"problems": len(shift_records), "families": families, "by_alpha": {}}
+    settings = [(alpha_key(alpha), leave_one_class_out(records, alpha)["threshold"]) for alpha in alphas] + [("fixed", fixed)]
+    for key, threshold in settings:
+        rows = {}
+        for family in families + ["all"]:
+            members = [r for r in shift_records if family == "all" or r["problem_class"] == family]
+            accepted = [] if threshold is None else [ok for score, ok in scored_answers(members) if score >= threshold]
+            rows[family] = {"problems": len(members), "answered": len(accepted), "wrong_accepted": accepted.count(False),
+                            "coverage": len(accepted) / len(members) if members else 0.0,
+                            "wrong_accept_rate": accepted.count(False) / len(accepted) if accepted else None}
+        result["by_alpha"][key] = {"threshold": threshold, "families": rows}
+    return result
 
 
 def h2_alpha(alphas: list[float]) -> float | None:
@@ -236,6 +255,17 @@ def markdown(result: dict) -> str:
                 coverage = next((p["coverage"] for p in scan["points"] if p["alpha"] == rule), None)
                 lines.append(f"| {i} | {_pct(rule) if rule is not None else 'none up to 30%'} | "
                              f"{_pct(bound) if bound is not None else 'none up to 30%'} | {_pct(coverage)} |")
+    for i, shift in enumerate(result.get("shift", []), start=1):
+        lines += ["", f"Shift test, run {i}: thresholds calibrated on every class of this run, applied to "
+                      f"{result['settings']['shift']} ({shift['problems']} problems).", "",
+                  "| Setting | Threshold | " + " | ".join(shift["families"]) + " | All |",
+                  "|---|---|" + "---|" * (len(shift["families"]) + 1)]
+        for key, entry in shift["by_alpha"].items():
+            label = f"alpha {float(key):.0%}" if key != "fixed" else "fixed"
+            threshold = "answer nothing" if entry["threshold"] is None else f"{entry['threshold']:.3f}"
+            cells = [f"{c['answered']}/{c['problems']} answered, {_pct(c['wrong_accept_rate'])} wrong"
+                     for c in (entry["families"][f] for f in shift["families"] + ["all"])]
+            lines.append(f"| {label} | {threshold} | " + " | ".join(cells) + " |")
     if "b0" in result:
         b0 = result["b0"]
         lines += ["", f"B0 on the same {b0['problems']} problems: answers {b0['answered']} ({_pct(b0['coverage'])}), "
@@ -334,6 +364,7 @@ def main() -> None:
     parser.add_argument("--out", type=Path, help="folder for gap2.json, gap2.md and the risk-coverage curve")
     parser.add_argument("--alpha-scan", action="store_true", help="also scan alpha from 5%% to 30%% (an extra analysis)")
     parser.add_argument("--exclude-classes", nargs="+", default=[], help="sensitivity analysis without these classes")
+    parser.add_argument("--shift", help="records.jsonl of a run on another benchmark (OpsOR-Bench) for the shift test")
     args = parser.parse_args()
 
     all_records = [load_repeat(spec) for spec in args.records]  # failed problems included, as unanswered
@@ -345,10 +376,14 @@ def main() -> None:
         "records": [spec.replace("\\", "/") for spec in args.records],
         "settings": {"alphas": args.alphas, "fixed_threshold": args.fixed_threshold,
                      "subset": args.subset.as_posix() if args.subset else None, "h2_alpha": H2_ALPHA, "min_coverage": MIN_COVERAGE,
-                     "excluded_classes": args.exclude_classes},
+                     "excluded_classes": args.exclude_classes,
+                     "shift": args.shift.replace("\\", "/") if args.shift else None},
         "runs": runs,
         "summary": summarize(runs, args.alphas),
     }
+    if args.shift:
+        shift_records = load_run(Path(args.shift))
+        result["shift"] = [shift_test(records, shift_records, args.alphas, args.fixed_threshold) for records in all_records]
     if args.baseline:
         problem_ids = {r["problem_id"] for records in all_records for r in records}
         result["b0"] = b0_reference(load_run(args.baseline), problem_ids)

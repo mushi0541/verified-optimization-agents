@@ -158,3 +158,22 @@ def test_command_line_sensitivity_without_classes(tmp_path):
     assert result["runs"][0]["problems"] == 160 and "alpha_scan" in result["runs"][0]
     assert "Sensitivity analysis without Class0, Class1" in (out / "gap2.md").read_text(encoding="utf-8")
     assert (out / "alpha_scan.csv").exists() and (out / "alpha_scan.png").exists()
+
+
+def test_shift_test_applies_the_canonical_threshold_per_family():
+    from scripts.analyze_gap2 import shift_test
+
+    shift = [_record("s1", "Gates", 1.0, True), _record("s2", "Gates", 1.0, False), _record("s3", "Gates", 0.5, True),
+             _record("s4", "Crews", 0.9, True), {"problem_id": "s5", "problem_class": "Crews", "failed": True}]
+    result = shift_test(_canonical(20), shift, [0.05, 0.10], fixed=0.8)
+    assert result["families"] == ["Crews", "Gates"]
+    # At 5% no canonical threshold passes, so nothing is answered.
+    assert result["by_alpha"]["0.05"]["threshold"] is None
+    assert result["by_alpha"]["0.05"]["families"]["all"]["answered"] == 0
+    # At 10% the canonical threshold is 1.0: Gates answers s1 and s2 (one wrong), Crews answers nothing.
+    ten = result["by_alpha"]["0.1"]
+    assert ten["threshold"] == 1.0
+    assert ten["families"]["Gates"]["answered"] == 2 and ten["families"]["Gates"]["wrong_accept_rate"] == 0.5
+    assert ten["families"]["Crews"]["coverage"] == 0.0 and ten["families"]["Crews"]["problems"] == 2
+    fixed = result["by_alpha"]["fixed"]["families"]["all"]
+    assert (fixed["answered"], fixed["wrong_accepted"], fixed["problems"]) == (3, 1, 5)
