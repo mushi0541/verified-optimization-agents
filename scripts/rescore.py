@@ -15,7 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from optverify.calibration import fixed_threshold, leave_one_class_out, threshold_from_file  # noqa: E402
+from optverify.calibration import fixed_threshold, leave_one_class_out, load_run, threshold_from_file  # noqa: E402
 from optverify.rescore import rescore  # noqa: E402
 from optverify.run import parse_signals  # noqa: E402
 from optverify.verifier import SIGNALS  # noqa: E402
@@ -68,7 +68,7 @@ def main() -> None:
 
     records = []
     for path in args.records:
-        records += [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+        records += load_run(path)  # failed problems included, as unanswered
     result = summarize(rescore_records(records, args.signals, args.k, not args.no_repair), args)
     text = json.dumps(result, indent=2)
     if args.out:
