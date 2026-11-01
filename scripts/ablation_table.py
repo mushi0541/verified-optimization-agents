@@ -19,8 +19,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from optverify.calibration import fixed_threshold, leave_one_class_out
-from optverify.rescore import rescore
+from optverify.calibration import calibrate_threshold, fixed_threshold, rates, scored_answers
 from optverify.verifier import SIGNALS
 from scripts.rescore import rescore_records
 
@@ -41,23 +40,45 @@ def compute_auroc(scored: list[tuple[float, bool]]) -> float | None:
     return pairs / (len(pos) * len(neg))
 
 
-def load_and_filter_records(records_path: Path, ablation_ids: set[str]) -> list[dict]:
-    """Load records.jsonl and restrict strictly to the ablation problem IDs."""
+def load_records(records_path: Path) -> list[dict]:
+    """Every record of one run."""
     if not records_path.exists():
         print(f"Records file not found: {records_path}", file=sys.stderr)
         sys.exit(1)
-
-    records = []
     with records_path.open("r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            rec = json.loads(line)
-            if rec.get("problem_id") in ablation_ids:
-                records.append(rec)
+        return [json.loads(line) for line in f if line.strip()]
 
-    return records
+
+def ablation_subset(records: list[dict], ablation_ids: set[str], source_label: str) -> list[dict]:
+    """The records of the ablation problems; every ablation problem must be there, so rows compare the same set."""
+    subset = [r for r in records if r.get("problem_id") in ablation_ids]
+    found = {r["problem_id"] for r in subset}
+    print(f"Matched {len(found)}/{len(ablation_ids)} ablation problem IDs in {source_label}")
+    if found != ablation_ids:
+        print(
+            f"{source_label} is missing {len(ablation_ids - found)} of the {len(ablation_ids)} ablation problems; "
+            "every row must use the same problems.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    return subset
+
+
+def held_out_rates(subset: list[dict], calibration_records: list[dict], alpha: float) -> dict:
+    """Ablation (vi): each class's threshold is calibrated on the other classes of the whole run, then applied to that
+    class's ablation problems. The 50 ablation problems alone are too few: with 45 per fold the exact bound can
+    hardly be met, so almost nothing would be answered."""
+    calibration = [r for r in calibration_records if "failed" not in r]
+    test = [r for r in subset if "failed" not in r]
+    answered, wrong = 0, 0
+    for held_out in sorted({r["problem_class"] for r in test}):
+        threshold = calibrate_threshold(scored_answers([r for r in calibration if r["problem_class"] != held_out]), alpha)
+        if threshold is None:
+            continue
+        hits = [ok for score, ok in scored_answers([r for r in test if r["problem_class"] == held_out]) if score >= threshold]
+        answered += len(hits)
+        wrong += sum(not ok for ok in hits)
+    return rates(answered, wrong, len(test))
 
 
 def verify_k_in_records(records: list[dict], source_label: str) -> None:
@@ -78,8 +99,10 @@ def verify_k_in_records(records: list[dict], source_label: str) -> None:
                 sys.exit(1)
 
 
-def evaluate_records(rescored: list[dict], threshold: float = 0.8, alpha: float | None = None) -> dict:
-    """Compute standard metrics on rescored records."""
+def evaluate_records(
+    rescored: list[dict], threshold: float = 0.8, alpha: float | None = None, calibration_records: list[dict] | None = None
+) -> dict:
+    """Compute standard metrics on rescored records; with alpha, thresholds come from calibration_records."""
     finished = [r for r in rescored if "failed" not in r]
     total_finished = len(finished)
     if total_finished == 0:
@@ -96,8 +119,7 @@ def evaluate_records(rescored: list[dict], threshold: float = 0.8, alpha: float 
     accuracy = correct_count / total_finished
 
     if alpha is not None:
-        dec = leave_one_class_out(rescored, alpha=alpha)
-        pooled = dec["pooled"]
+        pooled = held_out_rates(rescored, calibration_records if calibration_records is not None else rescored, alpha)
         coverage = pooled["coverage"]
         wrong_accept_rate = pooled["wrong_accept_rate"]
     else:
@@ -129,7 +151,7 @@ ROW_SPECS = [
     ("(iv) Without the parser", "external", "no_parser"),
     ("(v) k = 1 paraphrase", "rescore", {"signals": SIGNALS, "k": 1, "repairs": True, "threshold": 0.8}),
     ("(v) k = 2 paraphrases", "rescore", {"signals": SIGNALS, "k": 2, "repairs": True, "threshold": 0.8}),
-    ("(vi) Calibrated threshold (alpha = 0.10)", "rescore", {"signals": SIGNALS, "k": 3, "repairs": True, "alpha": 0.10}),
+    ("(vi) Calibrated threshold (alpha = 0.10, thresholds from the whole run)", "rescore", {"signals": SIGNALS, "k": 3, "repairs": True, "alpha": 0.10}),
     ("(vii) r = 0 repairs", "rescore", {"signals": SIGNALS, "k": 3, "repairs": False, "threshold": 0.8}),
     ("(vii) r = 2 repairs", "external", "r2"),
 ]
@@ -141,65 +163,43 @@ def generate_ablation_table(
     out_file: Path | None = None,
     threshold: float = 0.8,
     alpha: float = 0.10,
-    no_parser_records: Path | None = None,
-    r2_records: Path | None = None,
+    no_parser_records: list[Path] | None = None,
+    r2_records: list[Path] | None = None,
 ) -> tuple[list[str], list[list]]:
     """Generate rows and columns of ablations.csv."""
     if not sample_file.exists():
         print(f"Sample file not found: {sample_file}", file=sys.stderr)
         sys.exit(1)
-    sample_text = sample_file.read_text(encoding="utf-8")
-    ablation_ids = set(json.loads(sample_text))
-    expected_count = len(ablation_ids)
+    ablation_ids = set(json.loads(sample_file.read_text(encoding="utf-8")))
 
-    # Load and filter repeats
-    repeats_records = []
+    # Each repeat: the whole run (to calibrate row (vi)) and its ablation problems (for every row).
+    repeats = []
     for p in record_paths:
-        filtered = load_and_filter_records(p, ablation_ids)
-        print(f"Matched {len(filtered)}/{expected_count} ablation problem IDs in {p}")
-        verify_k_in_records(filtered, str(p))
-        repeats_records.append(filtered)
+        records = load_records(p)
+        verify_k_in_records(records, str(p))
+        repeats.append((records, ablation_subset(records, ablation_ids, str(p))))
+    n_repeats = len(repeats)
 
-    n_repeats = len(repeats_records)
-
-    # External records for (iv) and (vii) r=2 if available
+    # (iv) and (vii) r = 2 come from their own runs (one or more repeats), scored like the reference row.
     external_records = {}
-    if no_parser_records and no_parser_records.exists():
-        external_records["no_parser"] = load_and_filter_records(no_parser_records, ablation_ids)
-    if r2_records and r2_records.exists():
-        external_records["r2"] = load_and_filter_records(r2_records, ablation_ids)
+    for key, paths in (("no_parser", no_parser_records), ("r2", r2_records)):
+        if paths:
+            external_records[key] = [ablation_subset(load_records(p), ablation_ids, str(p)) for p in paths]
 
     metric_keys = ["accuracy", "coverage", "wrong_accept_rate", "auroc", "mean_tokens", "mean_calls"]
-
     include_std = n_repeats > 1
-    if include_std:
-        header = [
-            "ablation",
-            "accuracy",
-            "coverage",
-            "wrong_accept_rate",
-            "auroc",
-            "mean_tokens",
-            "mean_calls",
-            "repeats",
-            "accuracy_std",
-            "coverage_std",
-            "wrong_accept_rate_std",
-            "auroc_std",
-            "mean_tokens_std",
-            "mean_calls_std",
-        ]
-    else:
-        header = [
-            "ablation",
-            "accuracy",
-            "coverage",
-            "wrong_accept_rate",
-            "auroc",
-            "mean_tokens",
-            "mean_calls",
-            "repeats",
-        ]
+    header = ["ablation", *metric_keys, "repeats"] + ([f"{key}_std" for key in metric_keys] if include_std else [])
+
+    def metrics_row(label: str, repeat_metrics: list[dict]) -> list:
+        """Mean over repeats, and the sample standard deviation when the table has repeats."""
+        row = [label]
+        stds = []
+        for key in metric_keys:
+            values = [m[key] for m in repeat_metrics if m[key] is not None]
+            row.append(statistics.mean(values) if values else None)
+            stds.append(statistics.stdev(values) if len(values) > 1 else None)
+        row.append(len(repeat_metrics))
+        return row + (stds if include_std else [])
 
     rows = []
     for label, kind, cfg in ROW_SPECS:
@@ -208,67 +208,20 @@ def generate_ablation_table(
             k_val = cfg.get("k")
             rep = cfg.get("repairs", True)
             th = cfg.get("threshold", threshold)
-            a_val = cfg.get("alpha")
-            if a_val is not None:
-                a_val = alpha  # Use parameter alpha
-
+            a_val = alpha if "alpha" in cfg else None
             repeat_metrics = []
-            for recs in repeats_records:
-                rescored = rescore_records(recs, signals=sig, k=k_val, repairs=rep)
-                m = evaluate_records(rescored, threshold=th, alpha=a_val)
-                repeat_metrics.append(m)
-
-            # Compute mean and optional std
-            means = {}
-            stds = {}
-            for k in metric_keys:
-                vals = [m[k] for m in repeat_metrics if m[k] is not None]
-                if vals:
-                    means[k] = statistics.mean(vals)
-                    stds[k] = statistics.stdev(vals) if len(vals) > 1 else None
-                else:
-                    means[k] = None
-                    stds[k] = None
-
-            row = [
-                label,
-                means["accuracy"],
-                means["coverage"],
-                means["wrong_accept_rate"],
-                means["auroc"],
-                means["mean_tokens"],
-                means["mean_calls"],
-                n_repeats,
-            ]
-            if include_std:
-                row.extend([
-                    stds["accuracy"],
-                    stds["coverage"],
-                    stds["wrong_accept_rate"],
-                    stds["auroc"],
-                    stds["mean_tokens"],
-                    stds["mean_calls"],
-                ])
-            rows.append(row)
+            for records, subset in repeats:
+                rescored = rescore_records(subset, signals=sig, k=k_val, repairs=rep)
+                calibration = rescore_records(records, signals=sig, k=k_val, repairs=rep) if a_val is not None else None
+                repeat_metrics.append(evaluate_records(rescored, threshold=th, alpha=a_val, calibration_records=calibration))
+            rows.append(metrics_row(label, repeat_metrics))
 
         elif kind == "external":
-            ext_key = cfg
-            if ext_key in external_records:
-                ext_recs = external_records[ext_key]
-                m = evaluate_records(ext_recs, threshold=threshold)
-                row = [
-                    label,
-                    m["accuracy"],
-                    m["coverage"],
-                    m["wrong_accept_rate"],
-                    m["auroc"],
-                    m["mean_tokens"],
-                    m["mean_calls"],
-                    1,
+            if cfg in external_records:
+                repeat_metrics = [
+                    evaluate_records(rescore_records(subset), threshold=threshold) for subset in external_records[cfg]
                 ]
-                if include_std:
-                    row.extend(["", "", "", "", "", ""])
-                rows.append(row)
+                rows.append(metrics_row(label, repeat_metrics))
             else:
                 # Missing run: empty cells with word "not run"
                 row = [label, "not run", "", "", "", "", "", 0]
@@ -318,8 +271,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--threshold", type=float, default=0.8, help="Fixed threshold (default: 0.8)")
     parser.add_argument("--alpha", type=float, default=0.10, help="Target alpha for calibrated threshold (default: 0.10)")
-    parser.add_argument("--no-parser-records", type=Path, default=None, help="Records from a --no-parser run (if available)")
-    parser.add_argument("--r2-records", type=Path, default=None, help="Records from a --repairs 2 run (if available)")
+    parser.add_argument(
+        "--no-parser-records", type=Path, nargs="+", default=None, help="records.jsonl of --no-parser runs (one per repeat)"
+    )
+    parser.add_argument(
+        "--r2-records", type=Path, nargs="+", default=None, help="records.jsonl of --repairs 2 runs (one per repeat)"
+    )
     return parser
 
 

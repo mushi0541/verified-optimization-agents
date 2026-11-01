@@ -313,3 +313,54 @@ def test_cli_execution_via_subprocess(synthetic_records_file, tmp_path):
     assert res.returncode == 0
     assert "Ablation table written to" in res.stdout
     assert out_csv.exists()
+
+
+def _row(rows, prefix):
+    return next(r for r in rows if r[0].startswith(prefix))
+
+
+def test_external_runs_are_scored_like_the_reference(synthetic_records_file, tmp_path):
+    # Saved run records (score under "verifier", tokens under "usage") must work for (iv) and r = 2, with repeats.
+    records_file, sample_file = synthetic_records_file
+    header, rows = generate_ablation_table(
+        record_paths=[records_file],
+        sample_file=sample_file,
+        no_parser_records=[records_file, records_file],
+        r2_records=[records_file],
+    )
+    reference = _row(rows, "Reference")
+    no_parser = _row(rows, "(iv)")
+    assert no_parser[1:7] == reference[1:7]
+    assert no_parser[7] == 2
+    assert _row(rows, "(vii) r = 2")[7] == 1
+
+
+def test_missing_ablation_problem_or_file_exits(synthetic_records_file, tmp_path, capsys):
+    records_file, _ = synthetic_records_file
+    wider_sample = tmp_path / "wider.json"
+    wider_sample.write_text(json.dumps(["p1", "p2", "p3", "p4", "p5"]), encoding="utf-8")
+    with pytest.raises(SystemExit):
+        generate_ablation_table(record_paths=[records_file], sample_file=wider_sample)
+    assert "missing 1 of the 5 ablation problems" in capsys.readouterr().err
+
+    _, sample_file = synthetic_records_file
+    with pytest.raises(SystemExit):
+        generate_ablation_table(
+            record_paths=[records_file], sample_file=sample_file, no_parser_records=[tmp_path / "missing.jsonl"]
+        )
+    assert "Records file not found" in capsys.readouterr().err
+
+
+def test_calibrated_row_uses_thresholds_from_the_whole_run(synthetic_records_file, tmp_path):
+    # 60 correct problems outside the ablation sample: enough to calibrate, so the ablation problems get answered.
+    # Calibrating on the four ablation problems alone could not meet the bound and would answer nothing.
+    records_file, sample_file = synthetic_records_file
+    _, alone = generate_ablation_table(record_paths=[records_file], sample_file=sample_file, alpha=0.10)
+    assert _row(alone, "(vi)")[2] == 0.0  # four problems are too few to calibrate on
+    extra = [_record(f"c{i}", "CD"[i % 2], "optimal", 10.0, 10.0, 1.0, 1.0, [10.0, 10.0, 10.0]) for i in range(60)]
+    with records_file.open("a", encoding="utf-8") as f:
+        for record in extra:
+            f.write(json.dumps(record) + "\n")
+    header, rows = generate_ablation_table(record_paths=[records_file], sample_file=sample_file, alpha=0.10)
+    calibrated = _row(rows, "(vi)")
+    assert calibrated[2] > 0
