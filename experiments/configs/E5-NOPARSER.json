@@ -1,0 +1,22 @@
+{
+  "name": "E5-NOPARSER",
+  "description": "Ablation (iv): pipeline without the parser, formalizing from the question alone",
+  "system": "pipeline",
+  "sample_file": "samples/ablation_50.json",
+  "models": [
+    "bedrock:openai.gpt-oss-120b-1:0"
+  ],
+  "paraphrases": 3,
+  "repairs": 1,
+  "signals": [
+    "number",
+    "requirement",
+    "paraphrase"
+  ],
+  "use_parser": false,
+  "threshold": 0.8,
+  "calibration": null,
+  "budget": null,
+  "repeats": 3,
+  "notes": "Same as E3 (k = 3, r = 1) on ablation_50, but with no parser."
+}
