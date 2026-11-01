@@ -1,0 +1,64 @@
+[1/36] opsor-0018 CrewRostering: correct=True
+[2/36] opsor-0012 CrewRostering: correct=True
+[3/36] opsor-0016 CrewRostering: correct=True
+[4/36] opsor-0023 CrewRostering: correct=True
+[5/36] opsor-0015 CrewRostering: correct=True
+[6/36] opsor-0019 CrewRostering: correct=True
+[7/36] opsor-0014 CrewRostering: correct=True
+[8/36] opsor-0022 CrewRostering: correct=True
+[9/36] opsor-0017 CrewRostering: correct=True
+[10/36] opsor-0013 CrewRostering: correct=True
+[11/36] opsor-0021 CrewRostering: correct=True
+[12/36] opsor-0020 CrewRostering: correct=True
+[13/36] opsor-0028 EquipmentDispatch: correct=True
+[14/36] opsor-0026 EquipmentDispatch: correct=True
+[15/36] opsor-0031 EquipmentDispatch: correct=True
+[16/36] opsor-0025 EquipmentDispatch: correct=True
+[17/36] opsor-0034 EquipmentDispatch: correct=True
+[18/36] opsor-0035 EquipmentDispatch: correct=True
+[19/36] opsor-0024 EquipmentDispatch: correct=True
+[20/36] opsor-0030 EquipmentDispatch: correct=True
+[21/36] opsor-0029 EquipmentDispatch: correct=True
+[22/36] opsor-0033 EquipmentDispatch: correct=True
+[23/36] opsor-0027 EquipmentDispatch: correct=True
+[24/36] opsor-0005 GateAssignment: correct=False
+[25/36] opsor-0032 EquipmentDispatch: correct=True
+[26/36] opsor-0006 GateAssignment: correct=True
+[27/36] opsor-0009 GateAssignment: correct=True
+[28/36] opsor-0003 GateAssignment: correct=True
+[29/36] opsor-0007 GateAssignment: correct=True
+[30/36] opsor-0000 GateAssignment: correct=True
+[31/36] opsor-0004 GateAssignment: correct=True
+[32/36] opsor-0008 GateAssignment: correct=True
+[33/36] opsor-0002 GateAssignment: correct=True
+[34/36] opsor-0011 GateAssignment: correct=False
+[35/36] opsor-0010 GateAssignment: correct=True
+[36/36] opsor-0001 GateAssignment: correct=True
+{
+  "run": "pipeline_bedrock-openai.gpt-oss-120b-1-0_opsor_r1_20261101-2119",
+  "resumes": 0,
+  "failed_problems": [],
+  "problems": 36,
+  "accuracy": 0.9444444444444444,
+  "solved_rate": 0.9444444444444444,
+  "status_counts": {
+    "no_code": 2,
+    "optimal": 34
+  },
+  "mean_input_tokens": 9300.944444444445,
+  "mean_output_tokens": 21556.222222222223,
+  "mean_llm_calls": 10.25,
+  "mean_latency_s": 127.12112251111346,
+  "accuracy_by_class": {
+    "CrewRostering": 1.0,
+    "EquipmentDispatch": 1.0,
+    "GateAssignment": 0.8333333333333334
+  },
+  "decision_counts": {
+    "abstain": 2,
+    "answer": 34
+  },
+  "coverage": 0.9444444444444444,
+  "selective_accuracy": 1.0,
+  "wrong_accept_rate": 0.0
+}
