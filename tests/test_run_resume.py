@@ -74,6 +74,14 @@ def test_a_baseline_run_saved_with_a_paraphrase_endpoint_can_be_resumed(monkeypa
     assert json.loads(summary_file.read_text(encoding="utf-8"))["failed_problems"] == []
 
 
+def test_the_env_file_is_saved_by_name_only(monkeypatch, tmp_path, offline):
+    _run(monkeypatch, tmp_path)  # passes a full temporary path as --env-file
+    (out_dir,) = (tmp_path / "results").iterdir()
+    summary = (out_dir / "summary.json").read_text(encoding="utf-8")
+    assert json.loads(summary)["config"]["env_file"] == "none"
+    assert str(tmp_path.name) not in summary  # no local folder in results/
+
+
 def test_resume_refuses_other_settings_or_an_unfinished_folder(monkeypatch, tmp_path, offline):
     _run(monkeypatch, tmp_path)
     (out_dir,) = (tmp_path / "results").iterdir()
