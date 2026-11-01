@@ -63,6 +63,17 @@ def test_a_resumed_run_writes_its_traces_under_the_original_run(monkeypatch, tmp
     assert [path.stem for path in (tmp_path / "logs" / out_dir.name).iterdir()] == [offline["failed"]]
 
 
+def test_a_baseline_run_saved_with_a_paraphrase_endpoint_can_be_resumed(monkeypatch, tmp_path, offline):
+    _run(monkeypatch, tmp_path)
+    (out_dir,) = (tmp_path / "results").iterdir()
+    summary_file = out_dir / "summary.json"
+    summary = json.loads(summary_file.read_text(encoding="utf-8"))
+    summary["config"]["paraphrase_endpoint"] = summary["config"]["endpoint"]  # as written before the pipeline-only rule
+    summary_file.write_text(json.dumps(summary), encoding="utf-8")
+    _run(monkeypatch, tmp_path, "--resume", str(out_dir))
+    assert json.loads(summary_file.read_text(encoding="utf-8"))["failed_problems"] == []
+
+
 def test_resume_refuses_other_settings_or_an_unfinished_folder(monkeypatch, tmp_path, offline):
     _run(monkeypatch, tmp_path)
     (out_dir,) = (tmp_path / "results").iterdir()
