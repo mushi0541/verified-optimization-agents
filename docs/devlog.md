@@ -16,6 +16,7 @@ Add an entry for each fix that answers a failure, newest last, and link it in th
 | 6 | 2026-10-20 | OpsOR-Bench wording ambiguities | #20 |
 | 7 | 2026-10-20 | `VAR:` lines filled the stored solver output | #21 |
 | 8 | 2026-10-26 | Rewordings with the opposite sign; paraphraser temperature | #28 (issue) |
+| 9 | 2026-11-01 | Paraphraser and formalizer use the same model (supervisor feedback) | #56 (issue) |
 
 ## 1. Provider limits: request pacing, fitted output cap, then Amazon Bedrock
 
@@ -157,3 +158,21 @@ models (Inventory and Pollution) are still escalated. The cost is a narrower che
 the wrong sign now agrees with rewordings that have the right sign. None of the 189 solved attempts in all saved
 runs has an objective that is correct except for its sign. The temperature
 change affects new runs only.
+
+## 9. Paraphraser and formalizer use the same model
+
+**Date.** 2026-11-01 (issue #56, supervisor feedback on Phase 1).
+
+**Failure.** The paraphraser and the formalizer are the same model, so their mistakes can be correlated: a reworded
+question solved by the same model may repeat the main model's error and agree with a wrong answer. That would weaken
+paraphrase-optimum agreement as a check.
+
+**Change.** `--paraphrase-model` (default: the main model) chooses the model that writes the rewordings, at the
+paraphrase temperature. Each rewording is still solved by the main model, so only the source of the rewordings
+changes. The run config records `paraphrase_model` and `paraphrase_endpoint`, and the run folder name carries
+`_para-<model>`, so runs with the two paraphraser settings are never mixed. The candidate is `bedrock:deepseek.v3.2`,
+a different model family.
+
+**Effect.** To be measured: one pipeline run on `canonical_200` with the second paraphraser, compared with the
+same-model paraphraser on the paraphrase-agreement AUROC and the false-alarm rate. This entry is updated with the
+result when the run is in.
