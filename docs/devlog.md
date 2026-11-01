@@ -1,7 +1,8 @@
 # Development log
 
 One entry per major iteration: the date, the failure we saw, the change we made and its measured effect.
-Dates are merge dates from `git log`. The paper's failure analysis uses this log.
+Dates are merge dates from `git log`, or commit dates for work done before the first pull request. The paper's
+failure analysis uses this log.
 
 Add an entry for each fix that answers a failure, newest last, and link it in the pull request description.
 
@@ -18,7 +19,7 @@ Add an entry for each fix that answers a failure, newest last, and link it in th
 
 ## 1. Provider limits: request pacing, fitted output cap, then Amazon Bedrock
 
-**Date.** 2026-10-17 (pacing), 2026-10-20 (output cap, #10; Bedrock, #14).
+**Date.** 2026-10-17 (request pacing, in the first commits), 2026-10-20 (output cap, #10; Bedrock, #14).
 
 **Failure.** The Groq free plan allows 8,000 tokens per minute and 200,000 per day. Groq counts the prompt plus
 `max_tokens` against the per-minute limit. In the first pipeline run (Phase 1, 10 problems), two requests were
@@ -33,7 +34,8 @@ members could not create a Groq key at all: the key page failed its Cloudflare c
   Each run's config now records the endpoint that served it (#16), so runs on different providers are not mixed.
 
 **Effect.** The rerun of the same 10 problems completed 10 of 10 (8 of 10 before). On Bedrock there is no daily
-token limit at our scale; the whole Phase 2 plan is about 20 million tokens, about US$9.
+token limit at our scale. After the supervisor's feedback (20 problems per class, a DeepSeek-V3.2 reproduction and
+a second paraphrase model), the whole Phase 2 plan is about 45 million tokens, about US$20 (tracker #47).
 
 ## 2. Number coverage: item labels and commas in model code
 
@@ -83,8 +85,9 @@ samples behind the answer.
 **Change.** Records save `samples_used`, and `usage` totals only those samples. Every drawn sample stays in
 `samples` and `usage_by_step`.
 
-**Effect.** Found in review before any B2 run, so no saved result changed. A test covers a budget where 3 samples
-are drawn and 2 are used.
+**Effect.** No B2 run existed yet, so no saved result changed. The change was requested in the review of #3
+(https://github.com/mushi0541/verified-optimization-agents/pull/3#pullrequestreview-5584445963). A test covers a
+budget where 3 samples are drawn and 2 are used.
 
 ## 5. Windows encoding crash in the solver child
 
