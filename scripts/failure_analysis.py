@@ -12,9 +12,11 @@
 - whether the code's objective sense matches the parsed one, and whether the class is one whose reference answers
   are being hand-checked (#40).
 
-Rows that need no judgement get their label at once: no model (no code, a code error or an infeasible model) and
-false alarms (labelled by the signal that raised them). The other wrong answers are labelled by a person in the
-`label` column, with a short reason in `note`. `table` refuses a file with a missing or unknown label.
+Rows that need no judgement get their label at once: code errors (no code, or code that crashed) and false alarms
+(labelled by the signal that raised them). The other wrong answers, including infeasible models (a symptom whose cause
+still has to be read), are labelled by a person in the `label` column, with a short reason in `note`. A blank label
+means pending: `table` counts pending rows apart, and with --complete it refuses them. It always refuses an unknown
+label, a repeated row, and a label file that does not match the records.
 """
 
 import argparse
@@ -23,12 +25,12 @@ import json
 import re
 import sys
 from collections import Counter
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-# Labels for a wrong model, from #41, plus "wrong constraint" (a constraint written with the wrong form or bound)
-# and "infeasible model" (the solver found no feasible point, so nothing was answered).
+# Labels for a wrong model, from #41, plus "wrong constraint" (a constraint that is there but has the wrong form or
+# bound, proposed on #41). An infeasible model gets the label of its cause, read by hand.
 WRONG_LABELS = (
     "missing constraint",
     "wrong constraint",
@@ -36,10 +38,10 @@ WRONG_LABELS = (
     "wrong objective sense",
     "integrality error",
     "code error",
-    "infeasible model",
     "doubtful reference",
     "other",
 )
+PENDING = ""  # a blank label: not labelled yet (for example waiting for the reference hand-check, #40)
 # Labels for a false alarm: the signal that stopped a correct answer.
 FALSE_ALARM_LABELS = ("paraphrase disagreement", "requirement not linked", "number not used")
 DOUBTFUL_REFERENCE_CLASSES = {"Inventory", "Pollution"}  # hand-checked in #40
@@ -54,7 +56,7 @@ COLUMNS = (
 def read_records(path: Path) -> tuple[str, list[dict]]:
     """The sample name (from the run's summary.json) and the finished records of one run."""
     summary = json.loads((path.parent / "summary.json").read_text(encoding="utf-8"))
-    sample = Path(summary["config"]["sample_file"]).stem
+    sample = PureWindowsPath(summary["config"]["sample_file"]).stem  # a Windows path (samples\x.json) also works on POSIX
     with path.open(encoding="utf-8") as file:
         records = [json.loads(line) for line in file if line.strip()]
     return sample, [record for record in records if "failed" not in record]
@@ -92,8 +94,6 @@ def draft_row(sample: str, record: dict) -> dict:
         label = false_alarm_label(record.get("verifier") or {})
     elif status in ("no_code", "error"):
         label = "code error"
-    elif status != "optimal":
-        label = "infeasible model"
     return {
         "sample": sample,
         "problem_id": record["problem_id"],
@@ -111,7 +111,7 @@ def draft_row(sample: str, record: dict) -> dict:
         "doubtful_reference_class": "yes" if record["problem_class"] in DOUBTFUL_REFERENCE_CLASSES else "no",
         "reasons": " | ".join(decision.get("reasons", [])),
         "label": label,
-        "note": "",
+        "note": "" if status in ("optimal", "no_code", "error") or kind == "false alarm" else f"{status} model; cause to label",
     }
 
 
@@ -137,17 +137,25 @@ def draft(record_paths: list[Path], out: Path) -> list[dict]:
     return rows
 
 
-def check_labels(rows: list[dict]) -> None:
+def check_labels(rows: list[dict], complete: bool = False) -> None:
+    """Every label must be known; a repeated row would be counted twice. With complete, no row may be pending."""
+    seen = set()
     for row in rows:
+        key = (row["sample"], row["problem_id"])
+        if key in seen:
+            raise SystemExit(f"{row['sample']} {row['problem_id']} appears twice in the label file")
+        seen.add(key)
         allowed = FALSE_ALARM_LABELS if row["outcome"] == "false alarm" else WRONG_LABELS
+        if row["label"] == PENDING and not complete:
+            continue
         if row["label"] not in allowed:
             raise SystemExit(f"{row['sample']} {row['problem_id']}: label {row['label']!r} is not one of {allowed}")
 
 
-def table(label_file: Path, record_paths: list[Path], out_dir: Path) -> dict:
+def table(label_file: Path, record_paths: list[Path], out_dir: Path, complete: bool = False) -> dict:
     with label_file.open(encoding="utf-8") as file:
         rows = list(csv.DictReader(file))
-    check_labels(rows)
+    check_labels(rows, complete)
     totals = Counter()
     expected = set()
     for path in record_paths:
@@ -174,8 +182,14 @@ def table(label_file: Path, record_paths: list[Path], out_dir: Path) -> dict:
         for label in WRONG_LABELS
     }
     false_alarms = Counter(row["label"] for row in rows if row["outcome"] == "false alarm")
+    pending = [row for row in rows if row["label"] == PENDING]
+    by_label["pending"] = {
+        "wrong accept": sum(row["outcome"] == "wrong accept" for row in pending),
+        "correct refusal": sum(row["outcome"] == "correct refusal" for row in pending),
+    }
     result = {
         "outcomes": outcomes,
+        "pending_rows": len(pending),
         "wrong_by_label": by_label,
         "false_alarms_by_signal": {label: false_alarms[label] for label in FALSE_ALARM_LABELS},
     }
@@ -190,6 +204,8 @@ def markdown(result: dict, wrong_total: int) -> str:
              "| Sample | Problems | Wrong accept | Correct refusal | False alarm |", "|---|---|---|---|---|"]
     for sample, counts in result["outcomes"].items():
         lines.append(f"| {sample} | {counts['problems']} | " + " | ".join(str(counts[kind]) for kind in OUTCOMES) + " |")
+    if result["pending_rows"]:
+        lines += ["", f"**Not final:** {result['pending_rows']} rows are still pending (blank label), shown as 'pending'."]
     lines += ["", f"## Wrong answers by category ({wrong_total} in all)", "",
               "| Category | Wrong accept | Correct refusal | Total | Share |", "|---|---|---|---|---|"]
     for label, counts in sorted(result["wrong_by_label"].items(), key=lambda item: -sum(item[1].values())):
@@ -212,13 +228,14 @@ def main() -> None:
     table_parser.add_argument("--labels", type=Path, required=True)
     table_parser.add_argument("--records", type=Path, nargs="+", required=True)
     table_parser.add_argument("--out", type=Path, required=True)
+    table_parser.add_argument("--complete", action="store_true", help="refuse pending (blank) labels: the final table")
     args = parser.parse_args()
     if args.command == "draft":
         rows = draft(args.records, args.out)
         open_rows = sum(not row["label"] for row in rows)
         print(f"{len(rows)} rows written to {args.out}; {open_rows} still need a label")
     else:
-        print(json.dumps(table(args.labels, args.records, args.out), indent=2))
+        print(json.dumps(table(args.labels, args.records, args.out, args.complete), indent=2))
 
 
 if __name__ == "__main__":

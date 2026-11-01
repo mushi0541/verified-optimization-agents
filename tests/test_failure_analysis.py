@@ -36,7 +36,8 @@ def run(tmp_path):
     ]
     folder = tmp_path / "run"
     folder.mkdir()
-    (folder / "summary.json").write_text(json.dumps({"config": {"sample_file": "samples/canonical_200.json"}}))
+    # The sample path as a run on Windows saves it: the sample name must still come out right on Linux and macOS.
+    (folder / "summary.json").write_text(json.dumps({"config": {"sample_file": "samples\\canonical_200.json"}}))
     (folder / "records.jsonl").write_text("\n".join(json.dumps(r) for r in records) + "\n")
     return folder / "records.jsonl"
 
@@ -48,18 +49,22 @@ def test_draft_rows_evidence_and_automatic_labels(run, tmp_path):
     assert (rows["p2"]["direction"], rows["p2"]["code_sense"], rows["p2"]["relative_gap"]) == ("looser", "minimize", -0.2)
     assert rows["p3"]["outcome"] == "correct refusal" and rows["p3"]["direction"] == "tighter"
     assert rows["p3"]["doubtful_reference_class"] == "yes"
-    assert rows["p4"]["label"] == "infeasible model"
+    assert (rows["p4"]["label"], rows["p4"]["note"]) == ("", "infeasible model; cause to label")  # a symptom, not a cause
     assert rows["p5"]["label"] == "code error"
     assert (rows["p6"]["outcome"], rows["p6"]["label"]) == ("false alarm", "paraphrase disagreement")
     assert rows["p2"]["label"] == rows["p3"]["label"] == ""
-    assert all(row["sample"] == "canonical_200" for row in rows.values())
+    assert all(row["sample"] == "canonical_200" for row in rows.values())  # also on Linux and macOS
 
 
-def test_table_needs_every_label_then_counts(run, tmp_path):
+def test_table_shows_pending_rows_then_counts(run, tmp_path):
     labels = tmp_path / "labels.csv"
     draft([run], labels)
+    early = table(labels, [run], tmp_path / "out")  # blank labels are pending, so a table exists already
+    assert early["pending_rows"] == 3
+    assert early["wrong_by_label"]["pending"] == {"wrong accept": 1, "correct refusal": 2}
+    assert "3 rows are still pending" in (tmp_path / "out" / "failures.md").read_text(encoding="utf-8")
     with pytest.raises(SystemExit, match="label ''"):
-        table(labels, [run], tmp_path / "out")
+        table(labels, [run], tmp_path / "out", complete=True)  # the final table needs every label
 
     with labels.open(encoding="utf-8") as file:
         rows = list(csv.DictReader(file))
@@ -74,10 +79,12 @@ def test_table_needs_every_label_then_counts(run, tmp_path):
     assert result["outcomes"]["canonical_200"] == {
         "problems": 6, "wrong accept": 1, "correct refusal": 3, "false alarm": 1,
     }
-    assert result["wrong_by_label"]["missing constraint"] == {"wrong accept": 1, "correct refusal": 1}
+    assert result["pending_rows"] == 0
+    assert result["wrong_by_label"]["missing constraint"] == {"wrong accept": 1, "correct refusal": 2}
     assert result["wrong_by_label"]["code error"]["correct refusal"] == 1
     assert result["false_alarms_by_signal"]["paraphrase disagreement"] == 1
-    assert "| missing constraint | 1 | 1 | 2 | 50.0% |" in (tmp_path / "out" / "failures.md").read_text(encoding="utf-8")
+    assert "| missing constraint | 1 | 2 | 3 | 75.0% |" in (tmp_path / "out" / "failures.md").read_text(encoding="utf-8")
+    assert table(labels, [run], tmp_path / "out", complete=True)["pending_rows"] == 0
 
 
 def test_table_refuses_a_label_file_from_other_records(run, tmp_path):
@@ -92,4 +99,13 @@ def test_table_refuses_a_label_file_from_other_records(run, tmp_path):
         writer.writeheader()
         writer.writerows(rows)
     with pytest.raises(SystemExit, match="does not match the records"):
+        table(labels, [run], tmp_path / "out")
+
+
+def test_a_repeated_row_is_refused(run, tmp_path):
+    labels = tmp_path / "labels.csv"
+    draft([run], labels)
+    lines = labels.read_text(encoding="utf-8").splitlines()
+    labels.write_text("\n".join(lines + [lines[-1]]) + "\n", encoding="utf-8")  # the false alarm twice
+    with pytest.raises(SystemExit, match="appears twice"):
         table(labels, [run], tmp_path / "out")

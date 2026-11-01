@@ -1,0 +1,66 @@
+{
+  "outcomes": {
+    "canonical_200": {
+      "problems": 200,
+      "wrong accept": 13,
+      "correct refusal": 31,
+      "false alarm": 6
+    },
+    "constraint_pairs_60": {
+      "problems": 120,
+      "wrong accept": 7,
+      "correct refusal": 39,
+      "false alarm": 8
+    },
+    "linguistic_60": {
+      "problems": 60,
+      "wrong accept": 4,
+      "correct refusal": 8,
+      "false alarm": 6
+    }
+  },
+  "pending_rows": 80,
+  "wrong_by_label": {
+    "missing constraint": {
+      "wrong accept": 1,
+      "correct refusal": 2
+    },
+    "wrong constraint": {
+      "wrong accept": 3,
+      "correct refusal": 2
+    },
+    "wrong data value": {
+      "wrong accept": 0,
+      "correct refusal": 0
+    },
+    "wrong objective sense": {
+      "wrong accept": 0,
+      "correct refusal": 0
+    },
+    "integrality error": {
+      "wrong accept": 0,
+      "correct refusal": 2
+    },
+    "code error": {
+      "wrong accept": 0,
+      "correct refusal": 9
+    },
+    "doubtful reference": {
+      "wrong accept": 0,
+      "correct refusal": 0
+    },
+    "other": {
+      "wrong accept": 2,
+      "correct refusal": 1
+    },
+    "pending": {
+      "wrong accept": 18,
+      "correct refusal": 62
+    }
+  },
+  "false_alarms_by_signal": {
+    "paraphrase disagreement": 19,
+    "requirement not linked": 1,
+    "number not used": 0
+  }
+}
