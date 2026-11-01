@@ -87,8 +87,9 @@ detect failures at run time. From a review of ten recent papers we identified th
 questions of this work:
 \begin{itemize}
 \item \textbf{Gap~1, label-free verification.} No reviewed system checks at inference time, without reference
-answers, whether a model uses every number of the question, implements every stated requirement, or reaches the same
-optimum when the question is reworded. \textbf{RQ1:} do such requirement-level signals detect wrong models better than
+answers, whether a model uses every number of the question or reaches the same optimum when the question is reworded.
+Checks of the stated requirements exist only in part, as structure verdicts~\cite{liu2026optverifier} and
+per-constraint solver queries~\cite{abdulrahman2026verisimpl}. \textbf{RQ1:} do such requirement-level signals detect wrong models better than
 solver feasibility alone?
 \item \textbf{Gap~2, error control under shift.} No reviewed system can refuse to answer with a controlled error
 rate, and the closest recent attempt saw its error bound fail on new problems~\cite{lian2026admitor}. \textbf{RQ2:}
@@ -107,8 +108,8 @@ feasibility into one score;
 \item a decision layer that answers, abstains or escalates, with a threshold calibrated to a target wrong-accept rate
 by an exact binomial bound, tested on held-out problem classes and on OpsOR-Bench, a small set of operations problems
 we built as a shift test;
-\item a single-agent baseline matched to the pipeline's token use, and per-step token accounting that makes the
-comparison exact;
+\item a single-agent baseline matched to the pipeline's token use within 10\%, and per-step token accounting
+that shows where each system spends its tokens;
 \item an open implementation in which every ablation and every number in this paper is computed from saved run
 records by a script.
 \end{enumerate}
@@ -119,7 +120,8 @@ records by a script.
 \textbf{Benchmarks.} OPT-Engine~\cite{chen2026optengine} generates problems from parametric generators in ten classes
 of linear and mixed-integer programs, so that difficulty can be raised in a controlled way, and computes each optimum
 with a solver. It compares pure-text reasoning, text reasoning with computational tools, and SIR, and finds that only
-SIR stays reliable as problems grow, while constraint augmentation lowers accuracy for every setting. OptiBench and
+SIR stays reliable as problems grow, while constraint augmentation lowers the accuracy of both pure-text
+reasoning and SIR. OptiBench and
 ReSocratic~\cite{yang2025optibench} and OptMATH~\cite{lu2025optmath} provide fixed collections and synthesized
 training data, and MIPLIB-NL~\cite{li2026miplibnl} reverse-builds industrial instances from MIPLIB 2017. Reference
 answers are not always reliable: one audit found 50\% of IndustryOR and 41\% of OptMATH-Bench instances
@@ -128,8 +130,8 @@ references by hand.
 
 \textbf{Training and search.} ORLM~\cite{huang2025orlm} and OptMATH~\cite{lu2025optmath} fine-tune models on
 synthesized problems, SIRL~\cite{chen2025sirl} uses the solver as a reward in reinforcement learning,
-LLMOPT~\cite{jiang2025llmopt} adds a self-correction loop, OptiTree~\cite{liu2025optitree} searches over hierarchical
-decompositions, and OptiMind~\cite{zhang2025optimind} teaches expert modelling habits. All of them raise accuracy, but
+LLMOPT~\cite{jiang2025llmopt} adds a self-correction loop, and OptiTree~\cite{liu2025optitree} searches over
+hierarchical decompositions. All of them raise accuracy, but
 all answer every question, and none reports the token cost of its extra calls. The error analyses of these papers
 motivate our verifier: missing constraints account for 61.9\% to 82.6\% of the remaining errors of
 OptiTree~\cite{liu2025optitree}, and ignored constraints or implicit conditions for 56.3\% of the modelling errors of
@@ -197,10 +199,14 @@ $s(q) \ge \tau$. Over a set of $N$ problems with answered set $A_\tau$,
 \end{equation}
 where $W_\tau \subseteq A_\tau$ holds the answered problems whose value is wrong. WAR is the wrong-accept rate and
 $1 - \mathrm{WAR}$ the selective accuracy. A system that never abstains, such
-as the SIR baseline, has a coverage equal to its share of feasible models.
+as the SIR baseline, answers whenever the solver returns an optimal status, so its coverage is its share of models
+solved to optimality.
 
-\textbf{Calibration.} Given a target $\alpha$, the threshold is chosen on calibration problems only, so that the
-one-sided exact 95\% upper bound on the calibration wrong-accept rate stays at or below $\alpha$. It is tested
+\textbf{Calibration.} Given a target $\alpha$, the threshold is chosen on calibration problems only. Candidate
+thresholds are scanned in a fixed order from strict to lenient, and the scan stops before the first one whose one-sided
+exact 95\% upper bound on the calibration wrong-accept rate exceeds $\alpha$; the fixed order keeps the bound valid
+across thresholds. A threshold needs at least 29 accepted problems, since with fewer even zero wrong answers cannot
+give a bound below 10\%. When no threshold passes, the system answers nothing. It is tested
 leave-one-class-out: calibrated on nine of the ten problem classes and applied to the tenth, so that each problem is
 scored once, in the fold that holds out its class.
 
@@ -213,8 +219,9 @@ their mean tokens per problem differ by at most 10\%.
 from wrong answers by at least 0.10, and removing any one signal lowers it.
 \item \textbf{H2.} With $\alpha = 10\%$, the pooled held-out wrong-accept rate is at most $\alpha$, reported with its
 exact 95\% interval, while at least 50\% of all problems are answered.
-\item \textbf{H3.} At the largest matched budget, the pipeline has a lower wrong-accept rate than the single agent at
-equal coverage (50\%); this holds only if the 95\% bootstrap interval of the paired difference lies below zero.
+\item \textbf{H3.} With $k = 3$ reworded runs, the pipeline has a lower wrong-accept rate than the single-agent
+baseline B2, which samples answers up to the pipeline's mean token budget, at equal coverage (50\%); this holds only if
+the 95\% bootstrap interval of the paired difference at $k = 3$ lies below zero.
 \end{itemize}
 
 \section{Proposed System}
@@ -225,8 +232,8 @@ the verifier signals (Gap 1), the calibrated threshold (Gap 2) and per-step toke
 \section{Experimental Setup}
 \plan{\cthree{} \cite{chen2026optengine}: classes, splits and the fixed samples (20 problems per class, the
 development split, linguistic and constraint-pair samples, and the exclusions found while checking the
-references). OpsOR-Bench for the shift test. Baselines B0, B1 and B2. Models (gpt-oss-120b, and DeepSeek-V3.2 for
-the base-paper reproduction), temperatures, repairs, paraphrases, repeats and the solver.}
+references). OpsOR-Bench for the shift test. Baselines B0, B1 and B2. Models (gpt-oss-120b, DeepSeek-V3.2 for
+the base-paper reproduction, and the optional second paraphrase model), temperatures, repairs, paraphrases, repeats and the solver.}
 
 \section{Evaluation Methodology}
 \plan{Metrics and how each is computed: accuracy, coverage, selective accuracy, wrong-accept rate with exact
@@ -259,8 +266,8 @@ How the base-paper comparison is made (reported numbers and our reproduction).}
 \plan{Failure categories, how often each occurs, and representative cases taken from the trace logs.}
 
 \section{Limitations and Threats to Validity}
-\plan{Limits of the data (synthetic \cthree{} problems, excluded references), of the method (the paraphraser and
-formalizer share one model; number coverage may not separate correct from wrong models), and of the evaluation
+\plan{Limits of the data (synthetic \cthree{} problems, excluded references), of the method (by default the paraphraser and
+formalizer share one model, and a second paraphrase model is optional; number coverage may not separate correct from wrong models), and of the evaluation
 (sample size, one main model, repeats); what may affect generalization.}
 
 \section{Conclusion}
