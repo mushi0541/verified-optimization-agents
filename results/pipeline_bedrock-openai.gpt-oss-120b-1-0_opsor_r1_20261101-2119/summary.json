@@ -23,7 +23,7 @@
     "paraphrase_temperature": 0.7,
     "paraphrase_model": null,
     "workers": 4,
-    "env_file": "C:\\Users\\Mushahid\\AppData\\Local\\Temp\\claude\\f--AgenticAI-Assignments\\54891661-bd40-4dfc-9e67-8eb0de75e027\\scratchpad\\none.env",
+    "env_file": "none.env",
     "trace": true,
     "resume": null,
     "alpha": null,
