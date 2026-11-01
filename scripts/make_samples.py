@@ -1,4 +1,9 @@
-"""Generate fixed evaluation sample files for canonical, ablation, linguistic, and constraint splits."""
+"""Generate fixed evaluation sample files for canonical, ablation, linguistic, and constraint splits.
+
+The Phase 2 test samples (canonical_200, ablation_50, linguistic_60, constraint_pairs_60) each contain the
+smaller Phase 1 sample (canonical_100, ablation_30, linguistic_30, constraint_pairs_30) plus new problems,
+so results on the smaller samples stay valid. The dev sample shares no problem with any test sample.
+"""
 
 from __future__ import annotations
 
@@ -12,6 +17,8 @@ if str(REPO_ROOT) not in sys.path:
 
 from optverify.data import (
     DATA_DIR,
+    extend_constraint_pairs,
+    extend_per_class,
     load_split,
     sample_ablation_subset,
     sample_canonical,
@@ -28,53 +35,47 @@ def generate_samples(output_dir: Path = DEFAULT_OUTPUT_DIR, data_dir: Path = DAT
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    def save(name: str, items: list) -> Path:
+        path = output_dir / name
+        save_sample_file(path, [p if isinstance(p, dict) else p.problem_id for p in items])
+        print(f"Saved {len(items)} items to {path}")
+        return path
+
     print("Loading canonical split...")
     canonical_problems = load_split("canonical", data_dir=data_dir)
-    canonical_sample = sample_canonical(canonical_problems, per_class=10, seed=0)
-    canonical_path = output_dir / "canonical_100.json"
-    save_sample_file(canonical_path, [p.problem_id for p in canonical_sample])
-    print(f"Saved {len(canonical_sample)} canonical problems to {canonical_path}")
-
-    ablation_sample = sample_ablation_subset(canonical_sample, per_class=3, seed=0)
-    ablation_path = output_dir / "ablation_30.json"
-    save_sample_file(ablation_path, [p.problem_id for p in ablation_sample])
-    print(f"Saved {len(ablation_sample)} ablation problems to {ablation_path}")
+    canonical_100 = sample_canonical(canonical_problems, per_class=10, seed=0)
+    canonical_200 = extend_per_class(canonical_problems, canonical_100, per_class=10, seed=0)
+    ablation_30 = sample_ablation_subset(canonical_100, per_class=3, seed=0)
+    ablation_50 = extend_per_class(canonical_100, ablation_30, per_class=2, seed=0)
 
     print("Loading linguistic split...")
     linguistic_problems = load_split("linguistic", data_dir=data_dir)
-    linguistic_sample = sample_linguistic(linguistic_problems, per_class=10, seed=0)
-    linguistic_path = output_dir / "linguistic_30.json"
-    save_sample_file(linguistic_path, [p.problem_id for p in linguistic_sample])
-    print(f"Saved {len(linguistic_sample)} linguistic problems to {linguistic_path}")
+    linguistic_30 = sample_linguistic(linguistic_problems, per_class=10, seed=0)
+    linguistic_60 = extend_per_class(linguistic_problems, linguistic_30, per_class=10, seed=0)
 
     print("Loading constraint split...")
     constraint_problems = load_split("constraint", data_dir=data_dir)
-    constraint_pairs = sample_constraint_pairs(constraint_problems, per_class=10, seed=0)
-    constraint_path = output_dir / "constraint_pairs_30.json"
-    save_sample_file(constraint_path, constraint_pairs)
-    print(f"Saved {len(constraint_pairs)} constraint pairs to {constraint_path}")
+    constraint_pairs_30 = sample_constraint_pairs(constraint_problems, per_class=10, seed=0)
+    constraint_pairs_60 = extend_constraint_pairs(constraint_problems, constraint_pairs_30, per_class=10, seed=0)
 
-    excluded_ids: set[str] = set()
-    excluded_ids.update(str(p.problem_id) for p in canonical_sample)
-    excluded_ids.update(str(p.problem_id) for p in ablation_sample)
-    excluded_ids.update(str(p.problem_id) for p in linguistic_sample)
-    for pair in constraint_pairs:
-        excluded_ids.add(str(pair["original"]))
-        excluded_ids.add(str(pair["augmented"]))
-
-    dev_pool = [p for p in canonical_problems if str(p.problem_id) not in excluded_ids]
-    dev_sample = sample_per_class(dev_pool, per_class=3, seed=1)
-    dev_path = output_dir / "dev_30.json"
-    save_sample_file(dev_path, [p.problem_id for p in dev_sample])
-    print(f"Saved {len(dev_sample)} dev problems to {dev_path}")
-
-    return {
-        "canonical": canonical_path,
-        "ablation": ablation_path,
-        "linguistic": linguistic_path,
-        "constraint": constraint_path,
-        "dev": dev_path,
+    paths = {
+        "canonical": save("canonical_100.json", canonical_100),
+        "canonical_200": save("canonical_200.json", canonical_200),
+        "ablation": save("ablation_30.json", ablation_30),
+        "ablation_50": save("ablation_50.json", ablation_50),
+        "linguistic": save("linguistic_30.json", linguistic_30),
+        "linguistic_60": save("linguistic_60.json", linguistic_60),
+        "constraint": save("constraint_pairs_30.json", constraint_pairs_30),
+        "constraint_60": save("constraint_pairs_60.json", constraint_pairs_60),
     }
+
+    # The larger samples contain the smaller ones, so excluding them excludes every test problem.
+    excluded_ids = {p.problem_id for p in canonical_200 + linguistic_60}
+    excluded_ids |= {pair[key] for pair in constraint_pairs_60 for key in ("original", "augmented")}
+    dev_pool = [p for p in canonical_problems if p.problem_id not in excluded_ids]
+    paths["dev"] = save("dev_30.json", sample_per_class(dev_pool, per_class=3, seed=1))
+    return paths
+
 
 
 def main() -> None:

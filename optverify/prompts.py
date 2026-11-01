@@ -38,7 +38,7 @@ Your script:
 What went wrong:
 {error}
 
-Fix the script so it models the problem correctly and runs.
+Fix the script so it models the problem correctly and runs.{note}
 """
     + _CODE_RULES
 )
@@ -54,11 +54,16 @@ Return only a JSON object with these keys:
 - "objective": one sentence describing what is optimized
 - "decision_variables": list of {{"name": str, "meaning": str, "type": "continuous" | "integer" | "binary"}}
 - "parameters": list of {{"name": str, "value": number or list, "unit": str}} for every number in the problem
-- "requirements": list of short strings, one per rule the solution must respect (one constraint each)"""
+- "requirements": list of short strings, one per rule the solution must respect (one constraint each). Do not list
+  variable types or the objective here; they belong in "decision_variables" and "objective"."""
 
 FORMALIZE_FROM_SPEC = (
     """You are the formalizer in an optimization modeling team. The parser has listed what the model must contain.
 Every requirement in the list must appear as one or more constraints in your model.
+Each requirement has an ID (R1, R2, ...). Name every constraint so the name starts with the ID of the requirement
+it implements, for example `model += x + y <= 10, "R3_capacity"`. When a requirement needs many constraints, add an
+index after the ID, for example f"R2_demand_{{t}}". Write a requirement as a named constraint even when it is a
+simple bound such as x >= 3, because a variable bound has no name.
 
 Problem:
 {question}
@@ -69,7 +74,10 @@ Parser output:
     + _CODE_RULES
 )
 
-PARAPHRASE = """Rewrite the optimization problem below in different words, as a different operations manager might describe it.
+# Added to the repair prompt in the pipeline, so a repaired model keeps its requirement links.
+KEEP_CONSTRAINT_NAMES = " Keep the constraint names, each starting with its requirement ID (R1, R2, ...)."
+
+PARAPHRASE ="""Rewrite the optimization problem below in different words, as a different operations manager might describe it.
 Keep every number, unit, objective and rule exactly the same. Do not add or remove information. Do not solve it.
 Return only the rewritten problem text.
 
