@@ -204,6 +204,7 @@ def run_config(args: argparse.Namespace) -> dict:
     """The settings saved in summary.json."""
     return {
         **{k: _config_value(v) for k, v in vars(args).items()},
+        "env_file": Path(args.env_file).name,  # the name only: a full path would put a local folder in results/
         "endpoint": _endpoint(args.model),
         # Only the pipeline has a paraphraser.
         "paraphrase_endpoint": _endpoint(args.paraphrase_model or args.model) if args.system == "pipeline" else None,
