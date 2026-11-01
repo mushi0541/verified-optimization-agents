@@ -46,12 +46,23 @@ def run_pipeline(
     paraphrases: int = 2,
     max_repairs: int = 1,
     threshold: float = 0.8,
+    signals: tuple[str, ...] = verifier.SIGNALS,
+    use_parser: bool = True,
 ) -> RunRecord:
+    """The proposed pipeline. For ablations, `signals` sets which verifier signals count in the score (paraphrase
+    runs are skipped when that signal is off), and use_parser=False formalizes from the question alone with the
+    baseline prompt, so no requirements are listed (ablation iv)."""
     start = time.perf_counter()
     steps = {"parse": TokenUsage(), "formalize": TokenUsage(), "repair": TokenUsage()}
 
-    spec, required = roles.number_requirements(roles.parse_problem(problem.question, llm, steps["parse"]))
-    first_prompt = prompts.FORMALIZE_FROM_SPEC.format(question=problem.question, spec=json.dumps(spec, indent=1))
+    if use_parser:
+        spec, required = roles.number_requirements(roles.parse_problem(problem.question, llm, steps["parse"]))
+        first_prompt = prompts.FORMALIZE_FROM_SPEC.format(question=problem.question, spec=json.dumps(spec, indent=1))
+    else:
+        spec, required = None, []
+        first_prompt = prompts.BASELINE_FORMALIZE.format(question=problem.question)
+    if "paraphrase" not in signals:
+        paraphrases = 0
     attempts = roles.formalize_and_solve(
         first_prompt, problem.question, llm, steps["formalize"], max_repairs, repair_usage=steps["repair"],
         repair_note=prompts.KEEP_CONSTRAINT_NAMES if required else "",
@@ -71,7 +82,7 @@ def run_pipeline(
 
     report = verifier.build_report(
         problem.question, final.code, final.solve.status, final.solve.objective, other_objectives,
-        required, final.solve.requirement_ids,
+        required, final.solve.requirement_ids, signals,
     )
     decision = verifier.decide(report, final.solve.objective, threshold)
     return RunRecord(

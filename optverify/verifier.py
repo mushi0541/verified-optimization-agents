@@ -9,6 +9,9 @@ import re
 from .contracts import Decision, VerifierReport
 from .grading import same_optimum
 
+# The label-free signals of Gap 1; feasibility is always required. Each can be switched off for ablations.
+SIGNALS = ("number", "requirement", "paraphrase")
+
 _NUMBER = re.compile(r"(?<![\w.])-?\d+(?:,\d{3})*(?:\.\d+)?")
 _CODE_NUMBER = re.compile(r"(?<![\w.])-?\d+(?:_\d{3})*(?:\.\d+)?")
 _LABELLED_NUMBER = re.compile(r"\b([A-Z][a-z]+) (\d+)\b(?![.,]\d)")
@@ -95,22 +98,38 @@ def build_report(
     other_objectives: list[float | None],
     required: list[str] = (),
     linked: list[str] = (),
+    signals: tuple[str, ...] = SIGNALS,
 ) -> VerifierReport:
-    """`required` holds the parser's requirement IDs and `linked` the IDs found in the model's constraint names."""
+    """`required` holds the parser's requirement IDs and `linked` the IDs found in the model's constraint names.
+
+    Every signal is computed and stored; only the enabled `signals` count in the score.
+    """
     feasible = status == "optimal" and objective is not None
     coverage, missing = number_coverage(question, code)
     agreement = paraphrase_agreement(objective, other_objectives)
     requirements, missing_requirements = requirement_coverage(list(required), list(linked))
-    score = combined_score(feasible, coverage, agreement, requirements)
+    score = combined_score(feasible, coverage, agreement, requirements, signals)
     return VerifierReport(
         feasible, coverage, missing, agreement, list(other_objectives), score, requirements, missing_requirements
     )
 
 
-def combined_score(feasible: bool, coverage: float, agreement: float | None, requirements: float | None = None) -> float:
-    """Mean of the available signals, and 0 when no feasible model exists. Also used to rescore saved records."""
-    signals = [signal for signal in (coverage, agreement, requirements) if signal is not None]
-    return sum(signals) / len(signals) if feasible else 0.0
+def combined_score(
+    feasible: bool,
+    coverage: float,
+    agreement: float | None,
+    requirements: float | None = None,
+    signals: tuple[str, ...] = SIGNALS,
+) -> float:
+    """Mean of the enabled signals that are available, and 0 when no feasible model exists.
+
+    With no enabled signal available a feasible model scores 1 (feasibility alone). Also used to rescore saved records.
+    """
+    if not feasible:
+        return 0.0
+    values = {"number": coverage, "requirement": requirements, "paraphrase": agreement}
+    used = [values[name] for name in signals if values[name] is not None]
+    return sum(used) / len(used) if used else 1.0
 
 
 def decide(report: VerifierReport, objective: float | None, threshold: float) -> Decision:

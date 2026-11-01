@@ -40,6 +40,7 @@ operations questions into optimization models, verify those models, and answer, 
 | OpsOR-Bench: 36 problems in three families (gate assignment, ground-crew rostering, equipment dispatch) | Gap 2 | `optverify/opsor/`, `data/opsor/opsor_bench.jsonl`, `scripts/make_opsor.py` | Done |
 | Interactive interface | All | `optverify/web.py`, `optverify/static/index.html` | Done |
 | Requirement coverage: the parser's requirements get IDs (R1, R2, ...), the formalizer names each constraint after its requirement, and the verifier scores the share of requirements linked to a constraint | Gap 1 | `optverify/roles.py` `number_requirements`, `optverify/prompts.py`, `optverify/solver_tool.py`, `optverify/verifier.py` `requirement_coverage` | Done; checked on the dev split (see below) |
+| Switches for each signal and the parser, and rescoring of saved records for ablations (i) to (vii) | Gap 1 | `--signals`, `--no-parser` in `run.py`; `optverify/rescore.py`, `scripts/rescore.py` | Done |
 | Calibrated threshold for a target wrong-accept rate alpha, with the leave-one-class-out test | Gap 2 | `optverify/calibration.py`, `scripts/calibrate.py`, `--calibration` in `run.py` and `web.py` | Done; runs in #36 |
 
 ## Setup
@@ -185,6 +186,36 @@ runs in `results/dev_requirement_coverage/`):
 These are 30 problems with 5 to 7 wrong answers, so the numbers move a lot between runs (compare runs 1 and 2). They
 were used only to fix the prompts; the signal is evaluated on the test samples in E4 (#35).
 
+## Ablations
+
+Each Gap 1 part can be switched off in a run:
+
+```bash
+python -m optverify.run pipeline --model <model> --sample-file <sample> --repairs 1 --signals number,paraphrase  # no requirement coverage
+python -m optverify.run pipeline --model <model> --sample-file samples/ablation_50.json --repairs 1 --no-parser  # ablation iv
+```
+
+`--signals` takes any of `number`, `requirement`, `paraphrase` (or `none` for feasibility alone); without
+`paraphrase` the paraphrase runs are skipped. Every record still stores every signal that was computed, so most
+ablations need no new run. `scripts/rescore.py` reads them from the main records, takes off the tokens of the steps
+it drops, and makes no API calls:
+
+| Ablation | Command (add `--records results/<pipeline run>/records.jsonl`) |
+|---|---|
+| (i) without number coverage | `python scripts/rescore.py --signals requirement,paraphrase` |
+| (ii) without requirement coverage | `python scripts/rescore.py --signals number,paraphrase` |
+| (iii) without paraphrase agreement | `python scripts/rescore.py --signals number,requirement` |
+| (iv) without the parser | new run with `--no-parser` (above) |
+| (v) k = 1, 2, 3 paraphrases | `python scripts/rescore.py --k 1` (any k up to the run's k) |
+| (vi) fixed against calibrated threshold | `python scripts/rescore.py --threshold 0.8` and `python scripts/rescore.py --alpha 0.10` |
+| (vii) r = 0, 1, 2 repairs | r = 0: `python scripts/rescore.py --no-repair`; r = 1: the main run; r = 2: new run with `--repairs 2` |
+
+The options combine (for example `--signals number,paraphrase --k 2 --alpha 0.10`), `--calibration <file>` applies
+the threshold of a calibration file, and `--out <file>` saves the JSON. The output gives the accuracy of the final
+model, mean tokens and calls, and the decision: answered, wrong accepted, coverage and the wrong-accept rate with
+its exact 95% interval (per fold and pooled with `--alpha`). `--no-repair` is exact: a first attempt that is optimal
+never ran a repair, and one that is not means the pipeline abstains.
+
 ## E3 analysis (Gap 3, no API calls)
 
 Compares the pipeline and B2 at k = 1, 2, 3 from saved records. The pipeline records must come from a run with
@@ -248,6 +279,7 @@ optverify/
   llm.py          provider clients with token counting; request pacing in the OpenAI-compatible client
   opsor/          OpsOR-Bench problem families and reference models
   prompts.py      prompt templates
+  rescore.py      a saved pipeline record under a smaller configuration (signals, k, no repair)
   roles.py        parser, formalizer with repair, paraphraser, explainer
   solver_tool.py  runs generated PuLP code with HiGHS
   static/         interactive interface template (index.html)
@@ -263,6 +295,7 @@ scripts/make_opsor.py        regenerates the OpsOR-Bench file with fixed seeds
 scripts/make_samples.py      regenerates the sample files with seed 0
 scripts/analyze_e3.py        E3 equal-budget analysis from saved records
 scripts/calibrate.py         Gap 2 calibration and leave-one-class-out test from saved records
+scripts/rescore.py           ablations (i) to (vii) from saved records, no API calls
 scripts/compare_baselines.py B0 and B1 per class and the base-paper comparison
 scripts/plot_e3.py           E3 accuracy-cost and risk-coverage plots
 tests/

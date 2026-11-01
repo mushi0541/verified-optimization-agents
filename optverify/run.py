@@ -22,6 +22,7 @@ from .data import SPLIT_FILES, load_sample_file, load_split, sample_per_class
 from .grading import summarize
 from .llm import make_llm, with_temperature
 from .systems import run_baseline, run_pipeline, run_single_agent
+from .verifier import SIGNALS
 
 RESULTS_DIR = Path(__file__).resolve().parent.parent / "results"
 
@@ -36,6 +37,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--repairs", type=int, default=0, help="solver-feedback repair rounds")
     parser.add_argument("--paraphrases", type=int, default=2, help="pipeline only: reworded runs for the verifier")
+    parser.add_argument(
+        "--signals",
+        type=parse_signals,
+        default=SIGNALS,
+        help="pipeline only: verifier signals in the score, comma-separated from number,requirement,paraphrase, or "
+        "'none' for feasibility alone (default: all; paraphrase runs are skipped without paraphrase)",
+    )
+    parser.add_argument(
+        "--no-parser", action="store_true", help="pipeline only: formalize from the question alone (ablation iv)"
+    )
     parser.add_argument("--threshold", type=float, default=0.8, help="pipeline and b2: minimum score to answer")
     parser.add_argument(
         "--calibration", type=Path, help="pipeline and b2: calibration file from scripts/calibrate.py; replaces --threshold (Gap 2)"
@@ -48,6 +59,15 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--workers", type=int, default=2, help="parallel problems (keep low on free tiers)")
     parser.add_argument("--env-file", default=".env")
     return parser
+
+
+def parse_signals(text: str) -> tuple[str, ...]:
+    """'number,paraphrase' -> ('number', 'paraphrase'), kept in the fixed order of SIGNALS; 'none' -> ()."""
+    names = set() if text.strip() == "none" else {name.strip() for name in text.split(",")}
+    unknown = names - set(SIGNALS)
+    if unknown:
+        raise argparse.ArgumentTypeError(f"unknown signal(s) {', '.join(sorted(unknown))}; use {', '.join(SIGNALS)}")
+    return tuple(name for name in SIGNALS if name in names)
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -89,7 +109,9 @@ def main() -> None:
             return run_single_agent(
                 problem, llm, sample_llm, args.budget_tokens, args.repairs, args.threshold, args.max_samples
             )
-        return run_pipeline(problem, llm, args.paraphrases, args.repairs, args.threshold)
+        return run_pipeline(
+            problem, llm, args.paraphrases, args.repairs, args.threshold, args.signals, not args.no_parser
+        )
 
     split_tag = args.sample_file.stem if args.sample_file else args.split
     run_name = f"{args.system}_{_slug(args.model)}_{split_tag}_r{args.repairs}_{datetime.now():%Y%m%d-%H%M}"
