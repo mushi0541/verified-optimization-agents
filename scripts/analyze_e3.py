@@ -29,7 +29,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from optverify.grading import is_correct  # noqa: E402
 from optverify.systems import majority_vote, samples_within_budget  # noqa: E402
-from optverify.verifier import combined_score, paraphrase_agreement  # noqa: E402
+from optverify.rescore import rescore  # noqa: E402
 
 LEVELS = (1, 2, 3)
 BUDGET_TOLERANCE = 0.10
@@ -80,19 +80,8 @@ def load_records(paths: list[str]) -> dict[str, dict]:
 
 def pipeline_at(record: dict, k: int) -> dict:
     """The pipeline's outcome with only its first k paraphrase runs."""
-    report = record["verifier"]
-    objective = record["attempts"][-1]["solve"]["objective"] if report["feasible"] else None
-    others = report["paraphrase_objectives"]
-    if report["feasible"] and len(others) < k:
-        raise ValueError(f"{record['problem_id']} has {len(others)} paraphrase runs, fewer than k = {k}")
-    agreement = paraphrase_agreement(objective, others[:k]) if report["feasible"] else None
-    dropped = [f"paraphrase_{j}" for j in range(k + 1, len(others) + 1)]
-    return {
-        "answer": objective,
-        "score": combined_score(report["feasible"], report["number_coverage"], agreement),
-        "correct": is_correct(objective, record["reference"]),
-        **_usage_without(record, dropped),
-    }
+    outcome = rescore(record, k=k)
+    return {key: outcome[key] for key in ("answer", "score", "correct", "tokens", "calls")}
 
 
 def b2_at(record: dict, budget: float) -> dict:
@@ -139,16 +128,6 @@ def _steps(record: dict) -> dict:
     if not steps:
         raise ValueError(f"{record['problem_id']} has no usage_by_step; E3 needs records saved in Phase 2")
     return steps
-
-
-def _usage_without(record: dict, dropped_steps: list[str]) -> dict:
-    total = record["usage"]
-    tokens, calls = total["input_tokens"] + total["output_tokens"], total["calls"]
-    steps = _steps(record) if dropped_steps else {}
-    for name in dropped_steps:
-        tokens -= steps[name]["input_tokens"] + steps[name]["output_tokens"]
-        calls -= steps[name]["calls"]
-    return {"tokens": tokens, "calls": calls}
 
 
 # ---------- statistics ----------

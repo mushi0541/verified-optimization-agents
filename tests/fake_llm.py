@@ -13,9 +13,10 @@ TOY_CODE = """```python
 import pulp
 model = pulp.LpProblem("workshop", pulp.LpMaximize)
 chairs = pulp.LpVariable("chairs", lowBound=0, cat="Integer")
-tables = pulp.LpVariable("tables", lowBound=3, cat="Integer")
+tables = pulp.LpVariable("tables", lowBound=0, cat="Integer")
 model += 30 * chairs + 50 * tables
-model += 2 * chairs + 4 * tables <= 40
+model += 2 * chairs + 4 * tables <= 40, "R1_work_hours"
+model += tables >= 3, "R2_min_tables"
 model.solve(pulp.HiGHS(msg=False, timeLimit=120))
 ```"""
 

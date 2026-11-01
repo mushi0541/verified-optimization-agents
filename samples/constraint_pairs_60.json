@@ -1,0 +1,422 @@
+[
+  {
+    "augmented": "constraint-0617",
+    "original": "constraint-0098",
+    "pair_id": 0,
+    "pairing": "class_and_size",
+    "problem_class": "Inventory"
+  },
+  {
+    "augmented": "constraint-0636",
+    "original": "constraint-0107",
+    "pair_id": 1,
+    "pairing": "class_and_size",
+    "problem_class": "Inventory"
+  },
+  {
+    "augmented": "constraint-0533",
+    "original": "constraint-0010",
+    "pair_id": 2,
+    "pairing": "class_and_size",
+    "problem_class": "Inventory"
+  },
+  {
+    "augmented": "constraint-0589",
+    "original": "constraint-0066",
+    "pair_id": 3,
+    "pairing": "class_and_size",
+    "problem_class": "Inventory"
+  },
+  {
+    "augmented": "constraint-0657",
+    "original": "constraint-0130",
+    "pair_id": 4,
+    "pairing": "class_and_size",
+    "problem_class": "Inventory"
+  },
+  {
+    "augmented": "constraint-0652",
+    "original": "constraint-0124",
+    "pair_id": 5,
+    "pairing": "class_and_size",
+    "problem_class": "Inventory"
+  },
+  {
+    "augmented": "constraint-0632",
+    "original": "constraint-0103",
+    "pair_id": 6,
+    "pairing": "class_and_size",
+    "problem_class": "Inventory"
+  },
+  {
+    "augmented": "constraint-0601",
+    "original": "constraint-0077",
+    "pair_id": 7,
+    "pairing": "class_and_size",
+    "problem_class": "Inventory"
+  },
+  {
+    "augmented": "constraint-0654",
+    "original": "constraint-0122",
+    "pair_id": 8,
+    "pairing": "class_and_size",
+    "problem_class": "Inventory"
+  },
+  {
+    "augmented": "constraint-0627",
+    "original": "constraint-0091",
+    "pair_id": 9,
+    "pairing": "class_and_size",
+    "problem_class": "Inventory"
+  },
+  {
+    "augmented": "constraint-0847",
+    "original": "constraint-0316",
+    "pair_id": 10,
+    "pairing": "matched_data",
+    "problem_class": "Knapsack"
+  },
+  {
+    "augmented": "constraint-0749",
+    "original": "constraint-0216",
+    "pair_id": 11,
+    "pairing": "matched_data",
+    "problem_class": "Knapsack"
+  },
+  {
+    "augmented": "constraint-0827",
+    "original": "constraint-0296",
+    "pair_id": 12,
+    "pairing": "matched_data",
+    "problem_class": "Knapsack"
+  },
+  {
+    "augmented": "constraint-0727",
+    "original": "constraint-0196",
+    "pair_id": 13,
+    "pairing": "matched_data",
+    "problem_class": "Knapsack"
+  },
+  {
+    "augmented": "constraint-0764",
+    "original": "constraint-0233",
+    "pair_id": 14,
+    "pairing": "matched_data",
+    "problem_class": "Knapsack"
+  },
+  {
+    "augmented": "constraint-0891",
+    "original": "constraint-0361",
+    "pair_id": 15,
+    "pairing": "matched_data",
+    "problem_class": "Knapsack"
+  },
+  {
+    "augmented": "constraint-0712",
+    "original": "constraint-0184",
+    "pair_id": 16,
+    "pairing": "matched_data",
+    "problem_class": "Knapsack"
+  },
+  {
+    "augmented": "constraint-0857",
+    "original": "constraint-0325",
+    "pair_id": 17,
+    "pairing": "matched_data",
+    "problem_class": "Knapsack"
+  },
+  {
+    "augmented": "constraint-0757",
+    "original": "constraint-0225",
+    "pair_id": 18,
+    "pairing": "matched_data",
+    "problem_class": "Knapsack"
+  },
+  {
+    "augmented": "constraint-0832",
+    "original": "constraint-0303",
+    "pair_id": 19,
+    "pairing": "matched_data",
+    "problem_class": "Knapsack"
+  },
+  {
+    "augmented": "constraint-0938",
+    "original": "constraint-0407",
+    "pair_id": 20,
+    "pairing": "matched_data",
+    "problem_class": "TSP"
+  },
+  {
+    "augmented": "constraint-0986",
+    "original": "constraint-0453",
+    "pair_id": 21,
+    "pairing": "matched_data",
+    "problem_class": "TSP"
+  },
+  {
+    "augmented": "constraint-0923",
+    "original": "constraint-0395",
+    "pair_id": 22,
+    "pairing": "matched_data",
+    "problem_class": "TSP"
+  },
+  {
+    "augmented": "constraint-0919",
+    "original": "constraint-0388",
+    "pair_id": 23,
+    "pairing": "matched_data",
+    "problem_class": "TSP"
+  },
+  {
+    "augmented": "constraint-0991",
+    "original": "constraint-0459",
+    "pair_id": 24,
+    "pairing": "matched_data",
+    "problem_class": "TSP"
+  },
+  {
+    "augmented": "constraint-1034",
+    "original": "constraint-0502",
+    "pair_id": 25,
+    "pairing": "matched_data",
+    "problem_class": "TSP"
+  },
+  {
+    "augmented": "constraint-1057",
+    "original": "constraint-0527",
+    "pair_id": 26,
+    "pairing": "matched_data",
+    "problem_class": "TSP"
+  },
+  {
+    "augmented": "constraint-0996",
+    "original": "constraint-0465",
+    "pair_id": 27,
+    "pairing": "matched_data",
+    "problem_class": "TSP"
+  },
+  {
+    "augmented": "constraint-1024",
+    "original": "constraint-0493",
+    "pair_id": 28,
+    "pairing": "matched_data",
+    "problem_class": "TSP"
+  },
+  {
+    "augmented": "constraint-0988",
+    "original": "constraint-0454",
+    "pair_id": 29,
+    "pairing": "matched_data",
+    "problem_class": "TSP"
+  },
+  {
+    "augmented": "constraint-0634",
+    "original": "constraint-0104",
+    "pair_id": 30,
+    "pairing": "class_and_size",
+    "problem_class": "Inventory"
+  },
+  {
+    "augmented": "constraint-0642",
+    "original": "constraint-0114",
+    "pair_id": 31,
+    "pairing": "class_and_size",
+    "problem_class": "Inventory"
+  },
+  {
+    "augmented": "constraint-0530",
+    "original": "constraint-0011",
+    "pair_id": 32,
+    "pairing": "class_and_size",
+    "problem_class": "Inventory"
+  },
+  {
+    "augmented": "constraint-0597",
+    "original": "constraint-0068",
+    "pair_id": 33,
+    "pairing": "class_and_size",
+    "problem_class": "Inventory"
+  },
+  {
+    "augmented": "constraint-0672",
+    "original": "constraint-0140",
+    "pair_id": 34,
+    "pairing": "class_and_size",
+    "problem_class": "Inventory"
+  },
+  {
+    "augmented": "constraint-0669",
+    "original": "constraint-0134",
+    "pair_id": 35,
+    "pairing": "class_and_size",
+    "problem_class": "Inventory"
+  },
+  {
+    "augmented": "constraint-0647",
+    "original": "constraint-0110",
+    "pair_id": 36,
+    "pairing": "class_and_size",
+    "problem_class": "Inventory"
+  },
+  {
+    "augmented": "constraint-0615",
+    "original": "constraint-0080",
+    "pair_id": 37,
+    "pairing": "class_and_size",
+    "problem_class": "Inventory"
+  },
+  {
+    "augmented": "constraint-0670",
+    "original": "constraint-0132",
+    "pair_id": 38,
+    "pairing": "class_and_size",
+    "problem_class": "Inventory"
+  },
+  {
+    "augmented": "constraint-0618",
+    "original": "constraint-0095",
+    "pair_id": 39,
+    "pairing": "class_and_size",
+    "problem_class": "Inventory"
+  },
+  {
+    "augmented": "constraint-0854",
+    "original": "constraint-0324",
+    "pair_id": 40,
+    "pairing": "matched_data",
+    "problem_class": "Knapsack"
+  },
+  {
+    "augmented": "constraint-0748",
+    "original": "constraint-0219",
+    "pair_id": 41,
+    "pairing": "matched_data",
+    "problem_class": "Knapsack"
+  },
+  {
+    "augmented": "constraint-0833",
+    "original": "constraint-0302",
+    "pair_id": 42,
+    "pairing": "matched_data",
+    "problem_class": "Knapsack"
+  },
+  {
+    "augmented": "constraint-0724",
+    "original": "constraint-0198",
+    "pair_id": 43,
+    "pairing": "matched_data",
+    "problem_class": "Knapsack"
+  },
+  {
+    "augmented": "constraint-0768",
+    "original": "constraint-0238",
+    "pair_id": 44,
+    "pairing": "matched_data",
+    "problem_class": "Knapsack"
+  },
+  {
+    "augmented": "constraint-0715",
+    "original": "constraint-0186",
+    "pair_id": 45,
+    "pairing": "matched_data",
+    "problem_class": "Knapsack"
+  },
+  {
+    "augmented": "constraint-0864",
+    "original": "constraint-0334",
+    "pair_id": 46,
+    "pairing": "matched_data",
+    "problem_class": "Knapsack"
+  },
+  {
+    "augmented": "constraint-0761",
+    "original": "constraint-0229",
+    "pair_id": 47,
+    "pairing": "matched_data",
+    "problem_class": "Knapsack"
+  },
+  {
+    "augmented": "constraint-0839",
+    "original": "constraint-0310",
+    "pair_id": 48,
+    "pairing": "matched_data",
+    "problem_class": "Knapsack"
+  },
+  {
+    "augmented": "constraint-0887",
+    "original": "constraint-0357",
+    "pair_id": 49,
+    "pairing": "matched_data",
+    "problem_class": "Knapsack"
+  },
+  {
+    "augmented": "constraint-0940",
+    "original": "constraint-0410",
+    "pair_id": 50,
+    "pairing": "matched_data",
+    "problem_class": "TSP"
+  },
+  {
+    "augmented": "constraint-0992",
+    "original": "constraint-0460",
+    "pair_id": 51,
+    "pairing": "matched_data",
+    "problem_class": "TSP"
+  },
+  {
+    "augmented": "constraint-0926",
+    "original": "constraint-0397",
+    "pair_id": 52,
+    "pairing": "matched_data",
+    "problem_class": "TSP"
+  },
+  {
+    "augmented": "constraint-0916",
+    "original": "constraint-0389",
+    "pair_id": 53,
+    "pairing": "matched_data",
+    "problem_class": "TSP"
+  },
+  {
+    "augmented": "constraint-0999",
+    "original": "constraint-0467",
+    "pair_id": 54,
+    "pairing": "matched_data",
+    "problem_class": "TSP"
+  },
+  {
+    "augmented": "constraint-1040",
+    "original": "constraint-0511",
+    "pair_id": 55,
+    "pairing": "matched_data",
+    "problem_class": "TSP"
+  },
+  {
+    "augmented": "constraint-1007",
+    "original": "constraint-0473",
+    "pair_id": 56,
+    "pairing": "matched_data",
+    "problem_class": "TSP"
+  },
+  {
+    "augmented": "constraint-1035",
+    "original": "constraint-0501",
+    "pair_id": 57,
+    "pairing": "matched_data",
+    "problem_class": "TSP"
+  },
+  {
+    "augmented": "constraint-0993",
+    "original": "constraint-0461",
+    "pair_id": 58,
+    "pairing": "matched_data",
+    "problem_class": "TSP"
+  },
+  {
+    "augmented": "constraint-0956",
+    "original": "constraint-0425",
+    "pair_id": 59,
+    "pairing": "matched_data",
+    "problem_class": "TSP"
+  }
+]
