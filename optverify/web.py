@@ -11,7 +11,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from .calibration import threshold_from_file
+from .calibration import check_system, threshold_from_file
 from .interactive import solve_interactive_problem
 from .llm import LLM, make_llm
 
@@ -189,6 +189,11 @@ def main(argv: list[str] | None = None) -> None:
     load_dotenv(args.env_file, override=False)
     llm = make_llm(args.model)
     calibration = json.loads(args.calibration.read_text(encoding="utf-8")) if args.calibration else None
+    if calibration:
+        try:
+            check_system(calibration, "pipeline")  # the interface runs the pipeline
+        except ValueError as error:
+            parser.error(str(error))
 
     server = make_server("127.0.0.1", args.port, llm, calibration)
     print(f"Interactive interface serving at http://127.0.0.1:{args.port}/")

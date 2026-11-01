@@ -5,7 +5,11 @@ operations questions into optimization models, verify those models, and answer, 
 
 - Base paper: OPT-Engine (Chen et al., ICML 2026), benchmark C^3-Bench.
 - Architecture, gap mapping and data contracts: [docs/architecture.md](docs/architecture.md)
+- Development log (failures, fixes and their measured effect): [docs/devlog.md](docs/devlog.md)
 - Phase 1 report (submitted): [docs/phase1/Phase1_G1-01_23I-0541.pdf](docs/phase1/Phase1_G1-01_23I-0541.pdf), LaTeX source in `docs/phase1/latex/`
+- Phase 2 paper (draft, IEEE two-column): `docs/paper/main.tex` and `docs/paper/refs.bib`. Build it from `docs/paper` with
+  `pdflatex main && bibtex main && pdflatex main && pdflatex main`. Tables and figures are read from generated files
+  in `docs/paper/tables/` and `docs/paper/figures/`; until a file exists, the PDF shows a grey note in its place.
 
 ## What is in Phase 1
 
@@ -35,7 +39,8 @@ operations questions into optimization models, verify those models, and answer, 
 | Failed paraphrase runs retried once and left out of the agreement; number coverage ignores item labels, accepts percentages written as fractions and reads commas in code as separators between values | Gap 1 | `optverify/systems.py`, `optverify/verifier.py` | Done; checked on the 10 Phase 1 problems (see below) |
 | Main provider switched to Amazon Bedrock (same model) | All | `optverify/llm.py` `BedrockLLM` | Done; all Phase 1 results rerun on Bedrock |
 | Generated code runs in UTF-8 mode, so printed symbols such as `≤` no longer crash it on Windows | All | `optverify/solver_tool.py` | Done; Phase 1 Run A and pipeline rerun |
-| Paraphrase agreement treats a value and its negative as the same optimum | Gap 1 | | Planned (false alarm in the Phase 1 pipeline run) |
+| Paraphrase agreement treats a value and its negative as the same optimum; the paraphraser samples at temperature 0.7 (`--paraphrase-temperature`) | Gap 1 | `optverify/verifier.py` `paraphrase_agreement`, `optverify/systems.py` `run_pipeline` | Done; removes the Production false alarm of the Phase 1 pipeline run (development log entry 8) |
+| Second model for the paraphraser (`--paraphrase-model`, supervisor feedback), so its mistakes are less correlated with the formalizer's | Gap 1 | `optverify/run.py` `paraphrase_client` | Done; run with `bedrock:deepseek.v3.2` pending (development log entry 9) |
 | Fixed evaluation samples | All | samples/, scripts/make_samples.py | Done |
 | OpsOR-Bench: 36 problems in three families (gate assignment, ground-crew rostering, equipment dispatch) | Gap 2 | `optverify/opsor/`, `data/opsor/opsor_bench.jsonl`, `scripts/make_opsor.py` | Done |
 | Interactive interface | All | `optverify/web.py`, `optverify/static/index.html` | Done |
@@ -97,6 +102,9 @@ python -m optverify.run baseline --model bedrock:openai.gpt-oss-120b-1:0 --split
 # Proposed pipeline with 2 reworded runs for the verifier
 python -m optverify.run pipeline --model bedrock:openai.gpt-oss-120b-1:0 --split canonical --per-class 1 --paraphrases 2 --repairs 1
 
+# Same, with a second model writing the rewordings (each rewording is still solved by --model)
+python -m optverify.run pipeline --model bedrock:openai.gpt-oss-120b-1:0 --paraphrase-model bedrock:deepseek.v3.2 --split canonical --per-class 1 --paraphrases 2 --repairs 1
+
 # Single agent B2 (Gap 3): B1, then new samples at temperature 0.7 until the problem has used about
 # --budget-tokens tokens (set it to the pipeline's mean tokens per problem at the largest k)
 python -m optverify.run b2 --model bedrock:openai.gpt-oss-120b-1:0 --split canonical --per-class 10 --repairs 1 --budget-tokens 24000
@@ -117,9 +125,9 @@ accuracy per class, and for the pipeline: coverage, selective accuracy and wrong
 
 The fixed problem sets are stored as ID lists in `samples/`. To run on one, pass `--sample-file`:
 
-    python -m optverify.run baseline --model <model> --sample-file samples/canonical_100.json
+    python -m optverify.run baseline --model <model> --sample-file samples/canonical_200.json
 
-`--sample-file` cannot be combined with `--per-class` or `--seed`.
+`--sample-file` also reads constraint pair files (it runs both problems of every pair). It cannot be combined with `--per-class` or `--seed`.
 
 To regenerate the sample files (needs the downloaded data):
 
@@ -154,6 +162,12 @@ python -m optverify.web --calibration results/calibration/<name>.json
 ```
 
 The web page then shows alpha and the calibrated threshold instead of the threshold field.
+
+B2 is calibrated the same way on its own records, with its sample agreement rate as the score
+(`scripts/calibrate.py --records results/<b2 run>/records.jsonl`). The file records the configuration it was made
+from: the system name (for example `pipeline_p3` or `b2_r1`), the enabled signals and the parser switch. `run.py`
+refuses a file made for another configuration, because the scores differ (B2's agreement rate is not a verifier
+score, and k or a switched-off signal changes the verifier score). `web.py` accepts only a pipeline file.
 
 ## Requirement coverage (Gap 1)
 
@@ -256,12 +270,47 @@ status but a wrong value), problems fixed and broken by the repair round with a 
 Class names must match the data (`BinPacking`, `Inventory`, `JobShop`, `Knapsack`, `NetworkFlow`, `Pollution`,
 `Portfolio`, `Production`, `TSP`, `Transportation`).
 
+For the course E1 and E2 tables, pass each repeat with its own `--repeat`: the B1 repeats with gpt-oss-120b, and the
+B0-only repeats with DeepSeek-V3.2, the base paper's own model:
+
+```bash
+python scripts/compare_baselines.py --repeat results/<B1 repeat 1>/records.jsonl --repeat results/<B1 repeat 2>/records.jsonl \
+    --repeat results/<B1 repeat 3>/records.jsonl --repeat results/<DeepSeek B0 repeat 1>/records.jsonl ... \
+    --paper docs/paper_sir.json --out-dir results/e1_e2
+```
+
+This writes `e1_e2.md`, `e1_e2.csv` and `e1_e2.json`. Repeats are grouped by the model in their records, and each
+model gets one block labelled "reproduced (<model>, our runs)". Each block gives B0 and B1 accuracy at both rules,
+silent failures, and the problems fixed and broken by the repair round, as the mean and sample standard deviation
+(n - 1) over its repeats; the deviation needs 2 or more repeats. A block of B0-only runs leaves the B1 and repair cells
+empty. The last column is the SIR accuracy "reported in OPT-Engine (DeepSeek-V3.2, Table 2)": one number from the
+paper, with no standard deviation. Repeats of one model must cover the same problems with the same settings (the
+script names a few differing problem IDs otherwise), and the JSON keeps every repeat in full so each mean can be
+traced back to its runs.
+
 `docs/paper_sir.json` holds the values we use. They come from the paper's Table 2 (DeepSeek-V3.2, SIR), the only
 per-class SIR numbers the paper gives in a table: TSP, Knapsack and NetworkFlow. The other seven classes are shown
 only in plots, so they have no paper value. Each value is the mean of the Easy, Medium and Hard accuracy, because the
 paper does not say which sizes belong to each tier. The paper grades at a 0.1% relative error, so compare it with B0
 at the 0.1% rule. The model and the solver differ from ours (DeepSeek-V3.2 and Gurobi), so this column gives context;
 our own B0 on the same problems is the baseline.
+
+## E6: efficiency and reliability (no API calls)
+
+```bash
+python scripts/efficiency.py --out-dir results/e6
+```
+
+Reads every run in `results/` (or only the folders given with `--runs`). Runs with the same system, model, endpoint
+and problem set are treated as repeats, so each number is the mean and sample standard deviation over the repeats:
+input and output tokens, LLM calls, solver calls, latency and cost per problem, the failed-run rate (target under 5%,
+report objective D1), solver error and timeout rates, and the repair success rate. A repeat without a measure (such
+as the repair success rate when nothing needed repair) is left out of that mean, and the output says how many repeats
+had a value. Cost uses the price of each run's model from the `PRICES` table in the script, with the date the price
+was read (Bedrock, us-east-1: `openai.gpt-oss-120b-1:0` at US$0.15 and US$0.60 per million input and output tokens,
+2026-10-20). A model without a price gets an empty cost cell. Tokens and cost cover finished problems only, because no
+usage is saved for a failed problem, so the cost is a lower bound when runs fail. It writes `efficiency.csv`,
+`tokens_by_step.csv` (where each system spends its tokens, from `usage_by_step`) and `efficiency.json`.
 
 ## Evaluation rule
 
@@ -298,10 +347,13 @@ scripts/calibrate.py         Gap 2 calibration and leave-one-class-out test from
 scripts/rescore.py           ablations (i) to (vii) from saved records, no API calls
 scripts/compare_baselines.py B0 and B1 per class and the base-paper comparison
 scripts/plot_e3.py           E3 accuracy-cost and risk-coverage plots
+scripts/efficiency.py        E6 efficiency and reliability from saved runs
 tests/
 docs/architecture.md
+docs/devlog.md    development log: each failure, the fix and its measured effect
 docs/paper_sir.json  base-paper SIR accuracy per class, for compare_baselines.py
 docs/phase1/      submitted Phase 1 report (PDF and LaTeX source)
+docs/paper/       Phase 2 paper (IEEEtran LaTeX source and references)
 results/          saved runs
 ```
 
@@ -310,11 +362,13 @@ results/          saved runs
 | Split | File | Size | Use |
 |---|---|---|---|
 | Development | samples/dev_30.json | 30 canonical problems, 3 per class, seed 1 | Prompt changes and design choices only. Never reported as results. |
-| Canonical test | samples/canonical_100.json | 100 canonical problems, 10 per class, seed 0 | Reported results only |
-| Ablation | samples/ablation_30.json | 30 problems, a subset of the canonical test sample | Reported ablations only |
-| Linguistic | samples/linguistic_30.json | 30 problems, 10 each for Inventory, Knapsack and TSP | Reported E1 results only |
-| Constraint pairs | samples/constraint_pairs_30.json | 30 original and augmented pairs | Reported E1 results only |
+| Canonical test | samples/canonical_200.json | 200 canonical problems, 20 per class | Reported results only |
+| Ablation | samples/ablation_50.json | 50 problems, 5 per class, a subset of canonical_100 | Reported ablations only |
+| Linguistic | samples/linguistic_60.json | 60 problems, 20 each for Inventory, Knapsack and TSP | Reported E1 results only |
+| Constraint pairs | samples/constraint_pairs_60.json | 60 original and augmented pairs, 20 per class | Reported E1 results only |
 | OpsOR-Bench | data/opsor/opsor_bench.jsonl | 36 problems, three families | Reported E2 shift test only |
+
+Phase 2 uses 20 problems per class (supervisor feedback on Phase 1). Each larger file starts with the Phase 1 file of the same split (`canonical_100`, `ablation_30`, `linguistic_30`, `constraint_pairs_30`) and adds new problems drawn from the rest of the split with seed 0, so Phase 1 runs stay valid as the first part of each larger sample. The Phase 1 files are kept unchanged. New constraint pairs never reuse a problem of an earlier pair. The dev sample shares no problem with any test sample; it was regenerated for Phase 2 because 5 of its old problems are now in canonical_200. Regenerate every file with `python scripts/make_samples.py`; `tests/test_samples.py` checks that the result matches the checked-in files.
 
 Gap 2 calibration is leave-one-class-out inside the canonical test sample, so each problem is scored only in the fold that holds out its class.
 
@@ -381,7 +435,7 @@ Same model, the same 10 problems as Run B, `--paraphrases 2 --repairs 1`, fixed 
   TSP answer would have been escalated.
 - The one false alarm is Production: the model was correct, but one rewording returned the same value with the opposite
   sign (-1908.17 instead of 1908.17), as happens when a maximization is written as minimizing the negative. Phase 2
-  will treat a value and its negative as the same optimum.
+  treats a value and its negative as the same optimum, and rescoring this run turns that escalation into an answer.
 - Number coverage ignores item labels and reads commas in code as separators between values (an earlier run read
   `(3,14,100.2)` as one number), so all ten problems reached full coverage.
 

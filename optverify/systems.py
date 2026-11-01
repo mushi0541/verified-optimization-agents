@@ -40,6 +40,10 @@ def run_baseline(problem: Problem, llm: LLM, max_repairs: int = 0) -> RunRecord:
     )
 
 
+# Report Section 2.7: the paraphraser samples at temperature 0.7, because rewordings at temperature 0 are almost identical.
+PARAPHRASE_TEMPERATURE = 0.7
+
+
 def run_pipeline(
     problem: Problem,
     llm: LLM,
@@ -48,11 +52,17 @@ def run_pipeline(
     threshold: float = 0.8,
     signals: tuple[str, ...] = verifier.SIGNALS,
     use_parser: bool = True,
+    paraphrase_llm: LLM | None = None,
 ) -> RunRecord:
-    """The proposed pipeline. For ablations, `signals` sets which verifier signals count in the score (paraphrase
-    runs are skipped when that signal is off), and use_parser=False formalizes from the question alone with the
-    baseline prompt, so no requirements are listed (ablation iv)."""
+    """The proposed pipeline.
+
+    paraphrase_llm writes the rewordings (PARAPHRASE_TEMPERATURE in the main runs); without it, llm does. Every other
+    call, including the formalizer call on each rewording, uses llm. For ablations, `signals` sets which verifier
+    signals count in the score (paraphrase runs are skipped when that signal is off), and use_parser=False formalizes
+    from the question alone with the baseline prompt, so no requirements are listed (ablation iv).
+    """
     start = time.perf_counter()
+    paraphraser = paraphrase_llm or llm
     steps = {"parse": TokenUsage(), "formalize": TokenUsage(), "repair": TokenUsage()}
 
     if use_parser:
@@ -75,9 +85,9 @@ def run_pipeline(
             # One step per paraphrase run (paraphraser call plus its formalizer call, and the retry when the first
             # try returns no optimum), so lower k can be read from saved records by dropping the last runs.
             step = steps[f"paraphrase_{run_number}"] = TokenUsage()
-            objective = _reworded_optimum(problem.question, llm, step)
+            objective = _reworded_optimum(problem.question, llm, paraphraser, step)
             if objective is None:  # retry once, so a failed run is not mistaken for a disagreement
-                objective = _reworded_optimum(problem.question, llm, step)
+                objective = _reworded_optimum(problem.question, llm, paraphraser, step)
             other_objectives.append(objective)
 
     report = verifier.build_report(
@@ -105,9 +115,10 @@ def run_pipeline(
     )
 
 
-def _reworded_optimum(question: str, llm: LLM, usage: TokenUsage) -> float | None:
-    """Reword the question and solve it with the baseline prompt and no repair; None if no optimum is found."""
-    reworded = roles.paraphrase(question, llm, usage)
+def _reworded_optimum(question: str, llm: LLM, paraphraser: LLM, usage: TokenUsage) -> float | None:
+    """Reword the question with paraphraser, then solve it with llm, the baseline prompt and no repair; None if no
+    optimum is found."""
+    reworded = roles.paraphrase(question, paraphraser, usage)
     reworded_prompt = prompts.BASELINE_FORMALIZE.format(question=reworded)
     attempts = roles.formalize_and_solve(reworded_prompt, reworded, llm, usage, max_repairs=0)
     return attempts[-1].solve.objective

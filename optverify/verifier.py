@@ -72,11 +72,17 @@ def paraphrase_agreement(main_objective: float | None, other_objectives: list[fl
     """Share of reworded-question runs that reach the same optimum as the main run (Gap 1).
 
     Runs that returned no optimum are left out: a failed run is not evidence of a different answer.
+    A value and its negative count as the same optimum, because a maximization written as minimizing the negative
+    reports the optimum with the opposite sign (Phase 1: -1908.17 for 1908.17).
     """
     solved = [other for other in other_objectives if other is not None]
     if not solved:
         return None
-    return sum(same_optimum(main_objective, other) for other in solved) / len(solved)
+    return sum(_same_up_to_sign(main_objective, other) for other in solved) / len(solved)
+
+
+def _same_up_to_sign(a: float | None, b: float | None) -> bool:
+    return same_optimum(a, b) or (b is not None and same_optimum(a, -b))
 
 
 def requirement_coverage(required: list[str], linked: list[str]) -> tuple[float | None, list[str]]:

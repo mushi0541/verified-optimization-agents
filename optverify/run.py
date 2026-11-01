@@ -10,6 +10,7 @@ import argparse
 import json
 import os
 import re
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
@@ -17,11 +18,11 @@ from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 
-from .calibration import threshold_from_file
+from .calibration import check_system, threshold_from_file
 from .data import SPLIT_FILES, load_sample_file, load_split, sample_per_class
 from .grading import summarize
-from .llm import make_llm, with_temperature
-from .systems import run_baseline, run_pipeline, run_single_agent
+from .llm import LLM, make_llm, with_temperature
+from .systems import PARAPHRASE_TEMPERATURE, run_baseline, run_pipeline, run_single_agent
 from .verifier import SIGNALS
 
 RESULTS_DIR = Path(__file__).resolve().parent.parent / "results"
@@ -56,6 +57,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--max-samples", type=int, default=10, help="b2 only: most samples per problem")
     parser.add_argument("--sample-temperature", type=float, default=0.7, help="b2 only: temperature of samples 2, 3, ...")
+    parser.add_argument(
+        "--paraphrase-temperature", type=float, default=PARAPHRASE_TEMPERATURE, help="pipeline only: temperature of the paraphraser"
+    )
+    parser.add_argument(
+        "--paraphrase-model",
+        help="pipeline only: model that writes the rewordings, e.g. bedrock:deepseek.v3.2 (default: --model); "
+        "each rewording is still solved by --model",
+    )
     parser.add_argument("--workers", type=int, default=2, help="parallel problems (keep low on free tiers)")
     parser.add_argument("--env-file", default=".env")
     return parser
@@ -86,6 +95,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     args.alpha = None
     if args.calibration:
         calibration = json.loads(args.calibration.read_text(encoding="utf-8"))
+        if args.system == "baseline":
+            parser.error("--calibration is for pipeline and b2 only")
+        try:
+            if args.system == "pipeline":  # the record's system name: paraphrase runs are skipped without the signal
+                runs = args.paraphrases if "paraphrase" in args.signals else 0
+                check_system(calibration, f"pipeline_p{runs}", args.signals, not args.no_parser)
+            else:
+                check_system(calibration, f"b2_r{args.repairs}")
+        except ValueError as error:
+            parser.error(str(error))
         args.alpha = calibration["alpha"]
         args.threshold = threshold_from_file(calibration)
     return args
@@ -97,6 +116,7 @@ def main() -> None:
     load_dotenv(args.env_file, override=False)
     llm = make_llm(args.model)
     sample_llm = with_temperature(llm, args.sample_temperature)
+    paraphrase_llm = paraphrase_client(args, llm)
     if args.sample_file:
         problems = load_sample_file(args.sample_file)
     else:
@@ -110,11 +130,13 @@ def main() -> None:
                 problem, llm, sample_llm, args.budget_tokens, args.repairs, args.threshold, args.max_samples
             )
         return run_pipeline(
-            problem, llm, args.paraphrases, args.repairs, args.threshold, args.signals, not args.no_parser
+            problem, llm, args.paraphrases, args.repairs, args.threshold,
+            signals=args.signals, use_parser=not args.no_parser, paraphrase_llm=paraphrase_llm,
         )
 
     split_tag = args.sample_file.stem if args.sample_file else args.split
-    run_name = f"{args.system}_{_slug(args.model)}_{split_tag}_r{args.repairs}_{datetime.now():%Y%m%d-%H%M}"
+    paraphraser_tag = f"_para-{_slug(args.paraphrase_model)}" if args.system == "pipeline" and args.paraphrase_model else ""
+    run_name = f"{args.system}_{_slug(args.model)}{paraphraser_tag}_{split_tag}_r{args.repairs}_{datetime.now():%Y%m%d-%H%M}"
     out_dir = RESULTS_DIR / run_name
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -137,7 +159,11 @@ def main() -> None:
     finished = [record for record in records if "failed" not in record]
     summary = {
         "run": run_name,
-        "config": {**{k: _config_value(v) for k, v in vars(args).items()}, "endpoint": _endpoint(args.model)},
+        "config": {
+            **{k: _config_value(v) for k, v in vars(args).items()},
+            "endpoint": _endpoint(args.model),
+            "paraphrase_endpoint": _endpoint(args.paraphrase_model or args.model),
+        },
         "failed_problems": [record["problem_id"] for record in records if "failed" in record],
         **summarize(finished),
     }
@@ -152,6 +178,14 @@ def _config_value(value):
     if value == float("inf"):
         return None
     return value
+
+
+def paraphrase_client(args: argparse.Namespace, llm: LLM, make: Callable[[str], LLM] | None = None) -> LLM:
+    """The client that writes the rewordings, at the paraphrase temperature: a second model when --paraphrase-model
+    is given (so the paraphraser's mistakes are less correlated with the formalizer's), otherwise the main model.
+    make builds the second client (make_llm when not given)."""
+    base = (make or make_llm)(args.paraphrase_model) if args.paraphrase_model else llm
+    return with_temperature(base, args.paraphrase_temperature)
 
 
 def _slug(text: str) -> str:
