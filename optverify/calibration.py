@@ -8,6 +8,8 @@ accepted: the decision layer abstains on everything else, whatever the threshold
 
 from math import comb
 
+from .verifier import SIGNALS
+
 MIN_ACCEPTED = 29  # with fewer accepted problems, even 0 wrong cannot give a 95% bound below 10%
 
 
@@ -84,13 +86,29 @@ def record_system(records: list[dict]) -> str:
     return systems.pop()
 
 
-def check_system(calibration: dict, system: str) -> None:
-    """Refuse a calibration file made for another system: pipeline scores and B2 agreement rates differ."""
+def check_system(
+    calibration: dict, system: str, signals: tuple[str, ...] | None = None, use_parser: bool = True
+) -> None:
+    """Refuse a calibration file made for another configuration, because the scores differ.
+
+    `system` is a full name such as pipeline_p3 or b2_r1, which must match exactly (k paraphrase runs and the repair
+    rounds change the score), or only the kind (pipeline) when the paraphrase count is not fixed, as in the web page.
+    With `signals`, the enabled verifier signals and the parser switch must match too. Files saved before these keys
+    existed were made from default runs: every signal, with the parser.
+    """
     made_for = calibration.get("system", "")
-    if made_for.split("_")[0] != system:
+    if (made_for if "_" in system else made_for.split("_")[0]) != system:
         raise ValueError(
             f"the calibration file was made from {made_for or 'unknown'} records, not {system}; "
             f"run scripts/calibrate.py on {system} records"
+        )
+    if signals is None:
+        return
+    made_with = (tuple(calibration.get("signals", SIGNALS)), calibration.get("use_parser", True))
+    if made_with != (tuple(signals), use_parser):
+        raise ValueError(
+            f"the calibration file was made with signals {list(made_with[0])} and parser {made_with[1]}, "
+            f"not signals {list(signals)} and parser {use_parser}; calibrate on records of this configuration"
         )
 
 

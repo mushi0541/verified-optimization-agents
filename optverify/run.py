@@ -23,6 +23,7 @@ from .data import SPLIT_FILES, load_sample_file, load_split, sample_per_class
 from .grading import summarize
 from .llm import LLM, make_llm, with_temperature
 from .systems import PARAPHRASE_TEMPERATURE, run_baseline, run_pipeline, run_single_agent
+from .verifier import SIGNALS
 
 RESULTS_DIR = Path(__file__).resolve().parent.parent / "results"
 
@@ -37,6 +38,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--repairs", type=int, default=0, help="solver-feedback repair rounds")
     parser.add_argument("--paraphrases", type=int, default=2, help="pipeline only: reworded runs for the verifier")
+    parser.add_argument(
+        "--signals",
+        type=parse_signals,
+        default=SIGNALS,
+        help="pipeline only: verifier signals in the score, comma-separated from number,requirement,paraphrase, or "
+        "'none' for feasibility alone (default: all; paraphrase runs are skipped without paraphrase)",
+    )
+    parser.add_argument(
+        "--no-parser", action="store_true", help="pipeline only: formalize from the question alone (ablation iv)"
+    )
     parser.add_argument("--threshold", type=float, default=0.8, help="pipeline and b2: minimum score to answer")
     parser.add_argument(
         "--calibration", type=Path, help="pipeline and b2: calibration file from scripts/calibrate.py; replaces --threshold (Gap 2)"
@@ -59,6 +70,15 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def parse_signals(text: str) -> tuple[str, ...]:
+    """'number,paraphrase' -> ('number', 'paraphrase'), kept in the fixed order of SIGNALS; 'none' -> ()."""
+    names = set() if text.strip() == "none" else {name.strip() for name in text.split(",")}
+    unknown = names - set(SIGNALS)
+    if unknown:
+        raise argparse.ArgumentTypeError(f"unknown signal(s) {', '.join(sorted(unknown))}; use {', '.join(SIGNALS)}")
+    return tuple(name for name in SIGNALS if name in names)
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = build_parser()
     args = parser.parse_args(argv)
@@ -78,7 +98,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         if args.system == "baseline":
             parser.error("--calibration is for pipeline and b2 only")
         try:
-            check_system(calibration, args.system)
+            if args.system == "pipeline":  # the record's system name: paraphrase runs are skipped without the signal
+                runs = args.paraphrases if "paraphrase" in args.signals else 0
+                check_system(calibration, f"pipeline_p{runs}", args.signals, not args.no_parser)
+            else:
+                check_system(calibration, f"b2_r{args.repairs}")
         except ValueError as error:
             parser.error(str(error))
         args.alpha = calibration["alpha"]
@@ -105,7 +129,10 @@ def main() -> None:
             return run_single_agent(
                 problem, llm, sample_llm, args.budget_tokens, args.repairs, args.threshold, args.max_samples
             )
-        return run_pipeline(problem, llm, args.paraphrases, args.repairs, args.threshold, paraphrase_llm)
+        return run_pipeline(
+            problem, llm, args.paraphrases, args.repairs, args.threshold,
+            signals=args.signals, use_parser=not args.no_parser, paraphrase_llm=paraphrase_llm,
+        )
 
     split_tag = args.sample_file.stem if args.sample_file else args.split
     paraphraser_tag = f"_para-{_slug(args.paraphrase_model)}" if args.system == "pipeline" and args.paraphrase_model else ""

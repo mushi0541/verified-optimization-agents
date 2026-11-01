@@ -117,15 +117,34 @@ def test_a_calibration_file_is_refused_for_another_system(tmp_path, capsys):
     path.write_text(json.dumps({"system": "pipeline_p2", "alpha": 0.1, "threshold": 0.875}), encoding="utf-8")
     with pytest.raises(SystemExit):  # pipeline scores cannot set B2's agreement threshold
         parse_args(["b2", "--model", "dummy", "--budget-tokens", "1000", "--calibration", str(path)])
-    assert "made from pipeline_p2 records, not b2" in capsys.readouterr().err
+    assert "made from pipeline_p2 records, not b2_r0" in capsys.readouterr().err
 
     path.write_text(json.dumps({"system": "b2_r1", "alpha": 0.1, "threshold": 1.0}), encoding="utf-8")
-    args = parse_args(["b2", "--model", "dummy", "--budget-tokens", "1000", "--calibration", str(path)])
+    args = parse_args(["b2", "--model", "dummy", "--budget-tokens", "1000", "--repairs", "1", "--calibration", str(path)])
     assert args.threshold == 1.0
     with pytest.raises(SystemExit):
         parse_args(["pipeline", "--model", "dummy", "--calibration", str(path)])
     with pytest.raises(ValueError, match="unknown"):
         check_system({"alpha": 0.1, "threshold": 0.9}, "pipeline")  # files without a system are refused
+
+
+def test_a_calibration_file_must_match_k_signals_and_parser(tmp_path, capsys):
+    path = tmp_path / "calibration.json"
+    path.write_text(json.dumps({"system": "pipeline_p2", "alpha": 0.1, "threshold": 0.9,
+                                "signals": ["number", "requirement", "paraphrase"], "use_parser": True}), encoding="utf-8")
+    assert parse_args(["pipeline", "--model", "dummy", "--calibration", str(path)]).threshold == 0.9
+    for extra in (["--paraphrases", "3"], ["--signals", "number,paraphrase"], ["--no-parser"]):
+        with pytest.raises(SystemExit):
+            parse_args(["pipeline", "--model", "dummy", "--calibration", str(path), *extra])
+    errors = capsys.readouterr().err
+    assert "not pipeline_p3" in errors and "parser True" in errors
+
+    # Without the paraphrase signal no paraphrase runs are made, so the records are pipeline_p0.
+    path.write_text(json.dumps({"system": "pipeline_p0", "alpha": 0.1, "threshold": 0.9,
+                                "signals": ["number", "requirement"], "use_parser": True}), encoding="utf-8")
+    args = parse_args(["pipeline", "--model", "dummy", "--signals", "number,requirement", "--calibration", str(path)])
+    assert args.threshold == 0.9
+    check_system({"system": "pipeline_p3"}, "pipeline")  # the web page checks only the kind
 
 
 def test_web_server_uses_the_calibrated_threshold():
