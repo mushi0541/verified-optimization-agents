@@ -9,17 +9,21 @@ For each pipeline run (one repeat), the AUROC for separating correct from wrong 
 - the combined score (the mean of all available signals), and the combined score without each signal (ablations
   i to iii, the same score `scripts/rescore.py --signals` gives).
 A wrong answer includes a model with no optimum; a feasible model always scores above an infeasible one. Intervals
-are bootstrap 95% intervals over problems, resampled in pairs so differences keep their pairing.
+are bootstrap 95% intervals over problems, resampled in pairs so differences keep their pairing. Problems that failed
+(no answer was produced, listed in the run's summary.json) are not in the AUROCs, which compare the system's own
+answers, but they count as unanswered in the coverage at the threshold.
 
 H1 is supported for a run when the combined score's AUROC is at least 0.10 above feasibility alone and the interval
 of that gain lies above 0, and removing any one signal lowers the AUROC (the interval of each drop lies above 0).
 Over the repeats the verdict is "supported" only if it holds in every repeat, "partly" if the gain holds but not
-every drop, and "not supported" otherwise.
+every drop, and "not supported" otherwise. A run with only correct or only wrong answers has no AUROC, so the verdict
+is then "not testable".
 
-Also reported at the decision threshold (fixed, or from a calibration file): coverage, precision (selective
+Also reported at the decision threshold (fixed, or from a calibration file made for these runs): coverage, precision (selective
 accuracy) and recall of accepted answers, and, with --baseline, B0 on the same problems (it answers whenever its
 first model is optimal, the SIR setting of the base paper). Results are split by group when the problems have one:
-original against augmented for the constraint pairs, and easy, moderate and hard wording for the linguistic split.
+original against augmented for the constraint pairs, and easy, moderate and hard wording for the linguistic split,
+each group with its own bootstrap intervals.
 """
 
 import argparse
@@ -31,11 +35,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from optverify.calibration import threshold_from_file  # noqa: E402
+from optverify.calibration import check_system, load_run, record_system, threshold_from_file  # noqa: E402
 from optverify.data import load_split  # noqa: E402
 from optverify.grading import is_correct  # noqa: E402
 from optverify.rescore import rescore  # noqa: E402
 from optverify.verifier import SIGNALS  # noqa: E402
+from scripts.analyze_e3 import percentile_interval  # noqa: E402  (one interval rule for every analysis)
 
 TARGET_GAIN = 0.10
 GROUP_KEYS = ("constraint_type", "linguistic_complexity")
@@ -71,7 +76,7 @@ def auroc(scores: list[float], labels: list[bool]) -> float | None:
 
 
 def outcomes(records: list[dict]) -> list[dict]:
-    """Per finished problem: whether the final answer is correct, and every score."""
+    """Per finished problem (failed ones produced no answer): whether the final answer is correct, and every score."""
     rows = []
     for record in records:
         if "failed" in record:
@@ -107,25 +112,18 @@ def bootstrap(rows: list[dict], draws: int, rng: random.Random) -> dict[str, lis
     return {name: percentile_interval(values) for name, values in samples.items()}
 
 
-def percentile_interval(values: list[float], level: float = 0.95) -> list[float] | None:
-    if not values:
-        return None
-    values = sorted(values)
-    low = values[int((1 - level) / 2 * (len(values) - 1))]
-    high = values[int(round((1 + level) / 2 * (len(values) - 1)))]
-    return [low, high]
-
-
-def at_threshold(rows: list[dict], threshold: float) -> dict:
-    """Coverage, precision (selective accuracy) and recall of the answers the combined score accepts."""
+def at_threshold(rows: list[dict], threshold: float, problems: int | None = None) -> dict:
+    """Coverage, precision (selective accuracy) and recall of the answers the combined score accepts. `problems` is
+    every problem of the run, failed ones included (they are never answered); by default the finished ones."""
+    problems = len(rows) if problems is None else problems
     accepted = [row for row in rows if row["feasible"] and row["combined"] >= threshold]
     correct_accepted = sum(row["correct"] for row in accepted)
     correct_total = sum(row["correct"] for row in rows)
     return {
         "threshold": None if threshold == float("inf") else threshold,
-        "problems": len(rows),
+        "problems": problems,
         "accepted": len(accepted),
-        "coverage": len(accepted) / len(rows) if rows else 0.0,
+        "coverage": len(accepted) / problems if problems else 0.0,
         "precision": correct_accepted / len(accepted) if accepted else None,
         "recall": correct_accepted / correct_total if correct_total else None,
         "wrong_accepted": len(accepted) - correct_accepted,
@@ -133,9 +131,10 @@ def at_threshold(rows: list[dict], threshold: float) -> dict:
 
 
 def b0_reference(baseline: list[dict], problem_ids: set[str]) -> dict:
-    """B0 (the first attempt of B1 records) on the same problems: it answers whenever its model is optimal."""
-    rows = [r for r in baseline if "failed" not in r and r["problem_id"] in problem_ids]
-    answered = [r for r in rows if r["attempts"][0]["solve"]["status"] == "optimal"]
+    """B0 (the first attempt of B1 records) on the same problems: it answers whenever its model is optimal. A failed
+    problem counts as not answered."""
+    rows = [r for r in baseline if r["problem_id"] in problem_ids]
+    answered = [r for r in rows if "failed" not in r and r["attempts"][0]["solve"]["status"] == "optimal"]
     correct = sum(is_correct(r["attempts"][0]["solve"]["objective"], r["reference"]) for r in answered)
     return {
         "problems": len(rows),
@@ -151,13 +150,16 @@ def verdict(values: dict, intervals: dict) -> dict:
     gain = None if values["combined"] is None or values["feasibility"] is None else values["combined"] - values["feasibility"]
     gain_ok = gain is not None and gain >= TARGET_GAIN and bool(intervals["gain"]) and intervals["gain"][0] > 0
     drops_ok = {s: bool(intervals[f"drop_{s}"]) and intervals[f"drop_{s}"][0] > 0 for s in SIGNALS}
-    return {"gain": gain, "gain_ok": gain_ok, "drops_ok": drops_ok, "supported": gain_ok and all(drops_ok.values())}
+    return {"testable": gain is not None, "gain": gain, "gain_ok": gain_ok, "drops_ok": drops_ok,
+            "supported": gain_ok and all(drops_ok.values())}
 
 
 def analyze_run(records: list[dict], threshold: float, draws: int, seed: int, groups: dict[str, str]) -> dict:
+    """One repeat; `records` come from load_run, so failed problems are in them as unanswered."""
     rows = outcomes(records)
     values = aurocs(rows)
-    intervals = bootstrap(rows, draws, random.Random(seed))
+    rng = random.Random(seed)
+    intervals = bootstrap(rows, draws, rng)
     result = {
         "problems": len(rows),
         "failed_problems": len(records) - len(rows),
@@ -165,16 +167,19 @@ def analyze_run(records: list[dict], threshold: float, draws: int, seed: int, gr
         "auroc": values,
         "intervals": intervals,
         "verdict": verdict(values, intervals),
-        "at_threshold": at_threshold(rows, threshold),
+        "at_threshold": at_threshold(rows, threshold, problems=len(records)),
     }
     by_group: dict[str, list[dict]] = {}
     for row in rows:
         if row["problem_id"] in groups:
             by_group.setdefault(groups[row["problem_id"]], []).append(row)
     if by_group:
+        group_sizes = {name: sum(groups.get(r["problem_id"]) == name for r in records) for name in by_group}
         result["groups"] = {
-            name: {"problems": len(members), "correct": sum(r["correct"] for r in members), "auroc": aurocs(members),
-                   "at_threshold": at_threshold(members, threshold)}
+            name: {"problems": len(members), "failed_problems": group_sizes[name] - len(members),
+                   "correct": sum(r["correct"] for r in members), "auroc": aurocs(members),
+                   "intervals": bootstrap(members, draws, rng),
+                   "at_threshold": at_threshold(members, threshold, problems=group_sizes[name])}
             for name, members in sorted(by_group.items())
         }
     return result
@@ -209,7 +214,9 @@ def summarize(runs: list[dict]) -> dict:
         "recall": mean_and_sd([run["at_threshold"]["recall"] for run in runs]),
         "coverage": mean_and_sd([run["at_threshold"]["coverage"] for run in runs]),
     }
-    if all(run["verdict"]["supported"] for run in runs):
+    if not all(run["verdict"]["testable"] for run in runs):
+        summary["h1"] = "not testable (a run has only correct or only wrong answers, so it has no AUROC)"
+    elif all(run["verdict"]["supported"] for run in runs):
         summary["h1"] = "supported"
     elif all(run["verdict"]["gain_ok"] for run in runs):
         summary["h1"] = "partly supported (the gain holds, but not every signal is needed)"
@@ -241,6 +248,21 @@ def markdown(result: dict) -> str:
             + ("n/a" if gain is None else f"{gain:+.3f}" + (f" [{interval[0]:+.2f}, {interval[1]:+.2f}]" if interval else ""))
             + f" | {drops} | {t['accepted']} | {_pct(t['precision'])} | {_pct(t['recall'])} |"
         )
+    if any("groups" in run for run in runs):
+        lines += ["", "By group (bootstrap 95% intervals within each group):", "",
+                  "| Run | Group | Problems | Correct | Feasibility | Combined [95%] | Gain [95%] | Coverage | Precision |",
+                  "|---|---|---|---|---|---|---|---|---|"]
+        for i, run in enumerate(runs, start=1):
+            for name, group in run.get("groups", {}).items():
+                values, intervals, t = group["auroc"], group["intervals"], group["at_threshold"]
+                gain = None if values["combined"] is None or values["feasibility"] is None else values["combined"] - values["feasibility"]
+                lines.append(
+                    f"| {i} | {name} | {t['problems']} | {group['correct']} | {_auroc_cell(values['feasibility'], None)} | "
+                    f"{_auroc_cell(values['combined'], intervals['combined'])} | "
+                    + ("n/a" if gain is None else f"{gain:+.3f}" + (f" [{intervals['gain'][0]:+.2f}, {intervals['gain'][1]:+.2f}]"
+                                                                     if intervals["gain"] else ""))
+                    + f" | {_pct(t['coverage'])} | {_pct(t['precision'])} |"
+                )
     if "b0" in result:
         b0 = result["b0"]
         if b0["problems"]:
@@ -255,8 +277,23 @@ def _pct(value: float | None) -> str:
     return "n/a" if value is None else f"{value:.1%}"
 
 
-def load(path: Path) -> list[dict]:
-    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+def _auroc_cell(value: float | None, interval: list[float] | None) -> str:
+    if value is None:
+        return "n/a"
+    return f"{value:.3f}" + (f" [{interval[0]:.2f}, {interval[1]:.2f}]" if interval else "")
+
+
+def calibrated_threshold(calibration: dict, record_paths: list[Path], all_records: list[list[dict]]) -> float:
+    """The threshold of a calibration file, after checking it was made for these runs: the same system and parser
+    switch, and every signal on (the combined score here always uses all of them)."""
+    for path, records in zip(record_paths, all_records):
+        summary = path.parent / "summary.json"
+        config = json.loads(summary.read_text(encoding="utf-8"))["config"] if summary.exists() else {}
+        try:
+            check_system(calibration, record_system(records), SIGNALS, not config.get("no_parser", False))
+        except ValueError as error:
+            raise SystemExit(f"--calibration does not fit {path}: {error}") from error
+    return threshold_from_file(calibration)
 
 
 def main() -> None:
@@ -270,10 +307,11 @@ def main() -> None:
     parser.add_argument("--out", type=Path, help="folder for gap1.json and gap1.md")
     args = parser.parse_args()
 
+    all_records = [load_run(path) for path in args.records]  # failed problems included, as unanswered
     threshold = args.threshold
     if args.calibration:
-        threshold = threshold_from_file(json.loads(args.calibration.read_text(encoding="utf-8")))
-    all_records = [load(path) for path in args.records]
+        calibration = json.loads(args.calibration.read_text(encoding="utf-8"))
+        threshold = calibrated_threshold(calibration, args.records, all_records)
     problem_ids = {r["problem_id"] for records in all_records for r in records}
     groups = problem_groups(problem_ids)
     runs = [analyze_run(records, threshold, args.draws, args.seed + i, groups) for i, records in enumerate(all_records)]
@@ -285,7 +323,7 @@ def main() -> None:
         "summary": summarize(runs),
     }
     if args.baseline:
-        result["b0"] = b0_reference(load(args.baseline), problem_ids)
+        result["b0"] = b0_reference(load_run(args.baseline), problem_ids)
     text = markdown(result)
     print(text)
     if args.out:

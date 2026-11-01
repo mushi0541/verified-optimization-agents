@@ -6,11 +6,14 @@ from pathlib import Path
 
 import pytest
 
+import optverify.calibration
+from optverify.calibration import load_run
 from scripts.analyze_gap1 import (
     analyze_run,
     at_threshold,
     auroc,
     b0_reference,
+    calibrated_threshold,
     outcomes,
     problem_groups,
     summarize,
@@ -59,7 +62,7 @@ def test_paraphrase_separates_and_number_does_not():
     # Correct answers: rewordings agree. Wrong answers: rewordings disagree. Number coverage is 1 everywhere.
     records = [_record(f"c{i}", True, 1.0, 1.0, [100.0, 100.0]) for i in range(6)]
     records += [_record(f"w{i}", False, 1.0, 1.0, [100.0, 100.0]) for i in range(3)]  # wrong model at 90
-    records += [_record("x", False, 0.0, None, [], feasible=False), {"problem_id": "f", "failed": "timeout"}]
+    records += [_record("x", False, 0.0, None, [], feasible=False), {"problem_id": "f", "problem_class": "A", "failed": True}]
     rows = outcomes(records)
     assert len(rows) == 10 and sum(r["correct"] for r in rows) == 6
     result = analyze_run(records, 0.8, draws=200, seed=0, groups={})
@@ -70,6 +73,7 @@ def test_paraphrase_separates_and_number_does_not():
     assert values["combined_without_number"] == 1.0
     assert result["failed_problems"] == 1
     assert result["at_threshold"]["accepted"] == 6 and result["at_threshold"]["precision"] == 1.0
+    assert result["at_threshold"]["problems"] == 11  # the failed problem counts in coverage, not in the AUROCs
 
 
 def test_verdict_needs_the_gain_and_every_drop():
@@ -113,3 +117,51 @@ def test_groups_come_from_the_split_metadata():
     assert groups[pair["original"]] == "original" and groups[pair["augmented"]] == "augmented"
     assert groups[word] in {"easy", "moderate", "hard"}
     assert "canonical-0001" not in groups
+
+
+def _run_folder(tmp_path, finished, failed_ids):
+    # A real run folder: run.py lists failed problems only in summary.json.
+    (tmp_path / "records.jsonl").write_text("".join(json.dumps(r) + "\n" for r in finished), encoding="utf-8")
+    summary = {"config": {"no_parser": False}, "failed_problems": failed_ids}
+    (tmp_path / "summary.json").write_text(json.dumps(summary), encoding="utf-8")
+    return tmp_path / "records.jsonl"
+
+
+def test_failed_problems_from_the_summary_count_in_coverage(tmp_path, monkeypatch):
+    finished = [_record(f"c{i}", True, 1.0, 1.0, [100.0, 100.0]) | {"system": "pipeline_p2"} for i in range(6)]
+    finished += [_record(f"w{i}", False, 1.0, 1.0, [100.0, 100.0]) | {"system": "pipeline_p2"} for i in range(2)]
+    path = _run_folder(tmp_path, finished, ["canonical-0001", "canonical-0002"])
+    monkeypatch.setattr(optverify.calibration, "problem_classes", lambda ids: {i: "A" for i in ids})
+    result = analyze_run(load_run(path), 0.8, draws=100, seed=0, groups={})
+    assert (result["problems"], result["failed_problems"]) == (8, 2)
+    assert result["at_threshold"]["accepted"] == 6
+    assert result["at_threshold"]["coverage"] == pytest.approx(6 / 10)  # not 6 / 8
+
+
+def test_groups_have_their_own_intervals():
+    records = [_record(f"c{i}", True, 1.0, 1.0, [100.0, 100.0]) for i in range(8)]
+    records += [_record(f"w{i}", False, 1.0, 1.0, [90.0, 100.0]) for i in range(4)]
+    groups = {r["problem_id"]: ("easy" if int(r["problem_id"][1:]) % 2 else "hard") for r in records}
+    result = analyze_run(records, 0.8, draws=100, seed=0, groups=groups)
+    for group in result["groups"].values():
+        assert group["intervals"]["combined"] is not None and group["intervals"]["gain"] is not None
+
+
+def test_a_run_without_wrong_answers_is_not_testable():
+    records = [_record(f"c{i}", True, 1.0, 1.0, [100.0, 100.0]) for i in range(5)]
+    run = analyze_run(records, 0.8, draws=50, seed=0, groups={})
+    assert run["verdict"]["testable"] is False
+    assert summarize([run])["h1"].startswith("not testable")
+
+
+def test_calibration_file_must_fit_the_runs(tmp_path):
+    finished = [_record("c0", True, 1.0, 1.0, [100.0, 100.0]) | {"system": "pipeline_p2"}]
+    path = _run_folder(tmp_path, finished, [])
+    records = load_run(path)
+    fitting = {"system": "pipeline_p2", "signals": ["number", "requirement", "paraphrase"], "use_parser": True,
+               "alpha": 0.1, "threshold": 0.9}
+    assert calibrated_threshold(fitting, [path], [records]) == 0.9
+    with pytest.raises(SystemExit, match="pipeline_p3"):
+        calibrated_threshold(fitting | {"system": "pipeline_p3"}, [path], [records])
+    with pytest.raises(SystemExit, match="signals"):
+        calibrated_threshold(fitting | {"signals": ["number"]}, [path], [records])
