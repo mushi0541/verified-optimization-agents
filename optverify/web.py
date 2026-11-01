@@ -11,6 +11,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from .calibration import threshold_from_file
 from .interactive import solve_interactive_problem
 from .llm import LLM, make_llm
 
@@ -25,6 +26,12 @@ class WebRequestHandler(http.server.BaseHTTPRequestHandler):
     server: "WebServer"
 
     def do_GET(self) -> None:
+        if self.path == "/api/config":
+            calibration = self.server.calibration
+            return self._send_json(200, {
+                "alpha": calibration["alpha"] if calibration else None,
+                "threshold": calibration["threshold"] if calibration else None,
+            })
         if self.path != "/":
             self.send_error(404, "Not Found")
             return
@@ -94,6 +101,8 @@ class WebRequestHandler(http.server.BaseHTTPRequestHandler):
 
         if not (0.0 <= threshold <= 1.0):
             return self._send_json(400, {"error": "Threshold must be between 0.0 and 1.0."})
+        if self.server.calibration:  # a calibrated threshold (Gap 2) overrides the one sent by the page
+            threshold = threshold_from_file(self.server.calibration)
 
         try:
             record = solve_interactive_problem(
@@ -137,7 +146,8 @@ class WebRequestHandler(http.server.BaseHTTPRequestHandler):
                 "calls": record.usage.calls,
             } if record.usage else {},
             "latency_s": record.latency_s,
-            "threshold": threshold,
+            "threshold": None if threshold == float("inf") else threshold,
+            "alpha": self.server.calibration["alpha"] if self.server.calibration else None,
         }
         self._send_json(200, response_dict)
 
@@ -149,16 +159,23 @@ class WebRequestHandler(http.server.BaseHTTPRequestHandler):
 class WebServer(http.server.ThreadingHTTPServer):
     """Threading HTTP server with bound LLM instance."""
 
-    def __init__(self, server_address: tuple[str, int], RequestHandlerClass: type[http.server.BaseHTTPRequestHandler], llm: LLM):
+    def __init__(
+        self,
+        server_address: tuple[str, int],
+        RequestHandlerClass: type[http.server.BaseHTTPRequestHandler],
+        llm: LLM,
+        calibration: dict | None = None,
+    ):
         super().__init__(server_address, RequestHandlerClass)
         self.llm = llm
+        self.calibration = calibration
 
 
-def make_server(host: str, port: int, llm: LLM) -> WebServer:
+def make_server(host: str, port: int, llm: LLM, calibration: dict | None = None) -> WebServer:
     """Create a server bound strictly to 127.0.0.1."""
     if host != "127.0.0.1":
         raise ValueError("Server must bind to 127.0.0.1 only.")
-    return WebServer((host, port), WebRequestHandler, llm)
+    return WebServer((host, port), WebRequestHandler, llm, calibration)
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -166,12 +183,14 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--port", type=int, default=8000, help="port to listen on (default 8000)")
     parser.add_argument("--model", default="bedrock:openai.gpt-oss-120b-1:0", help="model specification")
     parser.add_argument("--env-file", default=".env", help="environment file path")
+    parser.add_argument("--calibration", type=Path, help="calibration file from scripts/calibrate.py (Gap 2)")
     args = parser.parse_args(argv)
 
     load_dotenv(args.env_file, override=False)
     llm = make_llm(args.model)
+    calibration = json.loads(args.calibration.read_text(encoding="utf-8")) if args.calibration else None
 
-    server = make_server("127.0.0.1", args.port, llm)
+    server = make_server("127.0.0.1", args.port, llm, calibration)
     print(f"Interactive interface serving at http://127.0.0.1:{args.port}/")
     try:
         server.serve_forever()

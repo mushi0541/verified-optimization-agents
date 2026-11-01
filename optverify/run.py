@@ -17,6 +17,7 @@ from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 
+from .calibration import threshold_from_file
 from .data import SPLIT_FILES, load_sample_file, load_split, sample_per_class
 from .grading import summarize
 from .llm import make_llm, with_temperature
@@ -36,6 +37,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--repairs", type=int, default=0, help="solver-feedback repair rounds")
     parser.add_argument("--paraphrases", type=int, default=2, help="pipeline only: reworded runs for the verifier")
     parser.add_argument("--threshold", type=float, default=0.8, help="pipeline and b2: minimum score to answer")
+    parser.add_argument(
+        "--calibration", type=Path, help="pipeline and b2: calibration file from scripts/calibrate.py; replaces --threshold (Gap 2)"
+    )
     parser.add_argument(
         "--budget-tokens", type=float, help="b2 only: tokens per problem to sample up to (the pipeline's mean tokens at the largest k)"
     )
@@ -59,6 +63,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             args.per_class = 5
         if args.seed is None:
             args.seed = 0
+    args.alpha = None
+    if args.calibration:
+        calibration = json.loads(args.calibration.read_text(encoding="utf-8"))
+        args.alpha = calibration["alpha"]
+        args.threshold = threshold_from_file(calibration)
     return args
 
 
@@ -106,12 +115,21 @@ def main() -> None:
     finished = [record for record in records if "failed" not in record]
     summary = {
         "run": run_name,
-        "config": {**{k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()}, "endpoint": _endpoint(args.model)},
+        "config": {**{k: _config_value(v) for k, v in vars(args).items()}, "endpoint": _endpoint(args.model)},
         "failed_problems": [record["problem_id"] for record in records if "failed" in record],
         **summarize(finished),
     }
     (out_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(json.dumps({key: summary[key] for key in summary if key != "config"}, indent=2))
+
+
+def _config_value(value):
+    """JSON-safe config values: paths as text, and an infinite threshold (answer nothing) as None."""
+    if isinstance(value, Path):
+        return str(value)
+    if value == float("inf"):
+        return None
+    return value
 
 
 def _slug(text: str) -> str:
