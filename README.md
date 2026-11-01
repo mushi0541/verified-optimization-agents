@@ -228,6 +228,19 @@ docs/phase1/      submitted Phase 1 report (PDF and LaTeX source)
 results/          saved runs
 ```
 
+## Data splits
+
+| Split | File | Size | Use |
+|---|---|---|---|
+| Development | samples/dev_30.json | 30 canonical problems, 3 per class, seed 1 | Prompt changes and design choices only. Never reported as results. |
+| Canonical test | samples/canonical_100.json | 100 canonical problems, 10 per class, seed 0 | Reported results only |
+| Ablation | samples/ablation_30.json | 30 problems, a subset of the canonical test sample | Reported ablations only |
+| Linguistic | samples/linguistic_30.json | 30 problems, 10 each for Inventory, Knapsack and TSP | Reported E1 results only |
+| Constraint pairs | samples/constraint_pairs_30.json | 30 original and augmented pairs | Reported E1 results only |
+| OpsOR-Bench | data/opsor/opsor_bench.jsonl | 36 problems, three families | Reported E2 shift test only |
+
+Gap 2 calibration is leave-one-class-out inside the canonical test sample, so each problem is scored only in the fold that holds out its class.
+
 ## Team
 
 | Name | Roll Number | Role |
