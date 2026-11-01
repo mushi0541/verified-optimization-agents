@@ -1,0 +1,32 @@
+Resuming pipeline_bedrock-openai.gpt-oss-120b-1-0_linguistic_60_r1_20261101-1431: 58 problems already finished, 2 to run
+[1/2] linguistic-0868 TSP: correct=True
+[2/2] linguistic-1056 TSP: correct=True
+{
+  "run": "pipeline_bedrock-openai.gpt-oss-120b-1-0_linguistic_60_r1_20261101-1431",
+  "resumes": 1,
+  "failed_problems": [],
+  "problems": 60,
+  "accuracy": 0.8,
+  "solved_rate": 0.9666666666666667,
+  "status_counts": {
+    "error": 2,
+    "optimal": 58
+  },
+  "mean_input_tokens": 10873.616666666667,
+  "mean_output_tokens": 14775.983333333334,
+  "mean_llm_calls": 8.5,
+  "mean_latency_s": 96.81017950499663,
+  "accuracy_by_class": {
+    "Inventory": 0.5,
+    "Knapsack": 1.0,
+    "TSP": 0.9
+  },
+  "decision_counts": {
+    "abstain": 2,
+    "answer": 46,
+    "escalate": 12
+  },
+  "coverage": 0.7666666666666667,
+  "selective_accuracy": 0.9130434782608695,
+  "wrong_accept_rate": 0.08695652173913043
+}

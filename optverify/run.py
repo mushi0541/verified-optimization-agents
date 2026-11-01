@@ -23,9 +23,11 @@ from .data import SPLIT_FILES, load_sample_file, load_split, sample_per_class
 from .grading import summarize
 from .llm import LLM, make_llm, with_temperature
 from .systems import PARAPHRASE_TEMPERATURE, run_baseline, run_pipeline, run_single_agent
+from .trace import TraceWriter
 from .verifier import SIGNALS
 
 RESULTS_DIR = Path(__file__).resolve().parent.parent / "results"
+LOGS_DIR = Path(__file__).resolve().parent.parent / "logs"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -67,7 +69,18 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--workers", type=int, default=2, help="parallel problems (keep low on free tiers)")
     parser.add_argument("--env-file", default=".env")
+    parser.add_argument("--trace", action="store_true", help="write per-step trace logs to logs/<run_name>/<problem_id>.jsonl")
+    parser.add_argument(
+        "--resume",
+        type=Path,
+        help="a results folder of an earlier run with the same settings: run only the problems missing from its "
+        "records.jsonl (failed or never started, for example after a network outage) and add them to it",
+    )
     return parser
+
+
+# Settings that may differ when a run is resumed: they do not change any record.
+RESUME_FREE_KEYS = {"resume", "workers", "env_file", "trace"}
 
 
 def parse_signals(text: str) -> tuple[str, ...]:
@@ -116,32 +129,51 @@ def main() -> None:
     load_dotenv(args.env_file, override=False)
     llm = make_llm(args.model)
     sample_llm = with_temperature(llm, args.sample_temperature)
-    paraphrase_llm = paraphrase_client(args, llm)
+    # The paraphraser exists only in the pipeline; baseline and b2 runs never build a second client.
+    paraphrase_llm = paraphrase_client(args, llm) if args.system == "pipeline" else None
     if args.sample_file:
         problems = load_sample_file(args.sample_file)
     else:
         problems = sample_per_class(load_split(args.split), args.per_class, args.seed)
 
+    config = run_config(args)
+    records, resumes = [], 0
+    if args.resume:
+        out_dir = args.resume
+        records, resumes = resume_state(out_dir, config)
+        finished_ids = {record["problem_id"] for record in records}
+        problems = [problem for problem in problems if problem.problem_id not in finished_ids]
+        print(f"Resuming {out_dir.name}: {len(finished_ids)} problems already finished, {len(problems)} to run")
+    else:
+        split_tag = args.sample_file.stem if args.sample_file else args.split
+        paraphraser_tag = f"_para-{_slug(args.paraphrase_model)}" if args.system == "pipeline" and args.paraphrase_model else ""
+        run_name = f"{args.system}_{_slug(args.model)}{paraphraser_tag}_{split_tag}_r{args.repairs}_{datetime.now():%Y%m%d-%H%M}"
+        out_dir = RESULTS_DIR / run_name
+        out_dir.mkdir(parents=True, exist_ok=True)
+    log_dir = LOGS_DIR / out_dir.name if args.trace else None  # a resumed run keeps its log folder
+
     def solve(problem):
+        trace = TraceWriter(log_dir / f"{problem.problem_id}.jsonl") if log_dir else None
         if args.system == "baseline":
-            return run_baseline(problem, llm, max_repairs=args.repairs)
+            return run_baseline(problem, llm, max_repairs=args.repairs, trace=trace)
         if args.system == "b2":
             return run_single_agent(
-                problem, llm, sample_llm, args.budget_tokens, args.repairs, args.threshold, args.max_samples
+                problem, llm, sample_llm, args.budget_tokens, args.repairs, args.threshold, args.max_samples, trace=trace
             )
         return run_pipeline(
-            problem, llm, args.paraphrases, args.repairs, args.threshold,
-            signals=args.signals, use_parser=not args.no_parser, paraphrase_llm=paraphrase_llm,
+            problem,
+            llm,
+            args.paraphrases,
+            args.repairs,
+            args.threshold,
+            signals=args.signals,
+            use_parser=not args.no_parser,
+            paraphrase_llm=paraphrase_llm,
+            trace=trace,
         )
 
-    split_tag = args.sample_file.stem if args.sample_file else args.split
-    paraphraser_tag = f"_para-{_slug(args.paraphrase_model)}" if args.system == "pipeline" and args.paraphrase_model else ""
-    run_name = f"{args.system}_{_slug(args.model)}{paraphraser_tag}_{split_tag}_r{args.repairs}_{datetime.now():%Y%m%d-%H%M}"
-    out_dir = RESULTS_DIR / run_name
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    records = []
-    with ThreadPoolExecutor(max_workers=args.workers) as pool, (out_dir / "records.jsonl").open("w", encoding="utf-8") as out:
+    mode = "a" if args.resume else "w"
+    with ThreadPoolExecutor(max_workers=args.workers) as pool, (out_dir / "records.jsonl").open(mode, encoding="utf-8") as out:
         futures = {pool.submit(solve, problem): problem for problem in problems}
         for done, future in enumerate(as_completed(futures), start=1):
             problem = futures[future]
@@ -158,17 +190,45 @@ def main() -> None:
 
     finished = [record for record in records if "failed" not in record]
     summary = {
-        "run": run_name,
-        "config": {
-            **{k: _config_value(v) for k, v in vars(args).items()},
-            "endpoint": _endpoint(args.model),
-            "paraphrase_endpoint": _endpoint(args.paraphrase_model or args.model),
-        },
+        "run": out_dir.name,
+        "config": config,
+        "resumes": resumes + 1 if args.resume else 0,  # how many times the run was continued after failures
         "failed_problems": [record["problem_id"] for record in records if "failed" in record],
         **summarize(finished),
     }
     (out_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(json.dumps({key: summary[key] for key in summary if key != "config"}, indent=2))
+
+
+def run_config(args: argparse.Namespace) -> dict:
+    """The settings saved in summary.json."""
+    return {
+        **{k: _config_value(v) for k, v in vars(args).items()},
+        "endpoint": _endpoint(args.model),
+        # Only the pipeline has a paraphraser.
+        "paraphrase_endpoint": _endpoint(args.paraphrase_model or args.model) if args.system == "pipeline" else None,
+    }
+
+
+def resume_state(out_dir: Path, config: dict) -> tuple[list[dict], int]:
+    """The finished records of an earlier run, and how often it was resumed; refuses a run with other settings.
+
+    The earlier run's summary.json is needed to check the settings, so a run stopped before writing it cannot be
+    resumed this way.
+    """
+    summary_file, records_file = out_dir / "summary.json", out_dir / "records.jsonl"
+    if not summary_file.exists() or not records_file.exists():
+        raise SystemExit(f"--resume needs {out_dir} with records.jsonl and summary.json from an earlier run")
+    summary = json.loads(summary_file.read_text(encoding="utf-8"))
+    earlier = summary["config"]
+    config = json.loads(json.dumps(config))  # compare as saved: tuples become lists
+    different = sorted(
+        key for key in (set(earlier) | set(config)) - RESUME_FREE_KEYS if earlier.get(key) != config.get(key)
+    )
+    if different:
+        raise SystemExit(f"--resume: the settings differ from the earlier run in {', '.join(different)}")
+    records = [json.loads(line) for line in records_file.read_text(encoding="utf-8").splitlines() if line.strip()]
+    return records, summary.get("resumes", 0)
 
 
 def _config_value(value):
