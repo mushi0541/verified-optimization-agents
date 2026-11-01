@@ -17,6 +17,7 @@ SAMPLES_DIR = Path(__file__).resolve().parent.parent / "samples"
 SAMPLE_FILES = [
     "canonical_100.json", "canonical_200.json", "ablation_30.json", "ablation_50.json", "linguistic_30.json",
     "linguistic_60.json", "constraint_pairs_30.json", "constraint_pairs_60.json", "dev_30.json",
+    "canonical_587.json", "dev_93.json",
 ]
 
 
@@ -154,6 +155,8 @@ def test_constraint_pairs_integrity(name, per_class):
         ("ablation_30.json", "ablation_50.json"),
         ("linguistic_30.json", "linguistic_60.json"),
         ("constraint_pairs_30.json", "constraint_pairs_60.json"),
+        ("canonical_200.json", "canonical_587.json"),
+        ("dev_30.json", "dev_93.json"),
     ],
 )
 def test_larger_samples_start_with_the_smaller_ones(small, large):
@@ -188,7 +191,7 @@ def test_dev_sample_integrity():
     for name in SAMPLE_FILES:
         if name.startswith("constraint_pairs"):
             assert dev_set.isdisjoint(_pair_ids(name)), name
-        elif name != "dev_30.json":
+        elif name not in ("dev_30.json", "dev_93.json"):
             assert dev_set.isdisjoint(_ids(name)), name
 
 
@@ -231,3 +234,20 @@ def test_sample_generation_determinism_via_hashes(tmp_path):
         hash_new = hashlib.sha256(new_file.read_bytes()).hexdigest()
 
         assert hash_new == hash_checked_in, f"Hash mismatch for {name}: {hash_new} != {hash_checked_in}"
+
+
+def test_canonical_587_and_dev_93():
+    # 60 per class, except NetworkFlow: the benchmark has only 50, and 3 are in dev_30.
+    classes = {p.problem_id: p.problem_class for p in load_split("canonical", data_dir=DATA_DIR)}
+    large, dev = _ids("canonical_587.json"), _ids("dev_93.json")
+    assert len(set(large)) == 587 and len(set(dev)) == 93
+    large_counts = {c: sum(classes[i] == c for i in large) for c in set(classes.values())}
+    assert large_counts.pop("NetworkFlow") == 47 and set(large_counts.values()) == {60}
+    dev_counts = {c: sum(classes[i] == c for i in dev) for c in set(classes.values())}
+    assert dev_counts.pop("NetworkFlow") == 3 and set(dev_counts.values()) == {10}
+    # The development split shares no problem with any test sample.
+    for name in SAMPLE_FILES:
+        if name.startswith("constraint_pairs"):
+            assert set(dev).isdisjoint(_pair_ids(name)), name
+        elif not name.startswith("dev_"):
+            assert set(dev).isdisjoint(_ids(name)), name
