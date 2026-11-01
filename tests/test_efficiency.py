@@ -7,6 +7,7 @@ from scripts.efficiency import (
     PRICES,
     configuration,
     cost_usd,
+    record_cost,
     efficiency,
     load_run,
     run_metrics,
@@ -166,3 +167,44 @@ def test_bedrock_b1_run_matches_its_own_summary():
     assert metrics["failed_run_rate"] == 0.0 and metrics["problems"] == 100
     steps = metrics["tokens_by_step"]
     assert sum(steps.values()) == pytest.approx(summary["mean_input_tokens"] + summary["mean_output_tokens"])
+
+
+def test_runs_with_other_settings_are_not_repeats_of_the_main_run():
+    main = _run("main", [_baseline("a", ["optimal"])])
+    second_paraphraser = _run("para", [_baseline("a", ["optimal"])])
+    second_paraphraser["summary"]["config"].update(system="pipeline", paraphrase_model="bedrock:deepseek.v3.2")
+    ablation = _run("abl", [_baseline("a", ["optimal"])])
+    ablation["summary"]["config"].update(signals=["number"], no_parser=True)
+    all_signals = _run("all", [_baseline("a", ["optimal"])])
+    all_signals["summary"]["config"].update(signals=["paraphrase", "number", "requirement"], no_parser=False)
+
+    assert "[paraphraser deepseek.v3.2]" in configuration(second_paraphraser)
+    assert "[signals number] [no parser]" in configuration(ablation)
+    assert configuration(all_signals) == configuration(main)  # the default settings keep the old key
+    assert len(efficiency([main, second_paraphraser, ablation, all_signals])["configurations"]) == 3
+
+
+def test_each_model_is_priced_at_its_own_price(monkeypatch):
+    monkeypatch.setitem(PRICES, "deepseek.v3.2", {"input": 1.0, "output": 2.0, "date": "2026-11-02"})
+    record = _baseline("a", ["optimal"])
+    record["usage_by_model"] = {
+        "openai.gpt-oss-120b-1:0": {"input_tokens": 1_000_000, "output_tokens": 0, "calls": 1},
+        "deepseek.v3.2": {"input_tokens": 0, "output_tokens": 1_000_000, "calls": 1},
+    }
+    assert record_cost(record, "openai.gpt-oss-120b-1:0") == pytest.approx(0.15 + 2.0)
+    group = efficiency([_run("r", [record])])["configurations"][0]
+    assert group["price"]["model"] == "openai.gpt-oss-120b-1:0"
+    assert group["other_model_prices"] == [{"model": "deepseek.v3.2", "input": 1.0, "output": 2.0, "date": "2026-11-02"}]
+
+    monkeypatch.delitem(PRICES, "deepseek.v3.2")
+    assert record_cost(record, "openai.gpt-oss-120b-1:0") is None  # an unpriced model makes the cost unknown
+    assert run_metrics(_run("r", [record]))["mean_cost_usd"] is None
+    assert record_cost(_baseline("b", ["optimal"]), "openai.gpt-oss-120b-1:0") == pytest.approx(100 * 0.15 / 1e6)
+
+
+def test_step_means_skip_repeats_without_step_tokens():
+    with_steps = _run("one", [_baseline("a", ["optimal"])])
+    all_failed = _run("two", [], failed=["a"])
+    assert configuration(with_steps) == configuration(all_failed)
+    group = efficiency([with_steps, all_failed])["configurations"][0]
+    assert group["tokens_by_step"] == {"formalize": 100, "repair": 0}
