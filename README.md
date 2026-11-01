@@ -129,6 +129,19 @@ The fixed problem sets are stored as ID lists in `samples/`. To run on one, pass
 
 `--sample-file` also reads constraint pair files (it runs both problems of every pair). It cannot be combined with `--per-class` or `--seed`.
 
+### Continuing a run after failures
+
+A problem whose LLM calls fail (for example during a network outage) is listed under `failed_problems` in the run's
+`summary.json` and left out of `records.jsonl`. To run only those problems again and add them to the same run, repeat
+the command with `--resume` and the run's folder:
+
+    python -m optverify.run pipeline --model <model> --sample-file samples/canonical_200.json --repairs 1 --paraphrases 3 \
+        --resume results/<run folder>
+
+All settings must be the same as in the first command (only `--workers` and `--env-file` may change); otherwise the
+run is refused. `summary.json` is then rewritten over all records, and its `resumes` field counts how often the run
+was continued.
+
 To regenerate the sample files (needs the downloaded data):
 
     python scripts/make_samples.py
