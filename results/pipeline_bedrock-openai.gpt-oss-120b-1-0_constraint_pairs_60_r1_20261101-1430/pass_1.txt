@@ -1,0 +1,231 @@
+[1/120] constraint-0098 Inventory: correct=False
+[2/120] constraint-0617 Inventory: correct=False
+[3/120] constraint-0107 Inventory: correct=True
+[4/120] constraint-0533 Inventory: correct=True
+[5/120] constraint-0636 Inventory: correct=True
+[6/120] constraint-0010 Inventory: correct=False
+[7/120] constraint-0589 Inventory: correct=True
+[8/120] constraint-0066 Inventory: correct=False
+[9/120] constraint-0130 Inventory: correct=False
+[10/120] constraint-0657 Inventory: correct=False
+[11/120] constraint-0124 Inventory: correct=False
+[12/120] constraint-0652 Inventory: correct=False
+[13/120] constraint-0632 Inventory: correct=False
+[14/120] constraint-0103 Inventory: correct=False
+[15/120] constraint-0077 Inventory: correct=False
+[16/120] constraint-0601 Inventory: correct=False
+[17/120] constraint-0122 Inventory: correct=True
+[18/120] constraint-0654 Inventory: correct=False
+[19/120] constraint-0627 Inventory: correct=True
+[20/120] constraint-0091 Inventory: correct=True
+[21/120] constraint-0316 Knapsack: correct=True
+[22/120] constraint-0216 Knapsack: correct=True
+[23/120] constraint-0847 Knapsack: correct=True
+[24/120] constraint-0749 Knapsack: correct=False
+[25/120] constraint-0296 Knapsack: correct=True
+[26/120] constraint-0196 Knapsack: correct=True
+[27/120] constraint-0827 Knapsack: correct=True
+[28/120] constraint-0727 Knapsack: correct=True
+[29/120] constraint-0233 Knapsack: correct=True
+[30/120] constraint-0764 Knapsack: correct=True
+[31/120] constraint-0361 Knapsack: correct=True
+[32/120] constraint-0184 Knapsack: correct=True
+[33/120] constraint-0891 Knapsack: correct=True
+[34/120] constraint-0712 Knapsack: correct=True
+[35/120] constraint-0325 Knapsack: correct=True
+[36/120] constraint-0757 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[37/120] constraint-0857 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[38/120] constraint-0225 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[39/120] constraint-0303 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[40/120] constraint-0832 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[41/120] constraint-0407 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[42/120] constraint-0938 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[43/120] constraint-0453 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[44/120] constraint-0923 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[45/120] constraint-0986 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[46/120] constraint-0395 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[47/120] constraint-0459 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[48/120] constraint-0991 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[49/120] constraint-0502 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[50/120] constraint-1034 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[51/120] constraint-0527 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[52/120] constraint-1057 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[53/120] constraint-0465 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[54/120] constraint-0996 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[55/120] constraint-0493 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[56/120] constraint-1024 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[57/120] constraint-0454 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[58/120] constraint-0988 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[59/120] constraint-0104 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[60/120] constraint-0634 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[61/120] constraint-0114 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[62/120] constraint-0642 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[63/120] constraint-0011 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[64/120] constraint-0530 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[65/120] constraint-0068 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[66/120] constraint-0597 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[67/120] constraint-0140 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[68/120] constraint-0672 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[69/120] constraint-0134 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[70/120] constraint-0669 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[71/120] constraint-0110 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[72/120] constraint-0647 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[73/120] constraint-0080 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[74/120] constraint-0615 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[75/120] constraint-0132 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[76/120] constraint-0670 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[77/120] constraint-0095 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[78/120] constraint-0618 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[79/120] constraint-0324 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[80/120] constraint-0854 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[81/120] constraint-0219 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[82/120] constraint-0748 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[83/120] constraint-0302 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[84/120] constraint-0833 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[85/120] constraint-0198 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[86/120] constraint-0724 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[87/120] constraint-0238 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[88/120] constraint-0768 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[89/120] constraint-0186 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[90/120] constraint-0715 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[91/120] constraint-0334 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[92/120] constraint-0864 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[93/120] constraint-0229 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[94/120] constraint-0761 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[95/120] constraint-0310 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[96/120] constraint-0839 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[97/120] constraint-0357 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[98/120] constraint-0887 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[99/120] constraint-0410 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[100/120] constraint-0940 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[101/120] constraint-0460 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[102/120] constraint-0992 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[103/120] constraint-0397 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[104/120] constraint-0926 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[105/120] constraint-0388 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[106/120] constraint-0389 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[107/120] constraint-0916 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[108/120] constraint-0467 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[109/120] constraint-0999 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[110/120] constraint-0511 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[111/120] constraint-1040 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[112/120] constraint-0473 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[113/120] constraint-1007 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[114/120] constraint-0501 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[115/120] constraint-1035 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[116/120] constraint-0461 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[117/120] constraint-0425 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[118/120] constraint-0993 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[119/120] constraint-0956 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+[120/120] constraint-0919 FAILED: Could not connect to the endpoint URL: "https://bedrock-runtime.us-east-1.amazonaws.com/model/openai.gpt-oss-120b-1%3A0/converse"
+{
+  "run": "pipeline_bedrock-openai.gpt-oss-120b-1-0_constraint_pairs_60_r1_20261101-1430",
+  "failed_problems": [
+    "constraint-0757",
+    "constraint-0857",
+    "constraint-0225",
+    "constraint-0303",
+    "constraint-0832",
+    "constraint-0407",
+    "constraint-0938",
+    "constraint-0453",
+    "constraint-0923",
+    "constraint-0986",
+    "constraint-0395",
+    "constraint-0459",
+    "constraint-0991",
+    "constraint-0502",
+    "constraint-1034",
+    "constraint-0527",
+    "constraint-1057",
+    "constraint-0465",
+    "constraint-0996",
+    "constraint-0493",
+    "constraint-1024",
+    "constraint-0454",
+    "constraint-0988",
+    "constraint-0104",
+    "constraint-0634",
+    "constraint-0114",
+    "constraint-0642",
+    "constraint-0011",
+    "constraint-0530",
+    "constraint-0068",
+    "constraint-0597",
+    "constraint-0140",
+    "constraint-0672",
+    "constraint-0134",
+    "constraint-0669",
+    "constraint-0110",
+    "constraint-0647",
+    "constraint-0080",
+    "constraint-0615",
+    "constraint-0132",
+    "constraint-0670",
+    "constraint-0095",
+    "constraint-0618",
+    "constraint-0324",
+    "constraint-0854",
+    "constraint-0219",
+    "constraint-0748",
+    "constraint-0302",
+    "constraint-0833",
+    "constraint-0198",
+    "constraint-0724",
+    "constraint-0238",
+    "constraint-0768",
+    "constraint-0186",
+    "constraint-0715",
+    "constraint-0334",
+    "constraint-0864",
+    "constraint-0229",
+    "constraint-0761",
+    "constraint-0310",
+    "constraint-0839",
+    "constraint-0357",
+    "constraint-0887",
+    "constraint-0410",
+    "constraint-0940",
+    "constraint-0460",
+    "constraint-0992",
+    "constraint-0397",
+    "constraint-0926",
+    "constraint-0388",
+    "constraint-0389",
+    "constraint-0916",
+    "constraint-0467",
+    "constraint-0999",
+    "constraint-0511",
+    "constraint-1040",
+    "constraint-0473",
+    "constraint-1007",
+    "constraint-0501",
+    "constraint-1035",
+    "constraint-0461",
+    "constraint-0425",
+    "constraint-0993",
+    "constraint-0956",
+    "constraint-0919"
+  ],
+  "problems": 35,
+  "accuracy": 0.6,
+  "solved_rate": 1.0,
+  "status_counts": {
+    "optimal": 35
+  },
+  "mean_input_tokens": 6656.8,
+  "mean_output_tokens": 11873.2,
+  "mean_llm_calls": 8.742857142857142,
+  "mean_latency_s": 73.51294244571555,
+  "accuracy_by_class": {
+    "Inventory": 0.35,
+    "Knapsack": 0.9333333333333333
+  },
+  "decision_counts": {
+    "answer": 21,
+    "escalate": 14
+  },
+  "coverage": 0.6,
+  "selective_accuracy": 0.8095238095238095,
+  "wrong_accept_rate": 0.19047619047619047
+}

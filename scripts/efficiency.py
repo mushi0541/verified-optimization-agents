@@ -15,7 +15,11 @@ Counting rules, so the numbers match the records:
 - solver calls are the main attempts, plus one per paraphrase try in the pipeline (each try is one paraphraser and one
   formalizer call, so tries = calls / 2 of each paraphrase_<j> step), and for B2 the attempts of the samples it used;
 - B2's tokens are those of the samples it used (its usage), as in the equal-budget comparison;
-- a model missing from PRICES gets no cost (an empty cell), never another model's price;
+- a model missing from PRICES gets no cost (an empty cell), never another model's price; when a record stores
+  usage_by_model (a second paraphrase model), each model's tokens are priced at that model's price, and a run with
+  any unpriced model gets no cost;
+- runs with different settings are never repeats of each other: the key includes the paraphrase model and the
+  verifier switches (signals, no parser) from the run config, so ablation runs are not averaged with main runs;
 - a measure a repeat cannot have (the repair success rate when nothing needed repair) is left out of the mean, and
   the output says how many repeats had a value;
 - runs saved before Phase 2 have no endpoint in their config and no per-step tokens, and are labelled as such;
@@ -39,6 +43,7 @@ PRICES = {
     "openai.gpt-oss-120b-1:0": {"input": 0.15, "output": 0.60, "date": "2026-10-20"},
 }
 FAILED_RUN_TARGET = 0.05  # report objective D1
+DEFAULT_SIGNALS = ("number", "requirement", "paraphrase")  # every Gap 1 signal on, the main configuration
 RUN_METRICS = (
     "mean_input_tokens",
     "mean_output_tokens",
@@ -106,7 +111,24 @@ def configuration(run: dict) -> str:
     else:
         problems = f"{attempted[0].split('-')[0] if attempted else 'unknown'}, sample not recorded"
     fingerprint = hashlib.sha256(" ".join(attempted).encode()).hexdigest()[:6]
-    return f"{run_system(run)} | {run_model(run)} | {endpoint} | {problems} | {len(attempted)} problems [{fingerprint}]"
+    settings = run_settings(config)
+    return (
+        f"{run_system(run)} | {run_model(run)}{settings} | {endpoint} | {problems} | {len(attempted)} problems [{fingerprint}]"
+    )
+
+
+def run_settings(config: dict) -> str:
+    """The settings that change what a pipeline run measures: a second paraphrase model and the verifier switches.
+    Empty for the default settings, so older runs keep their key."""
+    parts = []
+    if config.get("system") == "pipeline" and config.get("paraphrase_model"):
+        parts.append(f"paraphraser {config['paraphrase_model'].partition(':')[2] or config['paraphrase_model']}")
+    signals = config.get("signals")
+    if signals is not None and sorted(signals) != sorted(DEFAULT_SIGNALS):
+        parts.append("signals " + ("+".join(signals) if signals else "none"))
+    if config.get("no_parser"):
+        parts.append("no parser")
+    return "".join(f" [{part}]" for part in parts)
 
 
 def run_metrics(run: dict) -> dict:
@@ -115,7 +137,7 @@ def run_metrics(run: dict) -> dict:
     solves = [attempt["solve"]["status"] for record in records for attempt in main_attempts(record)]
     started = [record for record in records if first_attempts(record)]
     needed_repair = [record for record in started if first_attempts(record)[0]["solve"]["status"] != "optimal"]
-    price = PRICES.get(run_model(run))
+    model = run_model(run)
     input_tokens = [record["usage"]["input_tokens"] for record in records]
     output_tokens = [record["usage"]["output_tokens"] for record in records]
     attempted = len(records) + failed
@@ -127,7 +149,7 @@ def run_metrics(run: dict) -> dict:
         "mean_llm_calls": _mean(record["usage"]["calls"] for record in records),
         "mean_solver_calls": _mean(solver_calls(record) for record in records),
         "mean_latency_s": _mean(record["latency_s"] for record in records),
-        "mean_cost_usd": _mean(cost_usd(i, o, price) for i, o in zip(input_tokens, output_tokens)) if price else None,
+        "mean_cost_usd": _mean_or_none([record_cost(record, model) for record in records]),
         "failed_run_rate": failed / attempted if attempted else None,
         "solver_error_rate": solves.count("error") / len(solves) if solves else None,
         "solver_timeout_rate": solves.count("timeout") / len(solves) if solves else None,
@@ -168,6 +190,27 @@ def cost_usd(input_tokens: int, output_tokens: int, price: dict) -> float:
     return (input_tokens * price["input"] + output_tokens * price["output"]) / 1_000_000
 
 
+def record_cost(record: dict, run_model_name: str) -> float | None:
+    """US$ for one problem: each model's tokens at its own price (usage_by_model), or every token at the run model's
+    price for records that do not split them. None when a model that was used has no price."""
+    by_model = record.get("usage_by_model") or {run_model_name: record["usage"]}
+    total = 0.0
+    for model, usage in by_model.items():
+        price = PRICES.get(model)
+        if price is None:
+            return None
+        total += cost_usd(usage["input_tokens"], usage["output_tokens"], price)
+    return total
+
+
+def models_used(records: list[dict], run_model_name: str) -> list[str]:
+    """Every model whose tokens a run's records hold, the run model first."""
+    names = [run_model_name]
+    for record in records:
+        names += [model for model in record.get("usage_by_model") or {} if model not in names]
+    return names
+
+
 def tokens_by_step(records: list[dict]) -> dict[str, float] | None:
     """Mean tokens per problem for each step; a step a problem did not run counts as 0. B2's unused samples are left out."""
     if not records or not all(record.get("usage_by_step") for record in records):
@@ -191,14 +234,15 @@ def efficiency(runs: list[dict]) -> dict:
         per_run = [run_metrics(run) for run in members]
         total_failed = sum(m["failed_runs"] for m in per_run)
         total_attempted = sum(m["problems"] + m["failed_runs"] for m in per_run)
-        model = run_model(members[0])
+        models = models_used([record for run in members for record in run["records"]], run_model(members[0]))
         configurations.append(
             {
                 "configuration": key,
                 "runs": [run["name"] for run in members],
                 "problems_per_run": [m["problems"] for m in per_run],
                 "metrics": {name: mean_and_sd([m[name] for m in per_run]) for name in RUN_METRICS},
-                "price": {"model": model, **PRICES[model]} if model in PRICES else None,
+                "price": {"model": models[0], **PRICES[models[0]]} if models[0] in PRICES else None,
+                "other_model_prices": [{"model": m, **PRICES[m]} if m in PRICES else {"model": m} for m in models[1:]],
                 "meets_failed_run_target": total_attempted > 0 and total_failed / total_attempted < FAILED_RUN_TARGET,
                 "tokens_by_step": _mean_steps([m["tokens_by_step"] for m in per_run]),
             }
@@ -223,7 +267,10 @@ def mean_and_sd(values: list) -> dict:
 
 
 def _mean_steps(per_run: list[dict | None]) -> dict[str, float] | None:
-    if None in per_run:
+    """Mean tokens per step over the repeats that have per-step tokens (a repeat in which every problem failed has
+    none); None only when no repeat has them."""
+    per_run = [steps for steps in per_run if steps is not None]
+    if not per_run:
         return None
     names = list(dict.fromkeys(name for steps in per_run for name in steps))
     return {name: statistics.mean(steps.get(name, 0.0) for steps in per_run) for name in names}
@@ -257,6 +304,11 @@ def write_tables(result: dict, out_dir: Path) -> None:
             total = sum(steps.values())
             for name, tokens in steps.items():
                 writer.writerow([group["configuration"], name, tokens, tokens / total if total else ""])
+
+
+def _mean_or_none(values: list) -> float | None:
+    """Mean of the values, or None when any value is missing (a cost cannot be partly known) or there are none."""
+    return None if None in values else _mean(values)
 
 
 def _mean(values) -> float | None:
