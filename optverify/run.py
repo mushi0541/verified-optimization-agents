@@ -17,7 +17,7 @@ from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 
-from .calibration import threshold_from_file
+from .calibration import check_system, threshold_from_file
 from .data import SPLIT_FILES, load_sample_file, load_split, sample_per_class
 from .grading import summarize
 from .llm import make_llm, with_temperature
@@ -66,6 +66,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     args.alpha = None
     if args.calibration:
         calibration = json.loads(args.calibration.read_text(encoding="utf-8"))
+        if args.system == "baseline":
+            parser.error("--calibration is for pipeline and b2 only")
+        try:
+            check_system(calibration, args.system)
+        except ValueError as error:
+            parser.error(str(error))
         args.alpha = calibration["alpha"]
         args.threshold = threshold_from_file(calibration)
     return args

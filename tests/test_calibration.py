@@ -9,9 +9,12 @@ import pytest
 from optverify.calibration import (
     binomial_cdf,
     calibrate_threshold,
+    check_system,
     exact_interval,
     fixed_threshold,
     leave_one_class_out,
+    record_system,
+    scored_answers,
     threshold_from_file,
     upper_bound,
 )
@@ -80,16 +83,49 @@ def test_fixed_threshold_comparison():
     assert result["coverage"] == 0.5 and result["wrong_accept_rate"] == 0.2
 
 
+def _b2_record(problem_class: str, agreement: float, correct: bool, action: str = "answer") -> dict:
+    """A B2 record: no verifier report; the decision used the sample agreement rate."""
+    return {"problem_class": problem_class, "system": "b2_r1", "correct": correct, "verifier": None,
+            "samples": [[], []], "sample_agreement": agreement, "decision": {"action": action}}
+
+
+def test_b2_records_are_scored_by_their_agreement_rate():
+    records = [_b2_record("A", 1.0, True)] * 30 + [_b2_record("A", 0.5, False)] * 5 + [_b2_record("B", 0.0, False, "abstain")]
+    assert scored_answers(records[-2:]) == [(0.5, False)]  # an abstained B2 problem could not be accepted
+    assert calibrate_threshold(scored_answers(records), alpha=0.10) == 1.0
+    assert fixed_threshold(records, 0.8)["answered"] == 30
+    assert leave_one_class_out(records, alpha=0.10)["problems"] == 36
+    assert record_system(records) == "b2_r1"
+    with pytest.raises(ValueError, match="one system"):
+        record_system(records + [_record("A", 1.0, True) | {"system": "pipeline_p3"}])
+
+
 def test_run_reads_alpha_and_threshold_from_a_calibration_file(tmp_path):
     path = tmp_path / "calibration.json"
-    path.write_text(json.dumps({"alpha": 0.1, "threshold": 0.875}), encoding="utf-8")
+    path.write_text(json.dumps({"system": "pipeline_p2", "alpha": 0.1, "threshold": 0.875}), encoding="utf-8")
     args = parse_args(["pipeline", "--model", "dummy", "--calibration", str(path)])
     assert (args.alpha, args.threshold) == (0.1, 0.875)
 
-    path.write_text(json.dumps({"alpha": 0.1, "threshold": None}), encoding="utf-8")
+    path.write_text(json.dumps({"system": "pipeline_p2", "alpha": 0.1, "threshold": None}), encoding="utf-8")
     args = parse_args(["pipeline", "--model", "dummy", "--calibration", str(path)])
     assert args.threshold == float("inf") and _config_value(args.threshold) is None
     assert parse_args(["pipeline", "--model", "dummy"]).alpha is None
+
+
+def test_a_calibration_file_is_refused_for_another_system(tmp_path, capsys):
+    path = tmp_path / "calibration.json"
+    path.write_text(json.dumps({"system": "pipeline_p2", "alpha": 0.1, "threshold": 0.875}), encoding="utf-8")
+    with pytest.raises(SystemExit):  # pipeline scores cannot set B2's agreement threshold
+        parse_args(["b2", "--model", "dummy", "--budget-tokens", "1000", "--calibration", str(path)])
+    assert "made from pipeline_p2 records, not b2" in capsys.readouterr().err
+
+    path.write_text(json.dumps({"system": "b2_r1", "alpha": 0.1, "threshold": 1.0}), encoding="utf-8")
+    args = parse_args(["b2", "--model", "dummy", "--budget-tokens", "1000", "--calibration", str(path)])
+    assert args.threshold == 1.0
+    with pytest.raises(SystemExit):
+        parse_args(["pipeline", "--model", "dummy", "--calibration", str(path)])
+    with pytest.raises(ValueError, match="unknown"):
+        check_system({"alpha": 0.1, "threshold": 0.9}, "pipeline")  # files without a system are refused
 
 
 def test_web_server_uses_the_calibrated_threshold():

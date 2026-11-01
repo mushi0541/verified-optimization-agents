@@ -14,12 +14,15 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from optverify.calibration import fixed_threshold, leave_one_class_out  # noqa: E402
+from optverify.calibration import fixed_threshold, leave_one_class_out, record_system  # noqa: E402
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--records", type=Path, required=True, help="records.jsonl of one pipeline (or b2) run")
+    parser.add_argument(
+        "--records", type=Path, required=True,
+        help="records.jsonl of one pipeline or b2 run; B2 is calibrated on its own records, with its agreement rate as the score",
+    )
     parser.add_argument("--alpha", type=float, default=0.10, help="target wrong-accept rate")
     parser.add_argument("--fixed-threshold", type=float, default=0.8, help="fixed threshold to compare with")
     parser.add_argument("--out", type=Path, required=True, help="output JSON file")
@@ -28,6 +31,7 @@ def main() -> None:
     records = [json.loads(line) for line in args.records.read_text(encoding="utf-8").splitlines() if line.strip()]
     result = {
         "records": args.records.as_posix(),
+        "system": record_system(records),  # run.py and web.py refuse the file for another system
         **leave_one_class_out(records, args.alpha),
         "fixed": fixed_threshold(records, args.fixed_threshold),
     }

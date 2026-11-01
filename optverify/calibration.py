@@ -12,7 +12,10 @@ MIN_ACCEPTED = 29  # with fewer accepted problems, even 0 wrong cannot give a 95
 
 
 def binomial_cdf(k: int, n: int, p: float) -> float:
-    """P(X <= k) for X ~ Binomial(n, p)."""
+    """P(X <= k) for X ~ Binomial(n, p).
+
+    In floats comb(n, i) overflows near n = 1,030; our calibrations accept at most a few hundred problems.
+    """
     return sum(comb(n, i) * p**i * (1 - p) ** (n - i) for i in range(k + 1))
 
 
@@ -56,9 +59,39 @@ def calibrate_threshold(scored: list[tuple[float, bool]], alpha: float, confiden
     return chosen
 
 
+def record_score(record: dict) -> float | None:
+    """The score the decision layer used, or None when nothing could be answered.
+
+    The pipeline uses its verifier score; B2 stores no verifier report and uses its sample agreement rate.
+    """
+    if record.get("verifier"):
+        return record["verifier"]["score"] if record["verifier"]["feasible"] else None
+    if record.get("samples"):
+        return record["sample_agreement"] if record["decision"]["action"] != "abstain" else None
+    return None
+
+
 def scored_answers(records: list[dict]) -> list[tuple[float, bool]]:
-    """(score, correct) of every feasible answer in saved pipeline records."""
-    return [(r["verifier"]["score"], bool(r["correct"])) for r in records if r.get("verifier", {}).get("feasible")]
+    """(score, correct) of every answer that could be accepted, in saved pipeline or B2 records."""
+    return [(score, bool(r["correct"])) for r in records if (score := record_score(r)) is not None]
+
+
+def record_system(records: list[dict]) -> str:
+    """The system the records come from (for example pipeline_p3 or b2_r1); a calibration is valid only for it."""
+    systems = {r["system"] for r in records if "failed" not in r}
+    if len(systems) != 1:
+        raise ValueError(f"the records must come from one system, found {sorted(systems) or 'none'}")
+    return systems.pop()
+
+
+def check_system(calibration: dict, system: str) -> None:
+    """Refuse a calibration file made for another system: pipeline scores and B2 agreement rates differ."""
+    made_for = calibration.get("system", "")
+    if made_for.split("_")[0] != system:
+        raise ValueError(
+            f"the calibration file was made from {made_for or 'unknown'} records, not {system}; "
+            f"run scripts/calibrate.py on {system} records"
+        )
 
 
 def leave_one_class_out(records: list[dict], alpha: float, confidence: float = 0.95) -> dict:

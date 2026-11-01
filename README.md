@@ -157,6 +157,10 @@ python -m optverify.web --calibration results/calibration/<name>.json
 
 The web page then shows alpha and the calibrated threshold instead of the threshold field.
 
+B2 is calibrated the same way on its own records, with its sample agreement rate as the score
+(`scripts/calibrate.py --records results/<b2 run>/records.jsonl`). The file records the system it was made from, and
+`run.py` and `web.py` refuse a file made for another system, because pipeline scores and B2 agreement rates differ.
+
 ## Requirement coverage (Gap 1)
 
 The parser's requirements are numbered R1, R2, ... and the formalizer names every constraint after the requirement it
