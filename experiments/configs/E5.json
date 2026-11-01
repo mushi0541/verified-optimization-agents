@@ -1,0 +1,28 @@
+{
+  "name": "E5",
+  "description": "Ablation study (i) to (vii) on the ablation_50 sample",
+  "system": null,
+  "sample_file": "samples/ablation_50.json",
+  "models": [
+    "bedrock:openai.gpt-oss-120b-1:0"
+  ],
+  "paraphrases": 3,
+  "repairs": 1,
+  "budget": null,
+  "repeats": null,
+  "ablations": [
+    "(i) Without number coverage",
+    "(ii) Without requirement coverage",
+    "(iii) Without paraphrase-optimum agreement",
+    "(iv) Without the parser, formalizing from the question alone",
+    "(v) k = 1, 2, 3 paraphrases",
+    "(vi) Fixed against calibrated threshold",
+    "(vii) r = 0, 1, 2 repair rounds"
+  ],
+  "notes": "ablation_50 is inside canonical_200, so ablations (i) to (iii), (v), (vi) and r = 0 come from the E3 records with no new LLM calls: scripts/rescore.py --records <E3 records.jsonl> with --signals, --k, --no-repair and --threshold, --calibration or --alpha. Only (iv) and r = 2 need new runs: python experiments/run.py E5-NOPARSER and python experiments/run.py E5-R2. Compare them with the same 50 problems of the E3 records.",
+  "analysis": true,
+  "runs": [
+    "E5-NOPARSER",
+    "E5-R2"
+  ]
+}

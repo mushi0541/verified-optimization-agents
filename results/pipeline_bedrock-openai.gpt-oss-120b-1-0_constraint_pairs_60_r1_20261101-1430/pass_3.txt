@@ -1,0 +1,48 @@
+Resuming pipeline_bedrock-openai.gpt-oss-120b-1-0_constraint_pairs_60_r1_20261101-1430: 104 problems already finished, 16 to run
+[1/16] constraint-0389 TSP: correct=True
+[2/16] constraint-0926 TSP: correct=True
+[3/16] constraint-0460 TSP: correct=True
+[4/16] constraint-0916 TSP: correct=False
+[5/16] constraint-0999 TSP: correct=False
+[6/16] constraint-0467 TSP: correct=True
+[7/16] constraint-1040 TSP: correct=False
+[8/16] constraint-1007 TSP: correct=False
+[9/16] constraint-0511 TSP: correct=True
+[10/16] constraint-0501 TSP: correct=False
+[11/16] constraint-0473 TSP: correct=True
+[12/16] constraint-0461 TSP: correct=False
+[13/16] constraint-0993 TSP: correct=False
+[14/16] constraint-1035 TSP: correct=False
+[15/16] constraint-0956 TSP: correct=False
+[16/16] constraint-0425 TSP: correct=True
+{
+  "run": "pipeline_bedrock-openai.gpt-oss-120b-1-0_constraint_pairs_60_r1_20261101-1430",
+  "resumes": 1,
+  "failed_problems": [],
+  "problems": 120,
+  "accuracy": 0.6166666666666667,
+  "solved_rate": 0.8666666666666667,
+  "status_counts": {
+    "error": 3,
+    "infeasible": 11,
+    "no_code": 2,
+    "optimal": 104
+  },
+  "mean_input_tokens": 8969.95,
+  "mean_output_tokens": 13375.941666666668,
+  "mean_llm_calls": 8.225,
+  "mean_latency_s": 83.32042967833404,
+  "accuracy_by_class": {
+    "Inventory": 0.35,
+    "Knapsack": 0.925,
+    "TSP": 0.575
+  },
+  "decision_counts": {
+    "abstain": 16,
+    "answer": 73,
+    "escalate": 31
+  },
+  "coverage": 0.6083333333333333,
+  "selective_accuracy": 0.9041095890410958,
+  "wrong_accept_rate": 0.0958904109589041
+}
