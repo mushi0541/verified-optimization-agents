@@ -6,6 +6,9 @@ operations questions into optimization models, verify those models, and answer, 
 - Base paper: OPT-Engine (Chen et al., ICML 2026), benchmark C^3-Bench.
 - Architecture, gap mapping and data contracts: [docs/architecture.md](docs/architecture.md)
 - Phase 1 report (submitted): [docs/phase1/Phase1_G1-01_23I-0541.pdf](docs/phase1/Phase1_G1-01_23I-0541.pdf), LaTeX source in `docs/phase1/latex/`
+- Phase 2 paper (draft, IEEE two-column): `docs/paper/main.tex` and `docs/paper/refs.bib`. Build it from `docs/paper` with
+  `pdflatex main && bibtex main && pdflatex main && pdflatex main`. Tables and figures are read from generated files
+  in `docs/paper/tables/` and `docs/paper/figures/`; until a file exists, the PDF shows a grey note in its place.
 
 ## What is in Phase 1
 
@@ -39,7 +42,7 @@ operations questions into optimization models, verify those models, and answer, 
 | Fixed evaluation samples | All | samples/, scripts/make_samples.py | Done |
 | OpsOR-Bench: 36 problems in three families (gate assignment, ground-crew rostering, equipment dispatch) | Gap 2 | `optverify/opsor/`, `data/opsor/opsor_bench.jsonl`, `scripts/make_opsor.py` | Done |
 | Interactive interface | All | `optverify/web.py`, `optverify/static/index.html` | Done |
-| Requirement coverage | Gap 1 | | Planned (#26) |
+| Requirement coverage: the parser's requirements get IDs (R1, R2, ...), the formalizer names each constraint after its requirement, and the verifier scores the share of requirements linked to a constraint | Gap 1 | `optverify/roles.py` `number_requirements`, `optverify/prompts.py`, `optverify/solver_tool.py`, `optverify/verifier.py` `requirement_coverage` | Done; checked on the dev split (see below) |
 | Calibrated threshold for a target wrong-accept rate alpha, with the leave-one-class-out test | Gap 2 | `optverify/calibration.py`, `scripts/calibrate.py`, `--calibration` in `run.py` and `web.py` | Done; runs in #36 |
 
 ## Setup
@@ -116,9 +119,9 @@ accuracy per class, and for the pipeline: coverage, selective accuracy and wrong
 
 The fixed problem sets are stored as ID lists in `samples/`. To run on one, pass `--sample-file`:
 
-    python -m optverify.run baseline --model <model> --sample-file samples/canonical_100.json
+    python -m optverify.run baseline --model <model> --sample-file samples/canonical_200.json
 
-`--sample-file` cannot be combined with `--per-class` or `--seed`.
+`--sample-file` also reads constraint pair files (it runs both problems of every pair). It cannot be combined with `--per-class` or `--seed`.
 
 To regenerate the sample files (needs the downloaded data):
 
@@ -153,6 +156,37 @@ python -m optverify.web --calibration results/calibration/<name>.json
 ```
 
 The web page then shows alpha and the calibrated threshold instead of the threshold field.
+
+## Requirement coverage (Gap 1)
+
+The parser's requirements are numbered R1, R2, ... and the formalizer names every constraint after the requirement it
+implements (`model += x + y <= 10, "R3_capacity"`). The solver-runner reads the IDs from the constraint names of the
+final model, and requirement coverage is the share of requirements linked to at least one constraint. It is added
+to the score as the mean of the available signals; with no requirement list it is left out. Uncovered requirements
+are given as a reason when a case is escalated.
+
+**Development check** (development split only, `samples/dev_30.json`, gpt-oss-120b, k = 2, r = 1, threshold 0.8;
+runs in `results/dev_requirement_coverage/`):
+
+| Run | Parser failures | Correct optimum | Answered | Wrong accepted | AUROC of the score |
+|---|---|---|---|---|---|
+| 0: Phase 1 prompts (no requirement IDs) | 5 | 23 / 30 | 25 | 2 | 0.85 |
+| 1: requirement IDs in the formalizer prompt | 1 | 23 / 30 | 23 | 1 | 0.96 |
+| 2: + the parser leaves out variable types, repairs keep the names | 4 | 24 / 30 | 26 | 2 | 0.78 |
+| 3: + parser output cap 12,000 tokens and one retry | 0 | 25 / 30 | 24 | 0 | 0.99 |
+
+- Run 1 showed two causes of false misses: the parser lists variable types ("all variables are binary") as
+  requirements, and a repair round dropped the constraint names.
+- Run 2 showed that most parser failures are cut-off JSON: the parser lists every number, and on large instances its
+  reply did not fit in 4,096 output tokens (9 of 24 repeated calls, with the old prompt too). The rest were invalid
+  JSON that a second call fixes. Every parser failure removes the requirement signal; in run 2 two wrong answers
+  were accepted this way.
+- In run 3 requirement coverage alone has an AUROC of 0.78. It still flags some correct models, mostly when the
+  parser lists a variable type or a requirement that other constraints already imply: 5 of the 25 correct models
+  are below 100%, against 4 of the 5 wrong ones.
+
+These are 30 problems with 5 to 7 wrong answers, so the numbers move a lot between runs (compare runs 1 and 2). They
+were used only to fix the prompts; the signal is evaluated on the test samples in E4 (#35).
 
 ## E3 analysis (Gap 3, no API calls)
 
@@ -238,6 +272,7 @@ tests/
 docs/architecture.md
 docs/paper_sir.json  base-paper SIR accuracy per class, for compare_baselines.py
 docs/phase1/      submitted Phase 1 report (PDF and LaTeX source)
+docs/paper/       Phase 2 paper (IEEEtran LaTeX source and references)
 results/          saved runs
 ```
 
@@ -246,11 +281,13 @@ results/          saved runs
 | Split | File | Size | Use |
 |---|---|---|---|
 | Development | samples/dev_30.json | 30 canonical problems, 3 per class, seed 1 | Prompt changes and design choices only. Never reported as results. |
-| Canonical test | samples/canonical_100.json | 100 canonical problems, 10 per class, seed 0 | Reported results only |
-| Ablation | samples/ablation_30.json | 30 problems, a subset of the canonical test sample | Reported ablations only |
-| Linguistic | samples/linguistic_30.json | 30 problems, 10 each for Inventory, Knapsack and TSP | Reported E1 results only |
-| Constraint pairs | samples/constraint_pairs_30.json | 30 original and augmented pairs | Reported E1 results only |
+| Canonical test | samples/canonical_200.json | 200 canonical problems, 20 per class | Reported results only |
+| Ablation | samples/ablation_50.json | 50 problems, 5 per class, a subset of canonical_100 | Reported ablations only |
+| Linguistic | samples/linguistic_60.json | 60 problems, 20 each for Inventory, Knapsack and TSP | Reported E1 results only |
+| Constraint pairs | samples/constraint_pairs_60.json | 60 original and augmented pairs, 20 per class | Reported E1 results only |
 | OpsOR-Bench | data/opsor/opsor_bench.jsonl | 36 problems, three families | Reported E2 shift test only |
+
+Phase 2 uses 20 problems per class (supervisor feedback on Phase 1). Each larger file starts with the Phase 1 file of the same split (`canonical_100`, `ablation_30`, `linguistic_30`, `constraint_pairs_30`) and adds new problems drawn from the rest of the split with seed 0, so Phase 1 runs stay valid as the first part of each larger sample. The Phase 1 files are kept unchanged. New constraint pairs never reuse a problem of an earlier pair. The dev sample shares no problem with any test sample; it was regenerated for Phase 2 because 5 of its old problems are now in canonical_200. Regenerate every file with `python scripts/make_samples.py`; `tests/test_samples.py` checks that the result matches the checked-in files.
 
 Gap 2 calibration is leave-one-class-out inside the canonical test sample, so each problem is scored only in the fold that holds out its class.
 

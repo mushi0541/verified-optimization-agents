@@ -206,6 +206,35 @@ def sample_constraint_pairs(problems: list[Problem], per_class: int = 10, seed: 
     return sampled
 
 
+def extend_per_class(pool: list[Problem], existing: list[Problem], per_class: int, seed: int = 0) -> list[Problem]:
+    """Add `per_class` new problems per class to an existing sample, so the larger sample contains the smaller one.
+
+    Sampling the larger size again from scratch would not keep the old problems, because the shared random
+    generator draws in a different order. Old results therefore stay valid on the larger sample.
+    """
+    used = {p.problem_id for p in existing}
+    return existing + sample_per_class([p for p in pool if p.problem_id not in used], per_class, seed)
+
+
+def extend_constraint_pairs(problems: list[Problem], existing: list[dict], per_class: int, seed: int = 0) -> list[dict]:
+    """Add `per_class` new matched pairs per class to existing pairs, never reusing a problem of an old pair."""
+    used = {p["original"] for p in existing} | {p["augmented"] for p in existing}
+    unused = [
+        pair
+        for pair in match_inventory_pairs(problems, seed=seed) + match_knapsack_pairs(problems) + match_tsp_pairs(problems)
+        if pair["original"] not in used and pair["augmented"] not in used
+    ]
+
+    rng = random.Random(seed)
+    extended = [dict(pair) for pair in existing]
+    for problem_class in ("Inventory", "Knapsack", "TSP"):
+        members = sorted((p for p in unused if p["problem_class"] == problem_class), key=lambda p: p["original"])
+        extended += rng.sample(members, min(per_class, len(members)))
+    for pair_id, pair in enumerate(extended):
+        pair["pair_id"] = pair_id
+    return extended
+
+
 def save_sample_file(path: Path | str, items: list[str] | list[dict]) -> None:
     """Save sample IDs or pair records to JSON with sorted keys, 2-space indent, and a trailing newline."""
     target = Path(path)

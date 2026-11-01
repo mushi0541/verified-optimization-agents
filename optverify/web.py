@@ -130,6 +130,8 @@ class WebRequestHandler(http.server.BaseHTTPRequestHandler):
             "score": record.verifier.score if record.verifier else 0.0,
             "number_coverage": record.verifier.number_coverage if record.verifier else 0.0,
             "missing_numbers": record.verifier.missing_numbers if record.verifier else [],
+            "requirement_coverage": record.verifier.requirement_coverage if record.verifier else None,
+            "missing_requirements": record.verifier.missing_requirements if record.verifier else [],
             "paraphrase_agreement": record.verifier.paraphrase_agreement if record.verifier else None,
             "paraphrase_objectives": record.verifier.paraphrase_objectives if record.verifier else [],
             "explanation": record.explanation,

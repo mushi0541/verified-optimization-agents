@@ -339,6 +339,10 @@
           <div id="metric-coverage" class="metric-value">-</div>
         </div>
         <div class="metric-card">
+          <div class="metric-label">Requirement Coverage</div>
+          <div id="metric-requirements" class="metric-value">-</div>
+        </div>
+        <div class="metric-card">
           <div class="metric-label">Paraphrase Agreement</div>
           <div id="metric-agreement" class="metric-value">-</div>
         </div>
@@ -399,6 +403,7 @@
       var metricScore = document.getElementById("metric-score");
       var metricCoverage = document.getElementById("metric-coverage");
       var metricAgreement = document.getElementById("metric-agreement");
+      var metricRequirements = document.getElementById("metric-requirements");
       var metricUsage = document.getElementById("metric-usage");
       var reasonsList = document.getElementById("reasons-list");
       var explanationText = document.getElementById("explanation-text");
@@ -545,6 +550,9 @@
             : "-";
           metricAgreement.textContent = (data.paraphrase_agreement !== null && data.paraphrase_agreement !== undefined)
             ? (Number(data.paraphrase_agreement) * 100).toFixed(0) + "%"
+            : "N/A";
+          metricRequirements.textContent = (data.requirement_coverage !== null && data.requirement_coverage !== undefined)
+            ? (Number(data.requirement_coverage) * 100).toFixed(0) + "%"
             : "N/A";
 
           var lat = (data.latency_s !== null && data.latency_s !== undefined) ? Number(data.latency_s).toFixed(1) + "s" : "";

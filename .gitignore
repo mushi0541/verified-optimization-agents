@@ -5,9 +5,15 @@ __pycache__/
 .env
 data/optengine/
 
-# LaTeX build files (docs/phase1/latex)
+# LaTeX build files (docs/phase1/latex, docs/paper)
 *.aux
 *.log
 *.out
 *.toc
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
 docs/phase1/latex/*.pdf
+docs/paper/*.pdf
