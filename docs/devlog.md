@@ -17,6 +17,9 @@ Add an entry for each fix that answers a failure, newest last, and link it in th
 | 7 | 2026-10-20 | `VAR:` lines filled the stored solver output | #21 |
 | 8 | 2026-10-26 | Rewordings with the opposite sign; paraphraser temperature | #28 (issue) |
 | 9 | 2026-11-01 | Paraphraser and formalizer use the same model (supervisor feedback) | #56 (issue) |
+| 10 | 2026-11-01 | Requirement coverage: cut-off parser output, variable types, lost constraint names | #60 |
+| 11 | 2026-11-01 | B2 records crashed the calibration; calibration used for another configuration | #57, #61 |
+| 12 | 2026-11-01 | Network outage during an E3 run | #64, #66 |
 
 ## 1. Provider limits: request pacing, fitted output cap, then Amazon Bedrock
 
@@ -176,3 +179,64 @@ a different model family.
 **Effect.** To be measured: one pipeline run on `canonical_200` with the second paraphraser, compared with the
 same-model paraphraser on the paraphrase-agreement AUROC and the false-alarm rate. This entry is updated with the
 result when the run is in.
+
+## 10. Requirement coverage: cut-off parser output, variable types, lost constraint names
+
+**Date.** 2026-11-01 (#60). Development split only (`samples/dev_30.json`); runs in `results/dev_requirement_coverage/`.
+
+**Failure.** The two runs with requirement IDs (`1_iteration1` and `2_iteration2`) flagged correct models for three
+reasons:
+- the parser listed variable types ("all variables are binary") as requirements, and a type cannot be a named
+  constraint;
+- a repair round rewrote the model and dropped the constraint names;
+- the parser's JSON failed on 1 of 30 problems in `1_iteration1` and 4 of 30 in `2_iteration2` (5 of 30 with the
+  Phase 1 prompts, `0_old_prompt`), all JobShop, NetworkFlow and Pollution instances. On these large instances the
+  parser lists every number. Repeating some of its calls by hand showed the replies were cut off at the 4,096-token
+  output cap; those repeated calls were not saved. Each failure removed the requirement signal, and in `2_iteration2`
+  two wrong answers were accepted this way.
+
+**Change.** The parser is told not to list variable types or the objective as requirements, the pipeline's repair
+prompt asks to keep the constraint names, and the parser gets an output cap of 12,000 tokens and one retry on invalid
+JSON.
+
+**Effect.** On the same 30 dev problems: 0 parser failures (5 with the Phase 1 prompts); at threshold 0.8, 24 answered
+and 0 wrong accepted (25 and 2 with the Phase 1 prompts); AUROC of the combined score 0.99 (0.85). Some variable-type
+requirements remain: 5 of the 25 correct models are below full requirement coverage, against 4 of the 5 wrong ones.
+With 30 problems these numbers move between runs; the signal is evaluated on the test samples in E4 (#35).
+
+## 11. B2 records crashed the calibration, and a calibration fitted one system could be applied to another
+
+**Date.** 2026-11-01 (#57 and #61, found in review).
+
+**Failure.** B2 records store no verifier report (`"verifier": null`), so `scripts/calibrate.py` stopped with an
+`AttributeError` on them. `run.py b2 --calibration` would also have applied a threshold fitted on pipeline verifier
+scores to B2's sample agreement rate, and a file fitted at k = 2 could be applied to a k = 3 run or to a run with a
+signal switched off. All of these scores differ.
+
+**Change.** B2 is scored by its sample agreement rate and calibrated on its own records. A calibration file saves the
+configuration it was made from (the system name such as `pipeline_p3` or `b2_r1`, the enabled signals and the parser
+switch), and `run.py` refuses a file made for another configuration.
+
+**Effect.** No saved result changed (no calibration had been run yet). Tests cover B2 records and each refusal.
+
+## 12. Network outage during an E3 run
+
+**Date.** 2026-11-01 (#64; the runs are in #66).
+
+**Failure.** During E3 repeat 1 the internet connection on the machine dropped for a few minutes. Every LLM call in
+that window failed after its retries: in the first pass 159 of 200 canonical problems, 85 of 120 constraint-pair
+problems and 2 of 60 linguistic problems failed (`pass_1.txt` in each run folder). Starting the runs again would have
+repeated the finished problems and paid for them twice.
+
+**Change.** `run.py --resume <run folder>` runs only the problems missing from that run's records, adds their records
+and rewrites the summary, which counts the resumes. It refuses any change of settings except those that change no record (`--workers`,
+`--env-file`, `--trace`).
+
+**Effect.** The three runs of E3 repeat 1 were finished from their own folders, and the console output of every pass
+is saved next to the records (`pass_1.txt` to `pass_3.txt`):
+- the canonical and constraint-pair runs took three passes, because I stopped the second pass by mistake before it
+  wrote its summary. A stopped pass writes no summary, so `resumes` is 1 in all three runs;
+- the linguistic run took two passes.
+
+All three ended with their complete samples and 0 failed problems (#66), and no finished problem was run or paid for
+twice. `summary.json` lists only the last pass's failures, so the pass files are the record of the first pass.
