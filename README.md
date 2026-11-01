@@ -45,7 +45,7 @@ operations questions into optimization models, verify those models, and answer, 
 | OpsOR-Bench: 36 problems in three families (gate assignment, ground-crew rostering, equipment dispatch) | Gap 2 | `optverify/opsor/`, `data/opsor/opsor_bench.jsonl`, `scripts/make_opsor.py` | Done |
 | Interactive interface | All | `optverify/web.py`, `optverify/static/index.html` | Done |
 | Requirement coverage: the parser's requirements get IDs (R1, R2, ...), the formalizer names each constraint after its requirement, and the verifier scores the share of requirements linked to a constraint | Gap 1 | `optverify/roles.py` `number_requirements`, `optverify/prompts.py`, `optverify/solver_tool.py`, `optverify/verifier.py` `requirement_coverage` | Done; checked on the dev split (see below) |
-| Calibrated threshold | Gap 2 | | Planned (#29) |
+| Calibrated threshold for a target wrong-accept rate alpha, with the leave-one-class-out test | Gap 2 | `optverify/calibration.py`, `scripts/calibrate.py`, `--calibration` in `run.py` and `web.py` | Done; runs in #36 |
 
 ## Setup
 
@@ -139,6 +139,32 @@ To run on the OpsOR-Bench operations research problems:
 To regenerate the OpsOR-Bench problem file:
 
     python scripts/make_opsor.py
+
+## Calibrated threshold (Gap 2, no API calls)
+
+Instead of the fixed threshold 0.8, the decision layer can use a threshold calibrated to a target wrong-accept rate
+alpha. Thresholds are scanned from strict to lenient; only thresholds that accept at least 29 problems are tried
+(fewer cannot give a bound below 10%), and the scan stops before the first threshold whose one-sided exact 95%
+(Clopper-Pearson) upper bound on the wrong-accept rate exceeds alpha. If none passes, nothing is answered.
+
+```bash
+python scripts/calibrate.py --records results/<pipeline run>/records.jsonl --alpha 0.10 --out results/calibration/<name>.json
+```
+
+The file holds the leave-one-class-out test (calibrate on nine classes, test on the tenth; the pooled held-out
+wrong-accept rate with its exact 95% interval, coverage and the per-fold thresholds), the same numbers for the fixed
+threshold (ablation vi), and one threshold calibrated on every class. That threshold is used by:
+
+```bash
+python -m optverify.run pipeline --model <model> --sample-file <sample> --repairs 1 --calibration results/calibration/<name>.json
+python -m optverify.web --calibration results/calibration/<name>.json
+```
+
+The web page then shows alpha and the calibrated threshold instead of the threshold field.
+
+B2 is calibrated the same way on its own records, with its sample agreement rate as the score
+(`scripts/calibrate.py --records results/<b2 run>/records.jsonl`). The file records the system it was made from, and
+`run.py` and `web.py` refuse a file made for another system, because pipeline scores and B2 agreement rates differ.
 
 ## Requirement coverage (Gap 1)
 
@@ -262,6 +288,7 @@ base paper's evaluation script. The reference answer is used only for grading; i
 
 ```
 optverify/
+  calibration.py  Gap 2 calibrated threshold and the leave-one-class-out test
   contracts.py    shared data records
   data.py         OPT-Engine loader and per-class sampling
   interactive.py  shared interactive problem solver helper
@@ -282,6 +309,7 @@ scripts/download_data.py     pinned data download
 scripts/make_opsor.py        regenerates the OpsOR-Bench file with fixed seeds
 scripts/make_samples.py      regenerates the sample files with seed 0
 scripts/analyze_e3.py        E3 equal-budget analysis from saved records
+scripts/calibrate.py         Gap 2 calibration and leave-one-class-out test from saved records
 scripts/compare_baselines.py B0 and B1 per class and the base-paper comparison
 scripts/plot_e3.py           E3 accuracy-cost and risk-coverage plots
 scripts/efficiency.py        E6 efficiency and reliability from saved runs

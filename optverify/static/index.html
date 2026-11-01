@@ -311,7 +311,7 @@
       </div>
 
       <div class="form-group">
-        <label for="threshold">fixed Phase 1 threshold; replaced by a target wrong-accept rate (alpha) once the Gap 2 calibration is done</label>
+        <label for="threshold" id="threshold-label">Fixed threshold (no calibration file given; start the server with --calibration to set a target wrong-accept rate)</label>
         <input type="number" id="threshold" min="0" max="1" step="0.05" value="0.80">
       </div>
 
@@ -463,13 +463,36 @@
 
       hideZeroVars.addEventListener("change", renderVariables);
 
+      // With a calibration file (Gap 2) the server sets the threshold from the target wrong-accept rate.
+      fetch("/api/config")
+        .then(function (res) { return res.json(); })
+        .then(function (config) {
+          if (config.alpha === null || config.alpha === undefined) {
+            return;
+          }
+          var label = document.getElementById("threshold-label");
+          var percent = (config.alpha * 100).toFixed(1) + "%";
+          if (config.threshold === null) {
+            label.textContent = "Calibrated to a target wrong-accept rate of " + percent +
+              "; no threshold met the target, so every case is escalated";
+            thresholdInput.value = "";
+          } else {
+            label.textContent = "Calibrated to a target wrong-accept rate of " + percent +
+              " (threshold " + config.threshold.toFixed(3) + ")";
+            thresholdInput.value = config.threshold.toFixed(3);
+          }
+          thresholdInput.disabled = true;
+        })
+        .catch(function () { /* keep the fixed-threshold form */ });
+
       solveBtn.addEventListener("click", function () {
         var question = questionInput.value.trim();
         if (!question) {
           showError("Please enter an optimization problem statement.");
           return;
         }
-        var threshold = parseFloat(thresholdInput.value);
+        // A locked field means the server uses its calibrated threshold, so any valid value can be sent.
+        var threshold = thresholdInput.disabled ? 0.8 : parseFloat(thresholdInput.value);
         if (isNaN(threshold) || threshold < 0 || threshold > 1) {
           showError("Threshold must be a number between 0.0 and 1.0.");
           return;
