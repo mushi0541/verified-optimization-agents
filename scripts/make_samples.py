@@ -1,6 +1,6 @@
 """Generate fixed evaluation sample files for canonical, ablation, linguistic, and constraint splits.
 
-The Phase 2 test samples (canonical_200, ablation_50, linguistic_60, constraint_pairs_60) each contain the
+The Phase 2 test samples (canonical_200, canonical_587, ablation_50, linguistic_60, constraint_pairs_60) each contain the
 smaller Phase 1 sample (canonical_100, ablation_30, linguistic_30, constraint_pairs_30) plus new problems,
 so results on the smaller samples stay valid. The dev sample shares no problem with any test sample.
 """
@@ -73,7 +73,21 @@ def generate_samples(output_dir: Path = DEFAULT_OUTPUT_DIR, data_dir: Path = DAT
     excluded_ids = {p.problem_id for p in canonical_200 + linguistic_60}
     excluded_ids |= {pair[key] for pair in constraint_pairs_60 for key in ("original", "augmented")}
     dev_pool = [p for p in canonical_problems if p.problem_id not in excluded_ids]
-    paths["dev"] = save("dev_30.json", sample_per_class(dev_pool, per_class=3, seed=1))
+    dev_30 = sample_per_class(dev_pool, per_class=3, seed=1)
+    paths["dev"] = save("dev_30.json", dev_30)
+
+    # The H2 power analysis on E3 repeat 1 (devlog entry 13): certifying alpha = 10% needs several hundred accepted
+    # calibration answers, so canonical_587 adds up to 40 problems per class to canonical_200 (60 per class; NetworkFlow has only 50 in
+    # the benchmark and 3 are in dev_30, so it gets 47). It never takes a development problem. The development split
+    # grows to dev_93 the same way (dev_30 plus 7 per class; no NetworkFlow problem is left), outside every test
+    # sample, so signal changes can be designed on more than 30 problems. Every file above stays as it was.
+    dev_ids = {p.problem_id for p in dev_30}
+    canonical_587 = extend_per_class([p for p in canonical_problems if p.problem_id not in dev_ids], canonical_200,
+                                     per_class=40, seed=0)
+    paths["canonical_587"] = save("canonical_587.json", canonical_587)
+    test_ids = excluded_ids | {p.problem_id for p in canonical_587}
+    dev_93 = extend_per_class([p for p in dev_pool if p.problem_id not in test_ids], dev_30, per_class=7, seed=1)
+    paths["dev_93"] = save("dev_93.json", dev_93)
     return paths
 
 
