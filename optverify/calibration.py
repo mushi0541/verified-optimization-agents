@@ -6,7 +6,9 @@ one that fails, so this fixed order keeps the bound valid across thresholds. Onl
 accepted: the decision layer abstains on everything else, whatever the threshold.
 """
 
+import json
 from math import comb
+from pathlib import Path
 
 from .verifier import SIGNALS
 
@@ -61,6 +63,39 @@ def calibrate_threshold(scored: list[tuple[float, bool]], alpha: float, confiden
     return chosen
 
 
+def load_run(records_file: Path) -> list[dict]:
+    """A run's records, with every failed problem as {"problem_id", "problem_class", "failed": True}.
+
+    run.py lists failed problems only in summary.json, and the experiment runner writes them without a class. Coverage
+    must count them as unanswered problems, so they are added back here, with their class from the benchmark data.
+    """
+    records_file = Path(records_file)
+    records = [json.loads(line) for line in records_file.read_text(encoding="utf-8").splitlines() if line.strip()]
+    summary_file = records_file.parent / "summary.json"
+    failed = {r["problem_id"] for r in records if "failed" in r}
+    if summary_file.exists():
+        failed |= set(json.loads(summary_file.read_text(encoding="utf-8")).get("failed_problems", []))
+    finished = [r for r in records if "failed" not in r]
+    failed -= {r["problem_id"] for r in finished}  # a resumed run may have finished a problem that failed earlier
+    if not failed:
+        return finished
+    classes = problem_classes(failed)
+    return finished + [{"problem_id": i, "problem_class": classes[i], "failed": True} for i in sorted(failed)]
+
+
+def problem_classes(problem_ids: set[str]) -> dict[str, str]:
+    """The class of each problem, from the benchmark split its ID names (for example canonical-0394)."""
+    from .data import load_split  # here, so the decision layer itself never needs the data files
+
+    classes = {}
+    for split in sorted({i.rsplit("-", 1)[0] for i in problem_ids}):
+        classes.update({p.problem_id: p.problem_class for p in load_split(split) if p.problem_id in problem_ids})
+    missing = problem_ids - set(classes)
+    if missing:
+        raise ValueError(f"no benchmark problem has the ID {sorted(missing)[0]}")
+    return classes
+
+
 def record_score(record: dict) -> float | None:
     """The score the decision layer used, or None when nothing could be answered.
 
@@ -113,12 +148,18 @@ def check_system(
 
 
 def leave_one_class_out(records: list[dict], alpha: float, confidence: float = 0.95) -> dict:
-    """Calibrate on nine classes, test on the tenth, for every class; pool the held-out results."""
+    """Calibrate on nine classes, test on the tenth, for every class; pool the held-out results.
+
+    Failed problems (from load_run) are never answered: they count in every coverage, never in a calibration.
+    """
     finished = [r for r in records if "failed" not in r]
+    unclassed = [r["problem_id"] for r in records if "failed" in r and not r.get("problem_class")]
+    if unclassed:
+        raise ValueError(f"failed problem {unclassed[0]} has no class; load the run with load_run")
     folds = []
-    for held_out in sorted({r["problem_class"] for r in finished}):
+    for held_out in sorted({r["problem_class"] for r in records}):
         calibration = [r for r in finished if r["problem_class"] != held_out]
-        test = [r for r in finished if r["problem_class"] == held_out]
+        test = [r for r in records if r["problem_class"] == held_out]
         threshold = calibrate_threshold(scored_answers(calibration), alpha, confidence)
         answered = [score_ok for score_ok in scored_answers(test) if threshold is not None and score_ok[0] >= threshold]
         folds.append({
@@ -134,9 +175,9 @@ def leave_one_class_out(records: list[dict], alpha: float, confidence: float = 0
     return {
         "alpha": alpha,
         "confidence": confidence,
-        "problems": len(finished),
+        "problems": len(records),
         "failed_problems": len(records) - len(finished),
-        "pooled": rates(answered, wrong, len(finished), confidence),
+        "pooled": rates(answered, wrong, len(records), confidence),
         "folds": folds,
         # The threshold for the application and for shift tests (OpsOR-Bench): calibrated on every class.
         "threshold": calibrate_threshold(scored_answers(finished), alpha, confidence),
@@ -155,10 +196,11 @@ def rates(answered: int, wrong: int, problems: int, confidence: float = 0.95) ->
 
 
 def fixed_threshold(records: list[dict], threshold: float, confidence: float = 0.95) -> dict:
-    """The same pooled numbers for one fixed threshold on every class (ablation vi)."""
+    """The same pooled numbers for one fixed threshold on every class (ablation vi); failed problems count as
+    unanswered."""
     finished = [r for r in records if "failed" not in r]
     answered = [correct for score, correct in scored_answers(finished) if score >= threshold]
-    return {"threshold": threshold, **rates(len(answered), answered.count(False), len(finished), confidence)}
+    return {"threshold": threshold, **rates(len(answered), answered.count(False), len(records), confidence)}
 
 
 def threshold_from_file(calibration: dict) -> float:
