@@ -229,8 +229,8 @@ problems and 2 of 60 linguistic problems failed (`pass_1.txt` in each run folder
 repeated the finished problems and paid for them twice.
 
 **Change.** `run.py --resume <run folder>` runs only the problems missing from that run's records, adds their records
-and rewrites the summary, which counts the resumes. It refuses any change of settings except `--workers` and
-`--env-file`.
+and rewrites the summary, which counts the resumes. It refuses any change of settings except those that change no record (`--workers`,
+`--env-file`, `--trace`).
 
 **Effect.** The three runs of E3 repeat 1 were finished from their own folders, and the console output of every pass
 is saved next to the records (`pass_1.txt` to `pass_3.txt`):
