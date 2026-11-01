@@ -11,7 +11,9 @@ import pytest
 from experiments.aggregate import aggregate_experiment, extract_repeat_metrics, update_manifest
 from experiments.prompt_version import get_git_commit, get_prompt_version
 from experiments.run import load_experiment_config, run_experiment
+import experiments.run
 import optverify.prompts
+from optverify.systems import PARAPHRASE_TEMPERATURE
 from tests.fake_llm import FakeLLM
 
 REQUIRED_KEYS = {
@@ -28,10 +30,11 @@ REQUIRED_KEYS = {
 
 
 def test_configs_load_and_have_required_keys():
-    for exp_name in ["E1", "E2", "E3", "E4", "E5", "E6", "G3"]:
+    for exp_name in ["E1", "E2", "E3", "E4", "E5", "E6", "G3", "E5-NOPARSER", "E5-R2"]:
         cfg = load_experiment_config(exp_name)
         assert REQUIRED_KEYS.issubset(cfg.keys()), f"{exp_name} missing required keys"
         assert "models" in cfg
+        assert "sample_file_pending" not in cfg
 
     # Specific configuration assertions
     e1 = load_experiment_config("E1")
@@ -39,7 +42,7 @@ def test_configs_load_and_have_required_keys():
     assert e1["repairs"] == 1
     assert e1["repeats"] == 3
     assert e1["models"] == ["bedrock:openai.gpt-oss-120b-1:0"]
-    assert e1["sample_file_pending"] == "samples/canonical_200.json"
+    assert e1["sample_file"] == "samples/canonical_200.json"
 
     e2 = load_experiment_config("E2")
     assert e2["system"] == "baseline"
@@ -58,6 +61,7 @@ def test_configs_load_and_have_required_keys():
     assert e3["threshold"] == 0.8
     assert e3["repeats"] == 3
     assert e3["calibration"] is None
+    assert e3["sample_file"] == "samples/canonical_200.json"
 
     e4 = load_experiment_config("E4")
     assert e4["system"] is None
@@ -65,9 +69,12 @@ def test_configs_load_and_have_required_keys():
     assert e4["repeats"] is None
 
     e5 = load_experiment_config("E5")
-    assert e5["system"] == "pipeline"
-    assert e5["sample_file"] == "samples/ablation_30.json"
+    assert e5["analysis"] is True
+    assert e5["sample_file"] == "samples/ablation_50.json"
     assert len(e5["ablations"]) == 7
+    assert e5["runs"] == ["E5-NOPARSER", "E5-R2"]
+    assert load_experiment_config("E5-NOPARSER")["use_parser"] is False
+    assert load_experiment_config("E5-R2")["repairs"] == 2
 
     e6 = load_experiment_config("E6")
     assert e6["system"] is None
@@ -83,8 +90,7 @@ def test_configs_load_and_have_required_keys():
     assert g3["sample_temperature"] == 0.7
     assert g3["budget_from"] == "E3 mean tokens per problem"
     assert g3["models"] == ["bedrock:openai.gpt-oss-120b-1:0"]
-    assert g3["sample_file"] == "samples/canonical_100.json"
-    assert g3["sample_file_pending"] == "samples/canonical_200.json"
+    assert g3["sample_file"] == "samples/canonical_200.json"
 
 
 def test_dry_run_e1_e2_e3(tmp_path):
@@ -223,13 +229,13 @@ def test_prompt_version_stable_and_changes(monkeypatch):
 
 
 def test_analysis_experiments_refuse_to_run(capsys):
-    for exp in ["E4", "E6"]:
+    for exp in ["E4", "E5", "E6"]:
         with pytest.raises(SystemExit) as excinfo:
             run_experiment(exp_name=exp)
         assert excinfo.value.code == 1
         captured = capsys.readouterr()
-        assert "Refusing to run analysis-only experiment" in captured.err
-        assert "Aggregate E1, E2, and E3 instead" in captured.err
+        assert f"Refusing to run analysis-only experiment {exp}." in captured.err
+    assert "scripts/rescore.py" in load_experiment_config("E5")["notes"]
 
 
 def test_subprocess_run_e4_and_aggregate_empty(tmp_path):
@@ -239,7 +245,7 @@ def test_subprocess_run_e4_and_aggregate_empty(tmp_path):
         text=True,
     )
     assert res_run.returncode == 1
-    assert "Refusing to run analysis-only experiment E4. Aggregate E1, E2, and E3 instead." in res_run.stderr
+    assert "Refusing to run analysis-only experiment E4. Analysis only" in res_run.stderr
 
     empty_results = tmp_path / "empty_results"
     empty_results.mkdir()
@@ -252,20 +258,78 @@ def test_subprocess_run_e4_and_aggregate_empty(tmp_path):
     assert "not found" in res_agg.stderr.lower()
 
 
-def test_e5_refusal(capsys):
-    with pytest.raises(SystemExit) as excinfo:
-        run_experiment("E5")
-    assert excinfo.value.code == 1
-    captured = capsys.readouterr()
-    assert "E5 needs the ablation switches from issue #27. Not run." in captured.err
+def _two_problems(tmp_path):
+    sample = tmp_path / "sample_2.json"
+    sample.write_text(json.dumps(["canonical-0394", "canonical-0430"]), encoding="utf-8")
+    return sample
 
-    res = subprocess.run(
-        [sys.executable, "experiments/run.py", "E5"],
-        capture_output=True,
-        text=True,
+
+def test_pipeline_gets_the_same_settings_as_run_py(tmp_path, monkeypatch):
+    seen = []
+
+    def fake_pipeline(problem, llm, **kwargs):
+        seen.append(kwargs)
+        raise RuntimeError("stop after recording the call")
+
+    monkeypatch.setattr(experiments.run, "run_pipeline", fake_pipeline)
+    out_dirs = run_experiment(
+        "E5-NOPARSER", repeat=0, sample_file=_two_problems(tmp_path), results_dir=tmp_path / "results",
+        workers=1, llm=FakeLLM(),
     )
-    assert res.returncode == 1
-    assert "E5 needs the ablation switches from issue #27. Not run." in res.stderr
+    assert len(seen) == 2
+    assert seen[0]["paraphrase_llm"].temperature == PARAPHRASE_TEMPERATURE
+    assert seen[0]["use_parser"] is False
+    assert seen[0]["signals"] == ("number", "requirement", "paraphrase")
+    assert seen[0]["paraphrases"] == 3 and seen[0]["max_repairs"] == 1
+    config = json.loads((out_dirs[0] / "config.json").read_text(encoding="utf-8"))
+    assert config["use_parser"] is False
+    assert config["paraphrase_temperature"] == PARAPHRASE_TEMPERATURE
+
+
+def test_e5_no_parser_runs_end_to_end(tmp_path):
+    out_dirs = run_experiment(
+        "E5-NOPARSER", repeat=0, sample_file=_two_problems(tmp_path), results_dir=tmp_path / "results",
+        workers=1, llm=FakeLLM(),
+    )
+    summary = json.loads((out_dirs[0] / "summary.json").read_text(encoding="utf-8"))
+    assert summary["sample_size"] == 2
+    assert summary["failed_problems"] == []
+
+
+def test_calibration_file_is_applied_and_checked(tmp_path, monkeypatch):
+    calibration = tmp_path / "calibration.json"
+    configs = tmp_path / "configs"
+    configs.mkdir()
+    e3 = load_experiment_config("E3")
+    (configs / "E3.json").write_text(json.dumps({**e3, "calibration": str(calibration)}), encoding="utf-8")
+    monkeypatch.setattr(experiments.run, "CONFIGS_DIR", configs)
+    seen = []
+
+    def fake_pipeline(problem, llm, **kwargs):
+        seen.append(kwargs["threshold"])
+        raise RuntimeError("stop after recording the call")
+
+    monkeypatch.setattr(experiments.run, "run_pipeline", fake_pipeline)
+    run = dict(repeat=0, sample_file=_two_problems(tmp_path), results_dir=tmp_path / "results", workers=1, llm=FakeLLM())
+
+    calibration.write_text(json.dumps({"system": "pipeline_p2", "alpha": 0.1, "threshold": 0.9}), encoding="utf-8")
+    with pytest.raises(ValueError, match="pipeline_p3"):
+        run_experiment("E3", **run)
+
+    calibration.write_text(json.dumps({"system": "pipeline_p3", "alpha": 0.1, "threshold": 0.9}), encoding="utf-8")
+    out_dirs = run_experiment("E3", **run)
+    assert seen == [0.9, 0.9]
+    config = json.loads((out_dirs[0] / "config.json").read_text(encoding="utf-8"))
+    assert (config["threshold"], config["alpha"]) == (0.9, 0.1)
+
+
+def test_b2_needs_a_budget(tmp_path):
+    run = dict(repeat=0, sample_file=_two_problems(tmp_path), results_dir=tmp_path / "results", workers=1, llm=FakeLLM())
+    with pytest.raises(ValueError, match="budget"):
+        run_experiment("G3", **run)
+    out_dirs = run_experiment("G3", budget_tokens=50000, **run)
+    config = json.loads((out_dirs[0] / "config.json").read_text(encoding="utf-8"))
+    assert config["budget"] == 50000
 
 
 def test_failed_problem_handling(tmp_path):

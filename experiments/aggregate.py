@@ -211,11 +211,7 @@ def aggregate_experiment(exp_name: str, results_dir: Path | str = "results") -> 
         # Peek config.json if available to get actual model name
         first_config = next(m_dir.glob("*/config.json"), None)
         if first_config:
-            try:
-                cfg = json.loads(first_config.read_text(encoding="utf-8"))
-                m_name = cfg.get("model", m_name)
-            except Exception:
-                pass
+            m_name = json.loads(first_config.read_text(encoding="utf-8")).get("model", m_name)
         summaries[m_dir.name] = _aggregate_dir_repeats(exp_name, m_name, m_dir)
 
     # Update results manifest
@@ -241,10 +237,7 @@ def update_manifest(results_dir: Path | str = "results") -> list[dict]:
             model_slug = model_dir.name
             repeat_name = repeat_dir.name
 
-            try:
-                config_data = json.loads(config_file.read_text(encoding="utf-8"))
-            except Exception:
-                config_data = {}
+            config_data = json.loads(config_file.read_text(encoding="utf-8"))
 
             model = config_data.get("model", model_slug)
             repeat_idx = config_data.get("repeat")

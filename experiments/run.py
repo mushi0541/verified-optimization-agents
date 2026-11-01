@@ -1,7 +1,10 @@
 """Experiment runner for E1 to E6 with repeats.
 
 Usage:
-    python experiments/run.py <E1..E6> [--repeat N]
+    python experiments/run.py <experiment> [--repeat N] [--sample-file FILE]
+
+<experiment> is a config name in experiments/configs (E1, E2, E3, G3, E5-NOPARSER, E5-R2). E4, E5 and E6 are
+analysis-only and say what to run instead.
 """
 
 import argparse
@@ -19,9 +22,11 @@ from dotenv import load_dotenv
 
 from optverify.data import load_sample_file
 from optverify.grading import summarize
+from optverify.calibration import check_system, threshold_from_file
 from optverify.llm import make_llm, with_temperature
 from optverify.run import _endpoint
-from optverify.systems import run_baseline, run_pipeline, run_single_agent
+from optverify.systems import PARAPHRASE_TEMPERATURE, run_baseline, run_pipeline, run_single_agent
+from optverify.verifier import SIGNALS
 
 from experiments.prompt_version import get_git_commit, get_prompt_version
 
@@ -63,21 +68,14 @@ def run_experiment(
     env_file: str = ".env",
     llm=None,
     sample_llm=None,
+    budget_tokens: float | None = None,
 ) -> list[Path]:
     """Execute one or all repeats of an experiment across configured or specified models."""
     exp_name = exp_name.upper()
     config = load_experiment_config(exp_name)
 
     if config.get("analysis") or config.get("system") is None:
-        message = (
-            f"Refusing to run analysis-only experiment {exp_name}. "
-            f"Aggregate E1, E2, and E3 instead."
-        )
-        print(message, file=sys.stderr)
-        sys.exit(1)
-
-    if exp_name == "E5":
-        print("E5 needs the ablation switches from issue #27. Not run.", file=sys.stderr)
+        print(f"Refusing to run analysis-only experiment {exp_name}. {config['notes']}", file=sys.stderr)
         sys.exit(1)
 
     load_dotenv(env_file, override=False)
@@ -99,8 +97,26 @@ def run_experiment(
     system = config["system"]
     k = config.get("paraphrases")
     r = config.get("repairs", 0) or 0
-    budget = config.get("budget")
+    budget = budget_tokens if budget_tokens is not None else config.get("budget")
+    if system == "b2" and not budget:
+        raise ValueError(f"{exp_name} runs B2, which needs a token budget: set \"budget\" or pass --budget-tokens")
+    signals = tuple(config.get("signals", SIGNALS))
+    if not set(signals) <= set(SIGNALS):
+        raise ValueError(f"{exp_name}: unknown signals {sorted(set(signals) - set(SIGNALS))}")
+    use_parser = config.get("use_parser", True)
     threshold = config.get("threshold", 0.8)
+    alpha = None
+    if config.get("calibration"):
+        if system == "baseline":
+            raise ValueError(f"{exp_name}: calibration is for pipeline and b2 only")
+        calibration = json.loads(Path(config["calibration"]).read_text(encoding="utf-8"))
+        if system == "pipeline":
+            runs = k if "paraphrase" in signals else 0
+            check_system(calibration, f"pipeline_p{runs}", signals, use_parser)
+        else:
+            check_system(calibration, f"b2_r{r}")
+        alpha = calibration["alpha"]
+        threshold = threshold_from_file(calibration)
     max_samples = config.get("max_samples", 10)
     sample_temp = config.get("sample_temperature", 0.7)
 
@@ -111,6 +127,8 @@ def run_experiment(
         m_sample_llm = sample_llm
         if m_sample_llm is None and system == "b2":
             m_sample_llm = with_temperature(m_llm, sample_temp)
+        # Same as optverify/run.py: the rewordings are written at the paraphrase temperature.
+        m_paraphrase_llm = with_temperature(m_llm, PARAPHRASE_TEMPERATURE)
 
         for r_idx in repeats_to_run:
             out_dir = results_path / exp_name / m_slug / f"repeat_{r_idx}"
@@ -130,6 +148,8 @@ def run_experiment(
                 "k": k,
                 "r": r,
                 "budget": budget,
+                "threshold": None if threshold == float("inf") else threshold,
+                "alpha": alpha,
                 "repeat": r_idx,
                 "model": model_identifier,
                 "endpoint": endpoint,
@@ -139,6 +159,10 @@ def run_experiment(
                 "git_commit": get_git_commit(),
                 "notes": "Repeats differ only by provider nondeterminism and the paraphrase temperature.",
             }
+            if system == "pipeline":
+                config_data.update(
+                    signals=list(signals), use_parser=use_parser, paraphrase_temperature=PARAPHRASE_TEMPERATURE
+                )
             for opt_key in ("budget_from", "max_samples", "sample_temperature", "calibration"):
                 if opt_key in config:
                     config_data[opt_key] = config[opt_key]
@@ -146,7 +170,7 @@ def run_experiment(
             config_text = _redact_secrets(json.dumps(config_data, indent=2))
             (out_dir / "config.json").write_text(config_text, encoding="utf-8")
 
-            def solve(problem, active_llm=m_llm, active_sample_llm=m_sample_llm):
+            def solve(problem, active_llm=m_llm, active_sample_llm=m_sample_llm, active_paraphrase_llm=m_paraphrase_llm):
                 if system == "baseline":
                     return run_baseline(problem, active_llm, max_repairs=r)
                 if system == "b2":
@@ -167,6 +191,9 @@ def run_experiment(
                     paraphrases=paraphrases,
                     max_repairs=r,
                     threshold=threshold,
+                    signals=signals,
+                    use_parser=use_parser,
+                    paraphrase_llm=active_paraphrase_llm,
                 )
 
             records = []
@@ -208,13 +235,14 @@ def run_experiment(
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run evaluation experiments E1 to E6.")
-    parser.add_argument("experiment", help="Experiment identifier (e.g. E1, E2, E3, E4, E5, E6, G3)")
+    parser.add_argument("experiment", help="Config name in experiments/configs (e.g. E1, E3, G3, E5-NOPARSER)")
     parser.add_argument("--repeat", type=int, default=None, help="Specific repeat index (0-based) to run")
     parser.add_argument("--model", default=None, help="Model specification (overrides config models)")
     parser.add_argument("--sample-file", type=Path, default=None, help="Override path to sample JSON file")
     parser.add_argument("--results-dir", type=Path, default=Path("results"), help="Results output directory")
     parser.add_argument("--workers", type=int, default=2, help="Number of worker threads")
     parser.add_argument("--env-file", default=".env", help="Environment file path")
+    parser.add_argument("--budget-tokens", type=float, default=None, help="B2 only: token budget (overrides the config)")
     return parser
 
 
@@ -230,8 +258,10 @@ def main() -> None:
             results_dir=args.results_dir,
             workers=args.workers,
             env_file=args.env_file,
+            budget_tokens=args.budget_tokens,
         )
-    except ValueError:
+    except (FileNotFoundError, ValueError) as error:
+        print(error, file=sys.stderr)
         sys.exit(1)
 
 

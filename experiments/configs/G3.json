@@ -2,8 +2,7 @@
   "name": "G3",
   "description": "Gap 3 comparison: pipeline against B2 at matched token budget",
   "system": "b2",
-  "sample_file": "samples/canonical_100.json",
-  "sample_file_pending": "samples/canonical_200.json",
+  "sample_file": "samples/canonical_200.json",
   "models": [
     "bedrock:openai.gpt-oss-120b-1:0"
   ],
@@ -14,6 +13,5 @@
   "max_samples": 10,
   "sample_temperature": 0.7,
   "repeats": 3,
-  "notes": "Gap 3 comparison of pipeline against B2 at matched token budget. System is B2 with budget set to E3 mean tokens per problem."
+  "notes": "Gap 3: B2 at the pipeline's token budget. Set \"budget\" to the E3 mean tokens per problem (or pass --budget-tokens); the runner refuses B2 without a budget."
 }
-

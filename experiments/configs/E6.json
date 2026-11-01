@@ -4,7 +4,6 @@
   "system": null,
   "analysis": true,
   "sample_file": null,
-  "sample_file_pending": "samples/canonical_200.json",
   "models": [
     "bedrock:openai.gpt-oss-120b-1:0"
   ],

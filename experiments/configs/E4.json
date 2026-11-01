@@ -4,7 +4,6 @@
   "system": null,
   "analysis": true,
   "sample_file": null,
-  "sample_file_pending": "samples/canonical_200.json",
   "models": [
     "bedrock:openai.gpt-oss-120b-1:0"
   ],
@@ -12,5 +11,5 @@
   "repairs": null,
   "budget": null,
   "repeats": null,
-  "notes": "Analysis only (not a run). Gap 1 = AUROC (H1) on E3 records; Gap 2 = leave-one-class-out (H2) on canonical_100 plus OpsOR (data/opsor/opsor_bench.jsonl); Gap 3 = pipeline vs B2 at equal token budget (H3)."
+  "notes": "Analysis only (not a run). Gap 1 = AUROC (H1) on E3 records; Gap 2 = leave-one-class-out (H2) on canonical_200 plus OpsOR (data/opsor/opsor_bench.jsonl); Gap 3 = pipeline vs B2 at equal token budget (H3)."
 }

@@ -2,8 +2,7 @@
   "name": "E3",
   "description": "Proposed verification pipeline on canonical test sample",
   "system": "pipeline",
-  "sample_file": "samples/canonical_100.json",
-  "sample_file_pending": "samples/canonical_200.json",
+  "sample_file": "samples/canonical_200.json",
   "models": [
     "bedrock:openai.gpt-oss-120b-1:0"
   ],
@@ -13,5 +12,11 @@
   "calibration": null,
   "budget": null,
   "repeats": 3,
-  "notes": "Proposed pipeline with k = 3 paraphrases and r = 1 repair. Threshold is fixed at 0.8 for now (calibration is filled once issue #29 lands with alpha = 0.05)."
+  "notes": "Proposed pipeline with k = 3 paraphrases and r = 1 repair. The threshold is fixed at 0.8 until a calibration file exists: set \"calibration\" to a file from scripts/calibrate.py (made from pipeline_p3 records with the same signals and parser switch) and it replaces the threshold. Run the shift samples with --sample-file samples/constraint_pairs_60.json and samples/linguistic_60.json.",
+  "signals": [
+    "number",
+    "requirement",
+    "paraphrase"
+  ],
+  "use_parser": true
 }

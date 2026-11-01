@@ -2,8 +2,7 @@
   "name": "E2",
   "description": "Base paper B0 setting reproduced with gpt-oss-120b, plus reported DeepSeek-V3.2 numbers",
   "system": "baseline",
-  "sample_file": "samples/canonical_100.json",
-  "sample_file_pending": "samples/canonical_200.json",
+  "sample_file": "samples/canonical_200.json",
   "models": [
     "bedrock:openai.gpt-oss-120b-1:0",
     "bedrock:deepseek.v3.2"

@@ -2,8 +2,7 @@
   "name": "E1",
   "description": "Baseline B1: single pass with one repair on canonical test sample",
   "system": "baseline",
-  "sample_file": "samples/canonical_100.json",
-  "sample_file_pending": "samples/canonical_200.json",
+  "sample_file": "samples/canonical_200.json",
   "models": [
     "bedrock:openai.gpt-oss-120b-1:0"
   ],
@@ -11,5 +10,5 @@
   "repairs": 1,
   "budget": null,
   "repeats": 3,
-  "notes": "B1 setting: single pass with one repair (r = 1), 3 repeats on canonical_100.json."
+  "notes": "B1 setting: single pass with one repair (r = 1), 3 repeats on canonical_200.json."
 }
