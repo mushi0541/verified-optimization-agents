@@ -6,6 +6,9 @@ operations questions into optimization models, verify those models, and answer, 
 - Base paper: OPT-Engine (Chen et al., ICML 2026), benchmark C^3-Bench.
 - Architecture, gap mapping and data contracts: [docs/architecture.md](docs/architecture.md)
 - Phase 1 report (submitted): [docs/phase1/Phase1_G1-01_23I-0541.pdf](docs/phase1/Phase1_G1-01_23I-0541.pdf), LaTeX source in `docs/phase1/latex/`
+- Phase 2 paper (draft, IEEE two-column): `docs/paper/main.tex` and `docs/paper/refs.bib`. Build it from `docs/paper` with
+  `pdflatex main && bibtex main && pdflatex main && pdflatex main`. Tables and figures are read from generated files
+  in `docs/paper/tables/` and `docs/paper/figures/`; until a file exists, the PDF shows a grey note in its place.
 
 ## What is in Phase 1
 
@@ -213,6 +216,7 @@ tests/
 docs/architecture.md
 docs/paper_sir.json  base-paper SIR accuracy per class, for compare_baselines.py
 docs/phase1/      submitted Phase 1 report (PDF and LaTeX source)
+docs/paper/       Phase 2 paper (IEEEtran LaTeX source and references)
 results/          saved runs
 ```
 

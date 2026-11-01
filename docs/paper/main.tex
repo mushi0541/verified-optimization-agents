@@ -1,0 +1,135 @@
+% Phase 2 paper, IEEE two-column conference format, 8 to 10 pages including references.
+% Build from docs/paper:  pdflatex main && bibtex main && pdflatex main && pdflatex main
+%
+% Every number in the paper comes from a generated file in tables/ or figures/ (written by the scripts in
+% scripts/ from saved runs in results/), never typed by hand. Until a file exists, \generated{} prints a note.
+% \plan{} notes say what each section must contain (Phase 2 brief, Section 5.2); delete each one as the text
+% is written. The draft must have no \plan{} left before submission.
+
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{cite}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\plan}[1]{\textcolor{gray}{\textit{[Plan: #1]}}}
+% \generated{file}{what writes it}: input a generated table, or print a note while it does not exist yet.
+\newcommand{\generated}[2]{\IfFileExists{#1}{\input{#1}}{\plan{\texttt{\detokenize{#1}}, written by #2}}}
+\newcommand{\cthree}{C\textsuperscript{3}-Bench}
+
+\begin{document}
+
+\title{Verified Optimization Agents: Requirement-Level Verification and Calibrated Abstention for LLM-Based
+Optimization Modeling\\[2pt]
+\large Project G1-01, AI4015 Agentic Artificial Intelligence, Fall 2026}
+
+\author{
+\IEEEauthorblockN{Mushahid Hussain}
+\IEEEauthorblockA{23I-0541 (group head)\\
+FAST NUCES, Islamabad\\
+i230541@isb.nu.edu.pk}
+\and
+\IEEEauthorblockN{Muhammad Waqas}
+\IEEEauthorblockA{23I-0569\\
+FAST NUCES, Islamabad\\
+i230569@isb.nu.edu.pk}
+\and
+\IEEEauthorblockN{Abdul Rauf}
+\IEEEauthorblockA{23I-0591\\
+FAST NUCES, Islamabad\\
+i230591@isb.nu.edu.pk}
+}
+
+\maketitle
+
+% ---------------------------------------------------------------------------------------------------------------
+\begin{abstract}
+\plan{150 to 250 words: the problem (LLM-written optimization models that run but are wrong), the approach (a
+parser, formalizer, solver-runner, verifier and explainer team that answers, abstains or escalates), the main
+numbers (accuracy against B0 and B1, the held-out wrong-accept rate at the target alpha with its coverage, and the
+pipeline against B2 at an equal token budget), and the contribution.}
+\end{abstract}
+
+\begin{IEEEkeywords}
+optimization modeling, large language models, multi-agent systems, verification, selective prediction
+\end{IEEEkeywords}
+
+% ---------------------------------------------------------------------------------------------------------------
+\section{Introduction}
+\plan{Motivation: a model that runs and returns an optimum can still be wrong, and an operations user cannot tell.
+The three research gaps from Phase 1 (label-free verification, error control under shift, cost against a single
+agent at equal tokens), the research questions, and a short list of contributions.}
+
+\section{Related Work}
+\plan{Synthesis of the Phase 1 review, grouped by theme, not paper by paper. Benchmarks and the base paper
+\cite{chen2026optengine,li2026miplibnl,yang2025optibench,lu2025optmath}; training and search methods
+\cite{chen2025sirl,huang2025orlm,jiang2025llmopt,liu2025optitree,zhang2025optimind}; verification of generated
+models \cite{liu2026optverifier,abdulrahman2026verisimpl,lian2026reloop,li2026falsification}; and answering with
+an error guarantee \cite{lian2026admitor}. Compare in detail with ReLoop and AdmitOR (supervisor feedback). Grow
+the list to 25 to 30 references, each with a DOI link or official URL.}
+
+\section{Problem Formulation}
+\plan{The task: input a natural-language problem; output an optimal value with a decision (answer, abstain or
+escalate) and an explanation. Correctness: relative error below $10^{-3}$, as in the base paper. Define the
+wrong-accept rate and coverage, and state hypotheses H1, H2 and H3.}
+
+\section{Proposed System}
+\plan{Architecture diagram; the roles (parser, formalizer with solver-feedback repair, solver-runner, paraphraser,
+verifier, decision, explainer), the tools, the state passed between them, and the part that addresses each gap:
+the verifier signals (Gap 1), the calibrated threshold (Gap 2) and per-step token accounting (Gap 3).}
+
+\section{Experimental Setup}
+\plan{\cthree{} \cite{chen2026optengine}: classes, splits and the fixed samples (20 problems per class, the
+development split, linguistic and constraint-pair samples, and the exclusions found while checking the
+references). OpsOR-Bench for the shift test. Baselines B0, B1 and B2. Models (gpt-oss-120b, and DeepSeek-V3.2 for
+the base-paper reproduction), temperatures, repairs, paraphrases, repeats and the solver.}
+
+\section{Evaluation Methodology}
+\plan{Metrics and how each is computed: accuracy, coverage, selective accuracy, wrong-accept rate with exact
+(Clopper-Pearson) intervals, AUROC with bootstrap intervals, tokens and latency. Leave-one-class-out calibration.
+How the base-paper comparison is made (reported numbers and our reproduction).}
+
+\section{Results}
+\plan{Organized by gap, with the gap-resolution table.}
+
+\subsection{Baselines and the base paper (E1, E2)}
+\generated{tables/baselines.tex}{scripts/compare\_baselines.py}
+
+\subsection{Gap 1: do the signals detect wrong models? (H1)}
+\generated{tables/gap1.tex}{the Gap 1 analysis script}
+
+\subsection{Gap 2: calibrated abstention and the shift test (H2)}
+\generated{tables/gap2.tex}{scripts/calibrate.py}
+
+\subsection{Gap 3: the pipeline against a single agent at an equal token budget (H3)}
+\generated{tables/gap3.tex}{scripts/analyze\_e3.py}
+
+\subsection{Gap-resolution table}
+\generated{tables/gap_resolution.tex}{the results scripts}
+
+\section{Ablation and Comparative Analysis}
+\plan{The contribution of each component (ablations i to vii) and the efficiency and cost trade-offs (E6).}
+\generated{tables/ablations.tex}{scripts/rescore.py}
+
+\section{Failure Analysis}
+\plan{Failure categories, how often each occurs, and representative cases taken from the trace logs.}
+
+\section{Limitations and Threats to Validity}
+\plan{Limits of the data (synthetic \cthree{} problems, excluded references), of the method (the paraphraser and
+formalizer share one model; number coverage may not separate correct from wrong models), and of the evaluation
+(sample size, one main model, repeats); what may affect generalization.}
+
+\section{Conclusion}
+\plan{Main findings, one per gap, and future work.}
+
+% ---------------------------------------------------------------------------------------------------------------
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+\end{document}
