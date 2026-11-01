@@ -1,0 +1,23 @@
+{
+  "name": "E6",
+  "description": "Efficiency and reliability metrics computed from E1 to E3 records",
+  "system": null,
+  "analysis": true,
+  "sample_file": null,
+  "models": [
+    "bedrock:openai.gpt-oss-120b-1:0"
+  ],
+  "paraphrases": null,
+  "repairs": null,
+  "budget": null,
+  "repeats": null,
+  "metrics": [
+    "tokens",
+    "LLM calls",
+    "solver calls",
+    "latency",
+    "US$ cost",
+    "failed-run rate"
+  ],
+  "notes": "Analysis only (not a run). Metrics computed from E1 to E3 records: tokens, LLM calls, solver calls, latency, US$ cost, failed-run rate."
+}

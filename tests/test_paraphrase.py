@@ -5,6 +5,8 @@ import pytest
 
 from optverify import interactive
 from optverify import run as run_module
+from optverify.contracts import TokenUsage
+from optverify.llm import with_temperature
 from optverify.run import paraphrase_client, parse_args
 from optverify.systems import PARAPHRASE_TEMPERATURE, run_pipeline
 from optverify.verifier import combined_score, paraphrase_agreement
@@ -123,3 +125,40 @@ def test_the_run_records_the_paraphrase_model_and_its_endpoint(tmp_path, monkeyp
     config = json.loads((folder / "summary.json").read_text(encoding="utf-8"))["config"]
     assert config["paraphrase_model"] == "bedrock:deepseek.v3.2"
     assert config["paraphrase_endpoint"] == "bedrock us-east-1" and config["endpoint"] == "bedrock us-east-1"
+
+
+def test_only_the_pipeline_builds_a_second_paraphrase_client(tmp_path, monkeypatch):
+    made = []
+
+    def fake_make_llm(spec, temperature=0.0):
+        made.append(spec)
+        return FakeLLM()
+
+    monkeypatch.setattr(run_module, "make_llm", fake_make_llm)
+    monkeypatch.setattr(run_module, "RESULTS_DIR", tmp_path)
+    argv = ["run", "baseline", "--model", "bedrock:openai.gpt-oss-120b-1:0", "--paraphrase-model", "bedrock:deepseek.v3.2",
+            "--split", "opsor", "--per-class", "1", "--workers", "1", "--env-file", str(tmp_path / "none")]
+    monkeypatch.setattr("sys.argv", argv)
+    run_module.main()
+
+    assert made == ["bedrock:openai.gpt-oss-120b-1:0"]  # no unused second client for a baseline run
+    (folder,) = tmp_path.iterdir()
+    assert "_para-" not in folder.name
+    config = json.loads((folder / "summary.json").read_text(encoding="utf-8"))["config"]
+    assert config["paraphrase_endpoint"] is None
+
+
+def test_tokens_are_split_by_model_when_a_second_model_rewords():
+    main, second = FakeLLM(), FakeLLM()
+    second.name = "deepseek.v3.2"
+    record = run_pipeline(TOY_PROBLEM, main, paraphrases=2, paraphrase_llm=second)
+    by_model = record.usage_by_model
+    assert set(by_model) == {"fake-llm", "deepseek.v3.2"}
+    assert by_model["deepseek.v3.2"].calls == 2  # one rewording per paraphrase run
+    total = by_model["fake-llm"].input_tokens + by_model["deepseek.v3.2"].input_tokens
+    assert total == record.usage.input_tokens and by_model["fake-llm"].calls + 2 == record.usage.calls
+    assert record.usage == TokenUsage.total(record.usage_by_step)  # the steps are unchanged
+
+    same_model = run_pipeline(TOY_PROBLEM, FakeLLM(), paraphrases=2, paraphrase_llm=with_temperature(FakeLLM(), 0.7))
+    assert same_model.usage_by_model == {}  # one model made every call
+

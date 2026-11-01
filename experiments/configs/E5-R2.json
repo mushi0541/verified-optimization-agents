@@ -1,0 +1,22 @@
+{
+  "name": "E5-R2",
+  "description": "Ablation (vii): pipeline with r = 2 repair rounds",
+  "system": "pipeline",
+  "sample_file": "samples/ablation_50.json",
+  "models": [
+    "bedrock:openai.gpt-oss-120b-1:0"
+  ],
+  "paraphrases": 3,
+  "repairs": 2,
+  "signals": [
+    "number",
+    "requirement",
+    "paraphrase"
+  ],
+  "use_parser": true,
+  "threshold": 0.8,
+  "calibration": null,
+  "budget": null,
+  "repeats": 3,
+  "notes": "Same as E3 (k = 3) on ablation_50, but with two repair rounds; r = 0 comes from rescoring."
+}

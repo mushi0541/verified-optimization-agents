@@ -130,6 +130,19 @@ The fixed problem sets are stored as ID lists in `samples/`. To run on one, pass
 
 `--sample-file` also reads constraint pair files (it runs both problems of every pair). It cannot be combined with `--per-class` or `--seed`.
 
+### Continuing a run after failures
+
+A problem whose LLM calls fail (for example during a network outage) is listed under `failed_problems` in the run's
+`summary.json` and left out of `records.jsonl`. To run only those problems again and add them to the same run, repeat
+the command with `--resume` and the run's folder:
+
+    python -m optverify.run pipeline --model <model> --sample-file samples/canonical_200.json --repairs 1 --paraphrases 3 \
+        --resume results/<run folder>
+
+All settings must be the same as in the first command (only `--workers` and `--env-file` may change); otherwise the
+run is refused. `summary.json` is then rewritten over all records, and its `resumes` field counts how often the run
+was continued.
+
 To regenerate the sample files (needs the downloaded data):
 
     python scripts/make_samples.py
@@ -323,7 +336,9 @@ report objective D1), solver error and timeout rates, and the repair success rat
 as the repair success rate when nothing needed repair) is left out of that mean, and the output says how many repeats
 had a value. Cost uses the price of each run's model from the `PRICES` table in the script, with the date the price
 was read (Bedrock, us-east-1: `openai.gpt-oss-120b-1:0` at US$0.15 and US$0.60 per million input and output tokens,
-2026-10-20). A model without a price gets an empty cost cell. Tokens and cost cover finished problems only, because no
+2026-10-20). A model without a price gets an empty cost cell. When a record splits its tokens by model (a
+second paraphrase model), each model is priced on its own. Runs with a second paraphraser or other verifier switches
+are never averaged with the main runs. Tokens and cost cover finished problems only, because no
 usage is saved for a failed problem, so the cost is a lower bound when runs fail. It writes `efficiency.csv`,
 `tokens_by_step.csv` (where each system spends its tokens, from `usage_by_step`) and `efficiency.json`.
 
@@ -332,9 +347,60 @@ usage is saved for a failed problem, so the cost is a lower bound when runs fail
 A predicted objective counts as correct when `|predicted - reference| <= 0.002 * |reference|`, the same rule as the
 base paper's evaluation script. The reference answer is used only for grading; it is never shown to any agent.
 
+## Reproduce the experiments
+
+`experiments/run.py` runs one experiment from its config in `experiments/configs/`:
+
+```bash
+# every repeat of an experiment
+python experiments/run.py E1
+
+# one repeat (0-based), or another sample
+python experiments/run.py E3 --repeat 0
+python experiments/run.py E3 --sample-file samples/constraint_pairs_60.json
+```
+
+Each repeat goes to `results/<exp>/<model-slug>/repeat_<n>/` with `config.json`, `records.jsonl` and `summary.json`.
+A failed problem stays in `records.jsonl` with `"failed": true`, and `summary.json` gives `failed_rate` over the whole
+sample. Analysis-only configs (E4, E5, E6) refuse to run and say what to run instead.
+
+```bash
+python experiments/aggregate.py E1
+```
+
+This writes `results/<exp>/<model-slug>/summary.json` and `summary.csv` (mean and sample standard deviation over the
+repeats) and updates `results/manifest.json`.
+
+| Course | Our experiment | Config | What it runs |
+|---|---|---|---|
+| E1 | Baseline B1 | `E1.json` | Single pass with one repair on `canonical_200` |
+| E2 | Base paper B0 | `E2.json` | No repair, with gpt-oss-120b and DeepSeek-V3.2; the paper's reported numbers are labelled |
+| E3 | Proposed pipeline (k = 3, r = 1) | `E3.json` | `canonical_200`, plus the shift samples with `--sample-file`; threshold 0.8 or a calibration file |
+| G3 | B2 at the pipeline's budget (Gap 3) | `G3.json` | Needs `budget` (E3 mean tokens per problem) or `--budget-tokens` |
+| E4 | Gap-wise tests (H1, H2, H3) | `E4.json` | Analysis of E1 to E3 and OpsOR-Bench |
+| E5 | Ablations (i) to (vii) | `E5.json`, `E5-NOPARSER.json`, `E5-R2.json` | Most ablations rescore E3 records (`scripts/rescore.py`); (iv) and r = 2 are new runs |
+| E6 | Efficiency and reliability | `E6.json` | Metrics from E1 to E3 records |
+
+## Observability
+
+Pass `--trace` to write per-step JSON lines to `logs/<run_name>/<problem_id>.jsonl`. Each line records one step with the following keys:
+- `time`: UTC ISO 8601 timestamp.
+- `role`: One of `parser`, `formalizer`, `repair`, `solver`, `paraphrase_<j>`, `verifier`, `decision`, `explainer`.
+- `input`: The prompt text or step inputs.
+- `output`: The model reply text, solver status and objective, or decision summary.
+- `tokens`: Token counts (`input_tokens`, `output_tokens`, `calls`).
+- `latency_s`: Step duration in seconds.
+
+Sensitive environment variable values and keys are automatically redacted.
+
 ## Repository layout
 
 ```
+experiments/
+  configs/        experiment definitions (E1 to E6, G3 and the E5 ablation runs)
+  prompt_version.py prompt template SHA-256 and git commit hash
+  run.py          experiment runner with repeats
+  aggregate.py    summary statistics aggregator and manifest updater
 optverify/
   calibration.py  Gap 2 calibrated threshold and the leave-one-class-out test
   contracts.py    shared data records
@@ -347,12 +413,14 @@ optverify/
   roles.py        parser, formalizer with repair, paraphraser, explainer
   solver_tool.py  runs generated PuLP code with HiGHS
   static/         interactive interface template (index.html)
+  trace.py        per-step trace writer with secret redaction
   verifier.py     verifier signals and the answer / abstain / escalate decision
   systems.py      baseline (B0/B1), single agent B2 and proposed pipeline
   grading.py      correctness rule and run summaries
   run.py          command line entry point
   web.py          interactive web interface entry point
 data/opsor/       generated OpsOR-Bench problem file
+logs/sample/      sample trace files for answered and escalated cases
 samples/          fixed evaluation sample ID files (canonical, ablation, linguistic, constraint pairs)
 scripts/download_data.py     pinned data download
 scripts/make_opsor.py        regenerates the OpsOR-Bench file with fixed seeds
@@ -371,6 +439,7 @@ docs/paper_sir.json  base-paper SIR accuracy per class, for compare_baselines.py
 docs/phase1/      submitted Phase 1 report (PDF and LaTeX source)
 docs/paper/       Phase 2 paper (IEEEtran LaTeX source and references)
 results/          saved runs
+results/manifest.json completed experiment runs and config hashes
 ```
 
 ## Data splits
