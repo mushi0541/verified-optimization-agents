@@ -5,6 +5,8 @@ import pytest
 
 from optverify import interactive
 from optverify import run as run_module
+from optverify.contracts import TokenUsage
+from optverify.llm import with_temperature
 from optverify.run import paraphrase_client, parse_args
 from optverify.systems import PARAPHRASE_TEMPERATURE, run_pipeline
 from optverify.verifier import combined_score, paraphrase_agreement
@@ -144,3 +146,19 @@ def test_only_the_pipeline_builds_a_second_paraphrase_client(tmp_path, monkeypat
     assert "_para-" not in folder.name
     config = json.loads((folder / "summary.json").read_text(encoding="utf-8"))["config"]
     assert config["paraphrase_endpoint"] is None
+
+
+def test_tokens_are_split_by_model_when_a_second_model_rewords():
+    main, second = FakeLLM(), FakeLLM()
+    second.name = "deepseek.v3.2"
+    record = run_pipeline(TOY_PROBLEM, main, paraphrases=2, paraphrase_llm=second)
+    by_model = record.usage_by_model
+    assert set(by_model) == {"fake-llm", "deepseek.v3.2"}
+    assert by_model["deepseek.v3.2"].calls == 2  # one rewording per paraphrase run
+    total = by_model["fake-llm"].input_tokens + by_model["deepseek.v3.2"].input_tokens
+    assert total == record.usage.input_tokens and by_model["fake-llm"].calls + 2 == record.usage.calls
+    assert record.usage == TokenUsage.total(record.usage_by_step)  # the steps are unchanged
+
+    same_model = run_pipeline(TOY_PROBLEM, FakeLLM(), paraphrases=2, paraphrase_llm=with_temperature(FakeLLM(), 0.7))
+    assert same_model.usage_by_model == {}  # one model made every call
+

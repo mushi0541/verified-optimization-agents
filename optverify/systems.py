@@ -84,6 +84,7 @@ def run_pipeline(
     start = time.perf_counter()
     paraphraser = paraphrase_llm or llm
     steps = {"parse": TokenUsage(), "formalize": TokenUsage(), "repair": TokenUsage()}
+    reworded_usage = TokenUsage()  # the paraphraser's own calls, also counted in their paraphrase_<j> step
 
     if use_parser:
         spec, required = roles.number_requirements(roles.parse_problem(problem.question, llm, steps["parse"], trace=trace))
@@ -115,11 +116,11 @@ def run_pipeline(
             step = steps[f"paraphrase_{run_number}"] = TokenUsage()
             paraphrase_role = f"paraphrase_{run_number}"
             objective = _reworded_optimum(
-                problem.question, llm, paraphraser, step, role=paraphrase_role, trace=trace
+                problem.question, llm, paraphraser, step, role=paraphrase_role, trace=trace, reword_usage=reworded_usage
             )
             if objective is None:  # retry once, so a failed run is not mistaken for a disagreement
                 objective = _reworded_optimum(
-                    problem.question, llm, paraphraser, step, role=paraphrase_role, trace=trace
+                    problem.question, llm, paraphraser, step, role=paraphrase_role, trace=trace, reword_usage=reworded_usage
                 )
             other_objectives.append(objective)
 
@@ -184,7 +185,18 @@ def run_pipeline(
         decision=decision,
         explanation=explanation,
         usage_by_step=steps,
+        usage_by_model=_usage_by_model(TokenUsage.total(steps), llm, paraphraser, reworded_usage),
     )
+
+
+def _usage_by_model(total: TokenUsage, llm: LLM, paraphraser: LLM, reworded: TokenUsage) -> dict[str, TokenUsage]:
+    """Split the tokens between the main model and a second paraphrase model; empty when one model made every call."""
+    if paraphraser.name == llm.name:
+        return {}
+    main = TokenUsage(
+        total.input_tokens - reworded.input_tokens, total.output_tokens - reworded.output_tokens, total.calls - reworded.calls
+    )
+    return {llm.name: main, paraphraser.name: reworded}
 
 
 def _reworded_optimum(
@@ -195,10 +207,15 @@ def _reworded_optimum(
     *,
     role: str,
     trace: TraceWriter | None = None,
+    reword_usage: TokenUsage | None = None,
 ) -> float | None:
     """Reword the question with paraphraser, then solve it with llm, the baseline prompt and no repair; None if no
-    optimum is found."""
-    reworded = roles.paraphrase(question, paraphraser, usage, role=role, trace=trace)
+    optimum is found. The paraphraser's tokens go to usage and, when given, also to reword_usage."""
+    reword = TokenUsage()
+    reworded = roles.paraphrase(question, paraphraser, reword, role=role, trace=trace)
+    usage.add(reword)
+    if reword_usage is not None:
+        reword_usage.add(reword)
     reworded_prompt = prompts.BASELINE_FORMALIZE.format(question=reworded)
     attempts = roles.formalize_and_solve(
         reworded_prompt,
