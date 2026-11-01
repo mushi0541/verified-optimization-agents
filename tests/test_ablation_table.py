@@ -226,7 +226,7 @@ def test_multi_repeat_standard_deviation(synthetic_records_file, tmp_path):
     assert math.isclose(ref_row[9], 0.0)
 
 
-def test_missing_k3_reference_raises(tmp_path):
+def test_missing_k3_reference_exits(tmp_path, capsys):
     # Construct record with only k = 2 paraphrase objectives
     rec = _record("p1", "A", "optimal", 100.0, 100.0, 1.0, 1.0, [100.0, 100.0])
     records_file = tmp_path / "records_k2.jsonl"
@@ -235,11 +235,61 @@ def test_missing_k3_reference_raises(tmp_path):
     sample_file = tmp_path / "sample.json"
     sample_file.write_text(json.dumps(["p1"]), encoding="utf-8")
 
-    with pytest.raises(ValueError, match="k = 2 < 3"):
+    with pytest.raises(SystemExit) as excinfo:
         generate_ablation_table(
             record_paths=[records_file],
             sample_file=sample_file,
         )
+    assert excinfo.value.code == 1
+    captured = capsys.readouterr()
+    assert "k = 2 < 3" in captured.err
+    assert "Traceback" not in captured.err
+
+
+def test_cli_k2_synthetic_record_exits_without_traceback(tmp_path):
+    rec = _record("p1", "A", "optimal", 100.0, 100.0, 1.0, 1.0, [100.0, 100.0])
+    records_file = tmp_path / "records_k2.jsonl"
+    records_file.write_text(json.dumps(rec) + "\n", encoding="utf-8")
+
+    sample_file = tmp_path / "sample.json"
+    sample_file.write_text(json.dumps(["p1"]), encoding="utf-8")
+
+    res = subprocess.run(
+        [
+            sys.executable,
+            "scripts/ablation_table.py",
+            "--records",
+            str(records_file),
+            "--sample-file",
+            str(sample_file),
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert res.returncode == 1
+    assert "Traceback" not in res.stderr
+    assert "k = 2 < 3" in res.stderr
+
+
+def test_cli_missing_records_file_exits_without_traceback(tmp_path):
+    sample_file = tmp_path / "sample.json"
+    sample_file.write_text(json.dumps(["p1"]), encoding="utf-8")
+
+    res = subprocess.run(
+        [
+            sys.executable,
+            "scripts/ablation_table.py",
+            "--records",
+            str(tmp_path / "non_existent.jsonl"),
+            "--sample-file",
+            str(sample_file),
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert res.returncode == 1
+    assert "Traceback" not in res.stderr
+    assert "Records file not found" in res.stderr
 
 
 def test_cli_execution_via_subprocess(synthetic_records_file, tmp_path):

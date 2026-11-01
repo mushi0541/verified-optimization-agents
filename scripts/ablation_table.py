@@ -44,7 +44,8 @@ def compute_auroc(scored: list[tuple[float, bool]]) -> float | None:
 def load_and_filter_records(records_path: Path, ablation_ids: set[str]) -> list[dict]:
     """Load records.jsonl and restrict strictly to the ablation problem IDs."""
     if not records_path.exists():
-        raise FileNotFoundError(f"Records file not found: {records_path}")
+        print(f"Records file not found: {records_path}", file=sys.stderr)
+        sys.exit(1)
 
     records = []
     with records_path.open("r", encoding="utf-8") as f:
@@ -68,11 +69,13 @@ def verify_k_in_records(records: list[dict], source_label: str) -> None:
         if report.get("feasible") and r.get("attempts", [{}])[-1].get("solve", {}).get("status") == "optimal":
             others = report.get("paraphrase_objectives", [])
             if len(others) < 3:
-                raise ValueError(
+                print(
                     f"Reference records in {source_label} have k = {len(others)} < 3 "
                     f"for problem {r.get('problem_id')}. k = 3 reference is required to compute "
-                    "ablation table rows."
+                    "ablation table rows.",
+                    file=sys.stderr,
                 )
+                sys.exit(1)
 
 
 def evaluate_records(rescored: list[dict], threshold: float = 0.8, alpha: float | None = None) -> dict:
@@ -142,6 +145,9 @@ def generate_ablation_table(
     r2_records: Path | None = None,
 ) -> tuple[list[str], list[list]]:
     """Generate rows and columns of ablations.csv."""
+    if not sample_file.exists():
+        print(f"Sample file not found: {sample_file}", file=sys.stderr)
+        sys.exit(1)
     sample_text = sample_file.read_text(encoding="utf-8")
     ablation_ids = set(json.loads(sample_text))
     expected_count = len(ablation_ids)
