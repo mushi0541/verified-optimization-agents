@@ -19,8 +19,13 @@ _RESULT_FOOTER = """
 
 try:
     import pulp as _pulp
+    import re as _re
     print("STATUS:", _pulp.LpStatus[model.status])
     print("OBJECTIVE:", _pulp.value(model.objective))
+    _ids = set()
+    for _name in model.constraints:
+        _ids.update(_re.findall(r"(?:^|_)(R\\d+)(?=_|$)", _name))
+    print("REQUIREMENTS:", " ".join(sorted(_ids, key=lambda _id: int(_id[1:]))))
     if model.status == _pulp.LpStatusOptimal:
         _vars = []
         for _v in model.variables():
@@ -85,8 +90,9 @@ def run_model_code(code: str | None, timeout_s: int = 180) -> SolveResult:
     error = "" if status_text else "The script ran but did not define a PuLP problem named `model`."
     objective = _to_float(_last_match(r"^OBJECTIVE:\s*(\S+)\s*$", stdout)) if status == "optimal" else None
     variables = _parse_variables(stdout) if status == "optimal" else {}
-    kept = re.sub(r"^VAR: .*\n?", "", stdout, flags=re.MULTILINE)
-    return SolveResult(status, objective, _tail(kept), error, runtime, variables)
+    requirement_ids = (_last_match(r"^REQUIREMENTS:(.*)$", stdout) or "").split()
+    kept = re.sub(r"^(?:VAR: |REQUIREMENTS:).*\n?", "", stdout, flags=re.MULTILINE)
+    return SolveResult(status, objective, _tail(kept), error, runtime, variables, requirement_ids)
 
 
 def _parse_variables(text: str) -> dict[str, float]:

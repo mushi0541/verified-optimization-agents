@@ -11,24 +11,32 @@ from typing import Any
 from .contracts import TokenUsage
 
 
-def _sensitive_env_values() -> set[str]:
+def _collect_secrets() -> list[str]:
     """Collect secret values from environment variables that look like keys, passwords or tokens."""
     secrets = set()
     sensitive_substrings = ("KEY", "SECRET", "TOKEN", "PASSWORD")
     for name, value in os.environ.items():
         if any(sub in name.upper() for sub in sensitive_substrings):
             val_str = str(value).strip()
-            if len(val_str) >= 4:
+            if len(val_str) > 4:
                 secrets.add(val_str)
-    return secrets
+    return sorted(secrets, key=len, reverse=True)
 
 
-def _redact(text: str, secrets: set[str]) -> str:
-    """Replace sensitive strings with [REDACTED]."""
-    for secret in secrets:
-        if secret in text:
-            text = text.replace(secret, "[REDACTED]")
-    return text
+def _redact_value(value: Any, secrets: list[str]) -> Any:
+    """Walk objects recursively and replace secret substrings in strings before JSON dumping."""
+    if isinstance(value, str):
+        for secret in secrets:
+            if secret in value:
+                value = value.replace(secret, "[REDACTED]")
+        return value
+    if isinstance(value, dict):
+        return {_redact_value(k, secrets): _redact_value(v, secrets) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_redact_value(item, secrets) for item in value]
+    if isinstance(value, tuple):
+        return tuple(_redact_value(item, secrets) for item in value)
+    return value
 
 
 class TraceWriter:
@@ -36,6 +44,7 @@ class TraceWriter:
 
     def __init__(self, path: Path | str | None = None) -> None:
         self.path = Path(path) if path is not None else None
+        self.secrets = _collect_secrets()
 
     def record(
         self,
@@ -74,9 +83,7 @@ class TraceWriter:
             "latency_s": round(float(latency_s), 4),
         }
 
+        sanitized_entry = _redact_value(entry, self.secrets)
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        raw_json = json.dumps(entry)
-        sanitized = _redact(raw_json, _sensitive_env_values())
-
         with self.path.open("a", encoding="utf-8", newline="\n") as f:
-            f.write(sanitized + "\n")
+            f.write(json.dumps(sanitized_entry) + "\n")

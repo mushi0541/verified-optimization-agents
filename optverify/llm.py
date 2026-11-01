@@ -100,10 +100,9 @@ class OpenAICompatibleLLM:
 
         self.name = model
         self.temperature = temperature
-        self.api_key = os.getenv("LLM_API_KEY", "not-needed-for-local-servers")
         self.client = OpenAI(
             base_url=os.environ["LLM_BASE_URL"],
-            api_key=self.api_key,
+            api_key=os.getenv("LLM_API_KEY", "not-needed-for-local-servers"),
             max_retries=8,
             timeout=300,
         )

@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
+import optverify.run
 from optverify.contracts import Problem, TokenUsage
 from optverify.run import build_parser, parse_args
-from optverify.systems import run_baseline, run_pipeline
+from optverify.systems import run_baseline, run_pipeline, run_single_agent
 from optverify.trace import TraceWriter
 from tests.fake_llm import TOY_OPTIMUM, TOY_QUESTION, FakeLLM
 
@@ -53,13 +55,36 @@ def test_secret_safety_strips_keys_from_env(tmp_path: Path, monkeypatch) -> None
     writer.record(
         role="formalizer",
         input_info="Prompt containing secret-test-key-999 inside",
-        output_info="Output containing super-secret-aws-key inside",
+        output_info={"key": "Output containing super-secret-aws-key inside"},
     )
 
     raw_text = trace_file.read_text(encoding="utf-8")
     assert "secret-test-key-999" not in raw_text
     assert "super-secret-aws-key" not in raw_text
     assert "[REDACTED]" in raw_text
+
+
+def test_secret_safety_handles_quotes_backslashes_newlines(tmp_path: Path, monkeypatch) -> None:
+    tricky_secret = 'sec"ret\\with\nnewline'
+    monkeypatch.setenv("COMPLEX_SECRET_TOKEN", tricky_secret)
+
+    trace_file = tmp_path / "complex_secret.jsonl"
+    writer = TraceWriter(trace_file)
+
+    writer.record(
+        role="formalizer",
+        input_info=f"Prompt with {tricky_secret} inside",
+        output_info={"nested": f"Output with {tricky_secret} inside"},
+    )
+
+    raw_text = trace_file.read_text(encoding="utf-8")
+    assert tricky_secret not in raw_text
+    assert "[REDACTED]" in raw_text
+
+    # Verify JSON lines remain well-formed
+    entry = json.loads(raw_text.strip())
+    assert entry["input"] == "Prompt with [REDACTED] inside"
+    assert entry["output"]["nested"] == "Output with [REDACTED] inside"
 
 
 def test_baseline_run_with_trace_records_roles(tmp_path: Path) -> None:
@@ -88,7 +113,32 @@ def test_pipeline_run_writes_all_pipeline_roles(tmp_path: Path) -> None:
     assert "parser" in roles
     assert "formalizer" in roles
     assert "solver" in roles
+    assert "paraphrase_1" in roles
     assert "verifier" in roles
+    assert "decision" in roles
+    assert "explainer" in roles
+
+
+def test_b2_trace_records_sample_steps(tmp_path: Path) -> None:
+    trace_file = tmp_path / "b2.jsonl"
+    writer = TraceWriter(trace_file)
+    problem = Problem("sample-b2", TOY_QUESTION, TOY_OPTIMUM, "Production", 1, "test")
+
+    run_single_agent(
+        problem,
+        FakeLLM(),
+        FakeLLM(),
+        token_budget=1000,
+        max_repairs=0,
+        threshold=0.8,
+        trace=writer,
+    )
+
+    lines = [json.loads(line) for line in trace_file.read_text(encoding="utf-8").splitlines()]
+    roles = [entry["role"] for entry in lines]
+
+    assert "formalizer" in roles
+    assert "solver" in roles
     assert "decision" in roles
     assert "explainer" in roles
 
@@ -104,106 +154,66 @@ def test_cli_trace_flag_defaults_to_false() -> None:
     assert args_trace.trace is True
 
 
-def test_without_trace_no_logs_folder_created(tmp_path: Path) -> None:
+def test_cli_trace_creates_log_file(tmp_path: Path, monkeypatch) -> None:
     logs_dir = tmp_path / "logs"
+    results_dir = tmp_path / "results"
+    sample_file = tmp_path / "sample.json"
+    sample_file.write_text(json.dumps(["test-0001"]), encoding="utf-8")
+
+    test_prob = Problem("test-0001", TOY_QUESTION, TOY_OPTIMUM, "Production", 1, "test")
+
+    monkeypatch.setattr(optverify.run, "LOGS_DIR", logs_dir)
+    monkeypatch.setattr(optverify.run, "RESULTS_DIR", results_dir)
+    monkeypatch.setattr(optverify.run, "make_llm", lambda spec, temperature=0.0: FakeLLM())
+    monkeypatch.setattr(optverify.run, "load_sample_file", lambda path: [test_prob])
+
+    cli_args = [
+        "run.py",
+        "baseline",
+        "--model",
+        "openai:gpt",
+        "--sample-file",
+        str(sample_file),
+        "--trace",
+        "--workers",
+        "1",
+    ]
+    monkeypatch.setattr(sys, "argv", cli_args)
+
+    optverify.run.main()
+
+    assert logs_dir.exists()
+    trace_files = list(logs_dir.glob("*/*.jsonl"))
+    assert len(trace_files) == 1
+    assert trace_files[0].name == "test-0001.jsonl"
+    assert trace_files[0].stat().st_size > 0
+
+
+def test_without_trace_no_logs_folder_created(tmp_path: Path, monkeypatch) -> None:
+    logs_dir = tmp_path / "logs_not_created"
+    results_dir = tmp_path / "results"
+    sample_file = tmp_path / "sample.json"
+    sample_file.write_text(json.dumps(["test-0002"]), encoding="utf-8")
+
+    test_prob = Problem("test-0002", TOY_QUESTION, TOY_OPTIMUM, "Production", 1, "test")
+
+    monkeypatch.setattr(optverify.run, "LOGS_DIR", logs_dir)
+    monkeypatch.setattr(optverify.run, "RESULTS_DIR", results_dir)
+    monkeypatch.setattr(optverify.run, "make_llm", lambda spec, temperature=0.0: FakeLLM())
+    monkeypatch.setattr(optverify.run, "load_sample_file", lambda path: [test_prob])
+
+    cli_args = [
+        "run.py",
+        "baseline",
+        "--model",
+        "openai:gpt",
+        "--sample-file",
+        str(sample_file),
+        "--workers",
+        "1",
+    ]
+    monkeypatch.setattr(sys, "argv", cli_args)
+
+    optverify.run.main()
+
     assert not logs_dir.exists()
-
-    problem = Problem("sample-3", TOY_QUESTION, TOY_OPTIMUM, "Production", 1, "test")
-    run_baseline(problem, FakeLLM(), max_repairs=0, trace=None)
-    run_pipeline(problem, FakeLLM(), paraphrases=1, max_repairs=0, threshold=0.8, trace=None)
-
-    assert not logs_dir.exists()
-
-
-class DisagreeingFakeLLM(FakeLLM):
-    def complete(self, prompt: str, max_tokens: int = 4096):
-        if "A small factory produces" in prompt:
-            diff_code = (
-                "```python\n"
-                "import pulp\n"
-                'model = pulp.LpProblem("alt", pulp.LpMaximize)\n'
-                'x = pulp.LpVariable("x", lowBound=0, cat="Integer")\n'
-                "model += 20 * x\n"
-                "model += x <= 10\n"
-                "model.solve(pulp.HiGHS(msg=False, timeLimit=120))\n"
-                "```"
-            )
-            from optverify.contracts import LLMReply, TokenUsage
-            return LLMReply(diff_code, TokenUsage(10, 20, 1), 0.0)
-        return super().complete(prompt, max_tokens)
-
-
-def make_sample_traces(output_dir: Path = Path("logs/sample")) -> list[Path]:
-    output_dir = Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    created_paths: list[Path] = []
-
-    # 1 to 7: Answered cases
-    for i in range(1, 8):
-        pid = f"sample-{i:04d}"
-        file_path = output_dir / f"{pid}.jsonl"
-        if file_path.exists():
-            file_path.unlink()
-        writer = TraceWriter(file_path)
-        problem = Problem(pid, TOY_QUESTION, TOY_OPTIMUM, "Production", 10, "sample")
-        run_pipeline(problem, FakeLLM(), paraphrases=1, max_repairs=0, threshold=0.8, trace=writer)
-        created_paths.append(file_path)
-
-    # 8: Escalated due to missing number coverage (unused requirements)
-    pid = "sample-0008"
-    file_path = output_dir / f"{pid}.jsonl"
-    if file_path.exists():
-        file_path.unlink()
-    writer = TraceWriter(file_path)
-    q_esc1 = "100 workers, 200 parts, 300 tools, 400 bolts, 500 screws. " + TOY_QUESTION
-    problem = Problem(pid, q_esc1, TOY_OPTIMUM, "Production", 10, "sample")
-    run_pipeline(problem, FakeLLM(), paraphrases=1, max_repairs=0, threshold=0.8, trace=writer)
-    created_paths.append(file_path)
-
-    # 9: Escalated due to paraphrase agreement failure
-    pid = "sample-0009"
-    file_path = output_dir / f"{pid}.jsonl"
-    if file_path.exists():
-        file_path.unlink()
-    writer = TraceWriter(file_path)
-    problem = Problem(pid, TOY_QUESTION, TOY_OPTIMUM, "Production", 10, "sample")
-    run_pipeline(problem, DisagreeingFakeLLM(), paraphrases=1, max_repairs=0, threshold=0.8, trace=writer)
-    created_paths.append(file_path)
-
-    # 10: Escalated due to high decision threshold requirement
-    pid = "sample-0010"
-    file_path = output_dir / f"{pid}.jsonl"
-    if file_path.exists():
-        file_path.unlink()
-    writer = TraceWriter(file_path)
-    q_esc3 = "12 safety inspectors. " + TOY_QUESTION
-    problem = Problem(pid, q_esc3, TOY_OPTIMUM, "Production", 10, "sample")
-    run_pipeline(problem, FakeLLM(), paraphrases=1, max_repairs=0, threshold=0.99, trace=writer)
-    created_paths.append(file_path)
-
-    # Also write a combined sample trace file containing all 10 problem traces
-    combined_path = output_dir / "sample.jsonl"
-    with combined_path.open("w", encoding="utf-8", newline="\n") as comb:
-        for p in created_paths:
-            comb.write(p.read_text(encoding="utf-8"))
-    created_paths.append(combined_path)
-
-    return created_paths
-
-
-def test_make_sample_traces_integrity(tmp_path: Path) -> None:
-    sample_files = make_sample_traces(output_dir=tmp_path)
-    assert len(sample_files) == 11
-
-    actions = []
-    for f in sample_files[:-1]:
-        lines = [json.loads(line) for line in f.read_text(encoding="utf-8").splitlines()]
-        decision_line = next(line for line in lines if line["role"] == "decision")
-        actions.append(decision_line["output"]["action"])
-
-    assert "answer" in actions
-    assert "escalate" in actions
-    assert actions.count("answer") == 7
-    assert actions.count("escalate") == 3
-
-

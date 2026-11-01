@@ -1,8 +1,8 @@
 """Shared helper for interactive optimization problem solving."""
 
 from .contracts import Problem, RunRecord
-from .llm import LLM
-from .systems import run_pipeline
+from .llm import LLM, with_temperature
+from .systems import PARAPHRASE_TEMPERATURE, run_pipeline
 
 MAX_QUESTION_LENGTH = 4000
 
@@ -34,4 +34,5 @@ def solve_interactive_problem(
         paraphrases=paraphrases,
         max_repairs=max_repairs,
         threshold=threshold,
+        paraphrase_llm=with_temperature(llm, PARAPHRASE_TEMPERATURE),
     )

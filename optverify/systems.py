@@ -37,6 +37,8 @@ def run_baseline(
         llm,
         steps["formalize"],
         max_repairs,
+        role="formalizer",
+        solver_role="solver",
         repair_usage=steps["repair"],
         trace=trace,
     )
@@ -57,26 +59,50 @@ def run_baseline(
     )
 
 
+# Report Section 2.7: the paraphraser samples at temperature 0.7, because rewordings at temperature 0 are almost identical.
+PARAPHRASE_TEMPERATURE = 0.7
+
+
 def run_pipeline(
     problem: Problem,
     llm: LLM,
     paraphrases: int = 2,
     max_repairs: int = 1,
     threshold: float = 0.8,
+    signals: tuple[str, ...] = verifier.SIGNALS,
+    use_parser: bool = True,
+    paraphrase_llm: LLM | None = None,
     trace: TraceWriter | None = None,
 ) -> RunRecord:
+    """The proposed pipeline.
+
+    paraphrase_llm writes the rewordings (PARAPHRASE_TEMPERATURE in the main runs); without it, llm does. Every other
+    call, including the formalizer call on each rewording, uses llm. For ablations, `signals` sets which verifier
+    signals count in the score (paraphrase runs are skipped when that signal is off), and use_parser=False formalizes
+    from the question alone with the baseline prompt, so no requirements are listed (ablation iv).
+    """
     start = time.perf_counter()
+    paraphraser = paraphrase_llm or llm
     steps = {"parse": TokenUsage(), "formalize": TokenUsage(), "repair": TokenUsage()}
 
-    spec = roles.parse_problem(problem.question, llm, steps["parse"], trace=trace)
-    first_prompt = prompts.FORMALIZE_FROM_SPEC.format(question=problem.question, spec=json.dumps(spec, indent=1))
+    if use_parser:
+        spec, required = roles.number_requirements(roles.parse_problem(problem.question, llm, steps["parse"], trace=trace))
+        first_prompt = prompts.FORMALIZE_FROM_SPEC.format(question=problem.question, spec=json.dumps(spec, indent=1))
+    else:
+        spec, required = None, []
+        first_prompt = prompts.BASELINE_FORMALIZE.format(question=problem.question)
+    if "paraphrase" not in signals:
+        paraphrases = 0
     attempts = roles.formalize_and_solve(
         first_prompt,
         problem.question,
         llm,
         steps["formalize"],
         max_repairs,
+        role="formalizer",
+        solver_role="solver",
         repair_usage=steps["repair"],
+        repair_note=prompts.KEEP_CONSTRAINT_NAMES if required else "",
         trace=trace,
     )
     final = attempts[-1]
@@ -84,19 +110,48 @@ def run_pipeline(
     other_objectives = []
     if final.solve.status == "optimal":
         for run_number in range(1, paraphrases + 1):
+            # One step per paraphrase run (paraphraser call plus its formalizer call, and the retry when the first
+            # try returns no optimum), so lower k can be read from saved records by dropping the last runs.
             step = steps[f"paraphrase_{run_number}"] = TokenUsage()
             paraphrase_role = f"paraphrase_{run_number}"
-            objective = _reworded_optimum(problem.question, llm, step, trace=trace, role=paraphrase_role)
-            if objective is None:
-                objective = _reworded_optimum(problem.question, llm, step, trace=trace, role=paraphrase_role)
+            objective = _reworded_optimum(
+                problem.question, llm, paraphraser, step, role=paraphrase_role, trace=trace
+            )
+            if objective is None:  # retry once, so a failed run is not mistaken for a disagreement
+                objective = _reworded_optimum(
+                    problem.question, llm, paraphraser, step, role=paraphrase_role, trace=trace
+                )
             other_objectives.append(objective)
 
-    report = verifier.build_report(problem.question, final.code, final.solve.status, final.solve.objective, other_objectives)
+    report = verifier.build_report(
+        problem.question,
+        final.code,
+        final.solve.status,
+        final.solve.objective,
+        other_objectives,
+        required,
+        final.solve.requirement_ids,
+        signals,
+    )
     if trace is not None:
         trace.record(
             "verifier",
-            {"code": final.code, "status": final.solve.status, "objective": final.solve.objective, "other_objectives": other_objectives},
-            {"feasible": report.feasible, "number_coverage": report.number_coverage, "missing_numbers": report.missing_numbers, "paraphrase_agreement": report.paraphrase_agreement, "paraphrase_objectives": report.paraphrase_objectives, "score": report.score},
+            {
+                "code": final.code,
+                "status": final.solve.status,
+                "objective": final.solve.objective,
+                "other_objectives": other_objectives,
+            },
+            {
+                "feasible": report.feasible,
+                "number_coverage": report.number_coverage,
+                "missing_numbers": report.missing_numbers,
+                "requirement_coverage": report.requirement_coverage,
+                "missing_requirements": report.missing_requirements,
+                "paraphrase_agreement": report.paraphrase_agreement,
+                "paraphrase_objectives": report.paraphrase_objectives,
+                "score": report.score,
+            },
         )
     decision = verifier.decide(report, final.solve.objective, threshold)
     if trace is not None:
@@ -135,14 +190,26 @@ def run_pipeline(
 def _reworded_optimum(
     question: str,
     llm: LLM,
+    paraphraser: LLM,
     usage: TokenUsage,
+    *,
+    role: str,
     trace: TraceWriter | None = None,
-    role: str = "paraphraser",
 ) -> float | None:
-    """Reword the question and solve it with the baseline prompt and no repair; None if no optimum is found."""
-    reworded = roles.paraphrase(question, llm, usage, trace=trace, role=role)
+    """Reword the question with paraphraser, then solve it with llm, the baseline prompt and no repair; None if no
+    optimum is found."""
+    reworded = roles.paraphrase(question, paraphraser, usage, role=role, trace=trace)
     reworded_prompt = prompts.BASELINE_FORMALIZE.format(question=reworded)
-    attempts = roles.formalize_and_solve(reworded_prompt, reworded, llm, usage, max_repairs=0, trace=trace)
+    attempts = roles.formalize_and_solve(
+        reworded_prompt,
+        reworded,
+        llm,
+        usage,
+        max_repairs=0,
+        role=role,
+        solver_role=role,
+        trace=trace,
+    )
     return attempts[-1].solve.objective
 
 
@@ -169,7 +236,18 @@ def run_single_agent(
     while len(samples) < max_samples and (not samples or _tokens(TokenUsage.total(steps)) < token_budget):
         step = steps[f"sample_{len(samples) + 1}"] = TokenUsage()
         sampler = llm if not samples else sample_llm
-        samples.append(roles.formalize_and_solve(first_prompt, problem.question, sampler, step, max_repairs, trace=trace))
+        samples.append(
+            roles.formalize_and_solve(
+                first_prompt,
+                problem.question,
+                sampler,
+                step,
+                max_repairs,
+                role="formalizer",
+                solver_role="solver",
+                trace=trace,
+            )
+        )
 
     used = samples_within_budget([_tokens(usage) for usage in steps.values()], token_budget)
     # B2 is charged only for the samples behind its answer; later samples stay in samples and usage_by_step.
