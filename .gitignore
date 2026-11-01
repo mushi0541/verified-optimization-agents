@@ -4,6 +4,7 @@ __pycache__/
 .pytest_cache/
 .env
 data/optengine/
+logs/*
 
 # LaTeX build files (docs/phase1/latex, docs/paper)
 *.aux
