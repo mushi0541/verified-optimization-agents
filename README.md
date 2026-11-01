@@ -317,6 +317,40 @@ usage is saved for a failed problem, so the cost is a lower bound when runs fail
 A predicted objective counts as correct when `|predicted - reference| <= 0.002 * |reference|`, the same rule as the
 base paper's evaluation script. The reference answer is used only for grading; it is never shown to any agent.
 
+## Reproduce the experiments
+
+`experiments/run.py` runs one experiment from its config in `experiments/configs/`:
+
+```bash
+# every repeat of an experiment
+python experiments/run.py E1
+
+# one repeat (0-based), or another sample
+python experiments/run.py E3 --repeat 0
+python experiments/run.py E3 --sample-file samples/constraint_pairs_60.json
+```
+
+Each repeat goes to `results/<exp>/<model-slug>/repeat_<n>/` with `config.json`, `records.jsonl` and `summary.json`.
+A failed problem stays in `records.jsonl` with `"failed": true`, and `summary.json` gives `failed_rate` over the whole
+sample. Analysis-only configs (E4, E5, E6) refuse to run and say what to run instead.
+
+```bash
+python experiments/aggregate.py E1
+```
+
+This writes `results/<exp>/<model-slug>/summary.json` and `summary.csv` (mean and sample standard deviation over the
+repeats) and updates `results/manifest.json`.
+
+| Course | Our experiment | Config | What it runs |
+|---|---|---|---|
+| E1 | Baseline B1 | `E1.json` | Single pass with one repair on `canonical_200` |
+| E2 | Base paper B0 | `E2.json` | No repair, with gpt-oss-120b and DeepSeek-V3.2; the paper's reported numbers are labelled |
+| E3 | Proposed pipeline (k = 3, r = 1) | `E3.json` | `canonical_200`, plus the shift samples with `--sample-file`; threshold 0.8 or a calibration file |
+| G3 | B2 at the pipeline's budget (Gap 3) | `G3.json` | Needs `budget` (E3 mean tokens per problem) or `--budget-tokens` |
+| E4 | Gap-wise tests (H1, H2, H3) | `E4.json` | Analysis of E1 to E3 and OpsOR-Bench |
+| E5 | Ablations (i) to (vii) | `E5.json`, `E5-NOPARSER.json`, `E5-R2.json` | Most ablations rescore E3 records (`scripts/rescore.py`); (iv) and r = 2 are new runs |
+| E6 | Efficiency and reliability | `E6.json` | Metrics from E1 to E3 records |
+
 ## Observability
 
 Pass `--trace` to write per-step JSON lines to `logs/<run_name>/<problem_id>.jsonl`. Each line records one step with the following keys:
@@ -332,6 +366,11 @@ Sensitive environment variable values and keys are automatically redacted.
 ## Repository layout
 
 ```
+experiments/
+  configs/        experiment definitions (E1 to E6, G3 and the E5 ablation runs)
+  prompt_version.py prompt template SHA-256 and git commit hash
+  run.py          experiment runner with repeats
+  aggregate.py    summary statistics aggregator and manifest updater
 optverify/
   calibration.py  Gap 2 calibrated threshold and the leave-one-class-out test
   contracts.py    shared data records
@@ -369,6 +408,7 @@ docs/paper_sir.json  base-paper SIR accuracy per class, for compare_baselines.py
 docs/phase1/      submitted Phase 1 report (PDF and LaTeX source)
 docs/paper/       Phase 2 paper (IEEEtran LaTeX source and references)
 results/          saved runs
+results/manifest.json completed experiment runs and config hashes
 ```
 
 ## Data splits
