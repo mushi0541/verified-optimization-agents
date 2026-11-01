@@ -19,7 +19,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from optverify.calibration import calibrate_threshold, fixed_threshold, rates, scored_answers
+from optverify.calibration import calibrate_threshold, fixed_threshold, load_run, rates, scored_answers
 from optverify.verifier import SIGNALS
 from scripts.rescore import rescore_records
 
@@ -41,12 +41,11 @@ def compute_auroc(scored: list[tuple[float, bool]]) -> float | None:
 
 
 def load_records(records_path: Path) -> list[dict]:
-    """Every record of one run."""
+    """Every record of one run, with its failed problems (from summary.json) as unanswered records."""
     if not records_path.exists():
         print(f"Records file not found: {records_path}", file=sys.stderr)
         sys.exit(1)
-    with records_path.open("r", encoding="utf-8") as f:
-        return [json.loads(line) for line in f if line.strip()]
+    return load_run(records_path)
 
 
 def ablation_subset(records: list[dict], ablation_ids: set[str], source_label: str) -> list[dict]:
@@ -78,7 +77,7 @@ def held_out_rates(subset: list[dict], calibration_records: list[dict], alpha: f
         hits = [ok for score, ok in scored_answers([r for r in test if r["problem_class"] == held_out]) if score >= threshold]
         answered += len(hits)
         wrong += sum(not ok for ok in hits)
-    return rates(answered, wrong, len(test))
+    return rates(answered, wrong, len(subset))  # failed problems count as unanswered
 
 
 def verify_k_in_records(records: list[dict], source_label: str) -> None:
