@@ -4,9 +4,11 @@ Ten real traces from one pipeline run on the development split (`samples/dev_30.
 
     python -m optverify.run pipeline --model bedrock:openai.gpt-oss-120b-1:0 --sample-file samples/dev_30.json --repairs 1 --paraphrases 3 --threshold 0.8 --workers 4 --trace
 
-The run had k = 3 reworded runs, r = 1 repair and a fixed threshold of 0.8, with 0 failed problems out of 30. Each
+The run's records and summary are in `results/pipeline_bedrock-openai.gpt-oss-120b-1-0_dev_30_r1_20261101-1612/`. It had k = 3 reworded runs, r = 1 repair and a fixed
+threshold of 0.8, with 0 failed problems out of 30. Each
 file has one JSON line per step (`parser`, `formalizer`, `solver`, `repair`, `paraphrase_<j>`, `verifier`, `decision`,
-`explainer`), as described in the README section "Observability". These are development problems, never test problems.
+`explainer`), as described in the README section "Observability". These are development problems, never test problems:
+they are for reviewing the design and must not be reported as results.
 
 | File | Class | Decision | Correct | What it shows |
 |---|---|---|---|---|
@@ -23,3 +25,5 @@ file has one JSON line per step (`parser`, `formalizer`, `solver`, `repair`, `pa
 
 The two Pollution cases are wrong accepts. They are also in the class whose reference answers we hand-check (#40),
 so some of these may turn out to be reference errors rather than model errors.
+
+In `canonical-1250.jsonl`, two local folder paths in the solver error and the repair prompt are replaced by `<venv>` (the Python environment) and `<temp>` (the temporary folder of the solver run). Nothing else in the traces was changed.
