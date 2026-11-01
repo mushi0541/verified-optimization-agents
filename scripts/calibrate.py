@@ -14,7 +14,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from optverify.calibration import fixed_threshold, leave_one_class_out, record_system  # noqa: E402
+from optverify.calibration import fixed_threshold, leave_one_class_out, load_run, record_system  # noqa: E402
 from optverify.verifier import SIGNALS  # noqa: E402
 
 
@@ -39,7 +39,7 @@ def main() -> None:
     parser.add_argument("--out", type=Path, required=True, help="output JSON file")
     args = parser.parse_args()
 
-    records = [json.loads(line) for line in args.records.read_text(encoding="utf-8").splitlines() if line.strip()]
+    records = load_run(args.records)  # failed problems included, as unanswered
     result = {
         "records": args.records.as_posix(),
         # run.py and web.py refuse the file for another configuration (system name, signals, parser)

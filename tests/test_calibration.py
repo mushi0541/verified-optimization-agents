@@ -13,6 +13,7 @@ from optverify.calibration import (
     exact_interval,
     fixed_threshold,
     leave_one_class_out,
+    load_run,
     record_system,
     scored_answers,
     threshold_from_file,
@@ -63,7 +64,7 @@ def test_no_passing_threshold_answers_nothing():
 def test_leave_one_class_out_uses_only_the_other_classes():
     classes = [f"Class{i}" for i in range(10)]
     records = [_record(c, 1.0, c != "Class9") for c in classes for _ in range(10)]
-    records += [_record("Class0", 0.0, False, feasible=False), {"problem_id": "x", "failed": "timeout"}]
+    records += [_record("Class0", 0.0, False, feasible=False), {"problem_id": "x", "problem_class": "Class0", "failed": True}]
     result = leave_one_class_out(records, alpha=0.10)
 
     folds = {f["held_out_class"]: f for f in result["folds"]}
@@ -71,8 +72,9 @@ def test_leave_one_class_out_uses_only_the_other_classes():
     assert folds["Class9"]["answered"] == 10 and folds["Class9"]["wrong_accepted"] == 10
     assert folds["Class0"]["threshold"] is None  # the wrong Class9 answers break the bound for every other fold
     assert result["pooled"]["answered"] == 10 and result["pooled"]["wrong_accepted"] == 10
-    assert result["pooled"]["coverage"] == pytest.approx(10 / 101)
-    assert result["problems"] == 101 and result["failed_problems"] == 1
+    assert result["pooled"]["coverage"] == pytest.approx(10 / 102)  # the failed problem counts as unanswered
+    assert result["problems"] == 102 and result["failed_problems"] == 1
+    assert folds["Class0"]["problems"] == 12
     assert result["threshold"] is None
 
 
@@ -166,3 +168,24 @@ def test_web_server_uses_the_calibrated_threshold():
         assert reply["action"] != "answer"
     finally:
         server.shutdown()
+
+
+def test_load_run_adds_failed_problems_from_the_summary(tmp_path):
+    # run.py writes failed problems only to summary.json; the experiment runner writes them without a class.
+    finished = _record("BinPacking", 1.0, True) | {"problem_id": "canonical-0001"}
+    lines = [finished, {"problem_id": "canonical-0002", "failed": True, "error": "timeout"}]
+    (tmp_path / "records.jsonl").write_text("".join(json.dumps(r) + "\n" for r in lines), encoding="utf-8")
+    summary = {"failed_problems": ["canonical-0394", "canonical-0001"]}  # 0001 failed once, then finished on resume
+    (tmp_path / "summary.json").write_text(json.dumps(summary), encoding="utf-8")
+
+    records = load_run(tmp_path / "records.jsonl")
+    failed = {r["problem_id"]: r for r in records if "failed" in r}
+    assert len(records) == 3 and sorted(failed) == ["canonical-0002", "canonical-0394"]
+    assert failed["canonical-0394"]["problem_class"] == "BinPacking"
+    assert all(r["problem_class"] for r in failed.values())
+    assert fixed_threshold(records, 0.8)["coverage"] == pytest.approx(1 / 3)
+
+
+def test_failed_problem_without_a_class_is_refused():
+    with pytest.raises(ValueError, match="load_run"):
+        leave_one_class_out([_record("A", 1.0, True), {"problem_id": "x", "failed": True}], alpha=0.10)

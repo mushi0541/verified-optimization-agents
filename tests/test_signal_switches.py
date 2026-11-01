@@ -105,9 +105,9 @@ def test_rescore_without_repair_uses_the_first_attempt():
 
 
 def test_rescore_script_summarizes_a_fixed_and_a_calibrated_threshold(tmp_path):
-    records = [_record(cls=c) for c in "ABC"] + [{"problem_id": "x", "failed": "timeout"}]
+    records = [_record(cls=c) for c in "ABC"] + [{"problem_id": "x", "problem_class": "A", "failed": "timeout"}]
     rescored = rescore_records(records, ("number",))
-    assert rescored[-1] == {"problem_id": "x", "failed": "timeout"}
+    assert rescored[-1] == {"problem_id": "x", "problem_class": "A", "failed": "timeout"}
 
     args = argparse.Namespace(records=[tmp_path / "r.jsonl"], signals=("number",), k=None, no_repair=False,
                               threshold=0.5, calibration=None, alpha=None)
