@@ -37,6 +37,7 @@ operations questions into optimization models, verify those models, and answer, 
 | Main provider switched to Amazon Bedrock (same model) | All | `optverify/llm.py` `BedrockLLM` | Done; all Phase 1 results rerun on Bedrock |
 | Generated code runs in UTF-8 mode, so printed symbols such as `≤` no longer crash it on Windows | All | `optverify/solver_tool.py` | Done; Phase 1 Run A and pipeline rerun |
 | Paraphrase agreement treats a value and its negative as the same optimum; the paraphraser samples at temperature 0.7 (`--paraphrase-temperature`) | Gap 1 | `optverify/verifier.py` `paraphrase_agreement`, `optverify/systems.py` `run_pipeline` | Done; removes the Production false alarm of the Phase 1 pipeline run (development log entry 8) |
+| Second model for the paraphraser (`--paraphrase-model`, supervisor feedback), so its mistakes are less correlated with the formalizer's | Gap 1 | `optverify/run.py` `paraphrase_client` | Done; run with `bedrock:deepseek.v3.2` pending (development log entry 9) |
 | Fixed evaluation samples | All | samples/, scripts/make_samples.py | Done |
 | OpsOR-Bench: 36 problems in three families (gate assignment, ground-crew rostering, equipment dispatch) | Gap 2 | `optverify/opsor/`, `data/opsor/opsor_bench.jsonl`, `scripts/make_opsor.py` | Done |
 | Interactive interface | All | `optverify/web.py`, `optverify/static/index.html` | Done |
@@ -95,6 +96,9 @@ python -m optverify.run baseline --model bedrock:openai.gpt-oss-120b-1:0 --split
 
 # Proposed pipeline with 2 reworded runs for the verifier
 python -m optverify.run pipeline --model bedrock:openai.gpt-oss-120b-1:0 --split canonical --per-class 1 --paraphrases 2 --repairs 1
+
+# Same, with a second model writing the rewordings (each rewording is still solved by --model)
+python -m optverify.run pipeline --model bedrock:openai.gpt-oss-120b-1:0 --paraphrase-model bedrock:deepseek.v3.2 --split canonical --per-class 1 --paraphrases 2 --repairs 1
 
 # Single agent B2 (Gap 3): B1, then new samples at temperature 0.7 until the problem has used about
 # --budget-tokens tokens (set it to the pipeline's mean tokens per problem at the largest k)
