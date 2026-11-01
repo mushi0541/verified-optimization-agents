@@ -1,3 +1,9 @@
+import dataclasses
+import json
+import sys
+import tempfile
+from pathlib import Path
+
 from optverify.solver_tool import extract_code, run_model_code
 
 
@@ -19,3 +25,14 @@ def test_runtime_errors_return_the_error_text():
 def test_extract_code_accepts_py_and_plain_fences():
     assert extract_code("```py\nx = 1\n```") == "x = 1"
     assert extract_code("```\nimport pulp\n```") == "import pulp"
+
+
+def test_solver_output_holds_no_local_folders():
+    # The traceback names the script in the temporary folder and a module of the Python install, and the script
+    # prints its own folder and interpreter; none of them may reach a record or a repair prompt.
+    code = "import json, os, sys\nprint(os.getcwd())\nprint(sys.executable)\njson.loads('{')"
+    result = run_model_code(code)
+    saved = json.dumps(dataclasses.asdict(result))
+    assert result.status == "error" and "<temp>" in result.error and "JSONDecodeError" in result.error
+    assert str(Path.home()) not in saved and json.dumps(str(Path.home()))[1:-1] not in saved
+    assert sys.prefix not in saved and tempfile.gettempdir() not in saved

@@ -81,9 +81,9 @@ def run_model_code(code: str | None, timeout_s: int = 180) -> SolveResult:
             return SolveResult("timeout", None, error=f"No result after {timeout_s} s.", runtime_s=timeout_s)
 
     runtime = time.perf_counter() - start
-    stdout = process.stdout
+    stdout = _redact_paths(process.stdout, work_dir)
     if process.returncode != 0:
-        return SolveResult("error", None, _tail(stdout), _tail(process.stderr), runtime)
+        return SolveResult("error", None, _tail(stdout), _tail(_redact_paths(process.stderr, work_dir)), runtime)
 
     status_text = _last_match(r"^STATUS:\s*(.+?)\s*$", stdout)
     status = _STATUS_NAMES.get(status_text, "not_solved") if status_text else "error"
@@ -115,6 +115,16 @@ def _to_float(text: str | None) -> float | None:
         return float(text)
     except (TypeError, ValueError):
         return None
+
+
+def _redact_paths(text: str, work_dir: str) -> str:
+    """Replace local folders in the solver's output with placeholders, so records and repair prompts hold no user
+    name or folder: the run's temporary folder, the Python environment, the Python install, then the home folder."""
+    folders = [(work_dir, "<temp>"), (sys.prefix, "<venv>"), (sys.base_prefix, "<python>"), (str(Path.home()), "<home>")]
+    for folder, label in folders:
+        if folder:
+            text = text.replace(folder, label)
+    return text
 
 
 def _tail(text: str, limit: int = 2000) -> str:
