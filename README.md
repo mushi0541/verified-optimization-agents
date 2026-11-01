@@ -39,7 +39,7 @@ operations questions into optimization models, verify those models, and answer, 
 | Failed paraphrase runs retried once and left out of the agreement; number coverage ignores item labels, accepts percentages written as fractions and reads commas in code as separators between values | Gap 1 | `optverify/systems.py`, `optverify/verifier.py` | Done; checked on the 10 Phase 1 problems (see below) |
 | Main provider switched to Amazon Bedrock (same model) | All | `optverify/llm.py` `BedrockLLM` | Done; all Phase 1 results rerun on Bedrock |
 | Generated code runs in UTF-8 mode, so printed symbols such as `≤` no longer crash it on Windows | All | `optverify/solver_tool.py` | Done; Phase 1 Run A and pipeline rerun |
-| Paraphrase agreement treats a value and its negative as the same optimum | Gap 1 | | Planned (false alarm in the Phase 1 pipeline run) |
+| Paraphrase agreement treats a value and its negative as the same optimum; the paraphraser samples at temperature 0.7 (`--paraphrase-temperature`) | Gap 1 | `optverify/verifier.py` `paraphrase_agreement`, `optverify/systems.py` `run_pipeline` | Done; removes the Production false alarm of the Phase 1 pipeline run (development log entry 8) |
 | Fixed evaluation samples | All | samples/, scripts/make_samples.py | Done |
 | OpsOR-Bench: 36 problems in three families (gate assignment, ground-crew rostering, equipment dispatch) | Gap 2 | `optverify/opsor/`, `data/opsor/opsor_bench.jsonl`, `scripts/make_opsor.py` | Done |
 | Interactive interface | All | `optverify/web.py`, `optverify/static/index.html` | Done |
@@ -350,7 +350,7 @@ Same model, the same 10 problems as Run B, `--paraphrases 2 --repairs 1`, fixed 
   TSP answer would have been escalated.
 - The one false alarm is Production: the model was correct, but one rewording returned the same value with the opposite
   sign (-1908.17 instead of 1908.17), as happens when a maximization is written as minimizing the negative. Phase 2
-  will treat a value and its negative as the same optimum.
+  treats a value and its negative as the same optimum, and rescoring this run turns that escalation into an answer.
 - Number coverage ignores item labels and reads commas in code as separators between values (an earlier run read
   `(3,14,100.2)` as one number), so all ten problems reached full coverage.
 

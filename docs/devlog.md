@@ -15,6 +15,7 @@ Add an entry for each fix that answers a failure, newest last, and link it in th
 | 5 | 2026-10-20 | Windows encoding crash in the solver child | #19 |
 | 6 | 2026-10-20 | OpsOR-Bench wording ambiguities | #20 |
 | 7 | 2026-10-20 | `VAR:` lines filled the stored solver output | #21 |
+| 8 | 2026-10-26 | Rewordings with the opposite sign; paraphraser temperature | #28 (issue) |
 
 ## 1. Provider limits: request pacing, fitted output cap, then Amazon Bedrock
 
@@ -132,3 +133,27 @@ before the output is stored.
 
 **Effect.** On a 120-variable model with long names, the stored output keeps the model's own lines, the `STATUS`
 line and `VARS_OMITTED: 20`, and `variables` holds 100 values.
+
+## 8. Rewordings that report the optimum with the opposite sign; paraphraser temperature
+
+**Date.** 2026-10-26 (issue #28).
+
+**Failure.**
+- In the Bedrock pipeline run, a correct Production answer was escalated. One rewording returned -1908.17 for
+  1908.17, as happens when a maximization is written as minimizing the negative, so the agreement was 0.5.
+- The report (Section 2.7) says the paraphraser samples at temperature 0.7, because rewordings at temperature 0 are
+  almost identical, but `run_pipeline` used the temperature-0 client for every call.
+
+**Change.**
+- Paraphrase agreement treats a value and its negative as the same optimum, with the same 0.2% tolerance. Zero is
+  handled as before: 0 agrees with 0 and with -0, and not with any other value.
+- `run_pipeline` takes a separate paraphrase client. The command line sets it with `--paraphrase-temperature`
+  (default 0.7, saved in the run config), and the web interface uses the same default. Every other call, including
+  the formalizer call on each rewording, stays at temperature 0.
+
+**Effect.** Rescoring the saved Bedrock pipeline run (no new LLM calls) turns the Production escalation into an
+answer. That run goes from 7 to 8 answered problems out of 10, all 8 correct, with no false alarm left; both wrong
+models (Inventory and Pollution) are still escalated. The cost is a narrower check: a main model whose optimum has
+the wrong sign now agrees with rewordings that have the right sign. None of the 189 solved attempts in all saved
+runs has an objective that is correct except for its sign. The temperature
+change affects new runs only.
