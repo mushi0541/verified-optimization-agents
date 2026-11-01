@@ -115,9 +115,9 @@ accuracy per class, and for the pipeline: coverage, selective accuracy and wrong
 
 The fixed problem sets are stored as ID lists in `samples/`. To run on one, pass `--sample-file`:
 
-    python -m optverify.run baseline --model <model> --sample-file samples/canonical_100.json
+    python -m optverify.run baseline --model <model> --sample-file samples/canonical_200.json
 
-`--sample-file` cannot be combined with `--per-class` or `--seed`.
+`--sample-file` also reads constraint pair files (it runs both problems of every pair). It cannot be combined with `--per-class` or `--seed`.
 
 To regenerate the sample files (needs the downloaded data):
 
@@ -221,11 +221,13 @@ results/          saved runs
 | Split | File | Size | Use |
 |---|---|---|---|
 | Development | samples/dev_30.json | 30 canonical problems, 3 per class, seed 1 | Prompt changes and design choices only. Never reported as results. |
-| Canonical test | samples/canonical_100.json | 100 canonical problems, 10 per class, seed 0 | Reported results only |
-| Ablation | samples/ablation_30.json | 30 problems, a subset of the canonical test sample | Reported ablations only |
-| Linguistic | samples/linguistic_30.json | 30 problems, 10 each for Inventory, Knapsack and TSP | Reported E1 results only |
-| Constraint pairs | samples/constraint_pairs_30.json | 30 original and augmented pairs | Reported E1 results only |
+| Canonical test | samples/canonical_200.json | 200 canonical problems, 20 per class | Reported results only |
+| Ablation | samples/ablation_50.json | 50 problems, 5 per class, a subset of canonical_100 | Reported ablations only |
+| Linguistic | samples/linguistic_60.json | 60 problems, 20 each for Inventory, Knapsack and TSP | Reported E1 results only |
+| Constraint pairs | samples/constraint_pairs_60.json | 60 original and augmented pairs, 20 per class | Reported E1 results only |
 | OpsOR-Bench | data/opsor/opsor_bench.jsonl | 36 problems, three families | Reported E2 shift test only |
+
+Phase 2 uses 20 problems per class (supervisor feedback on Phase 1). Each larger file starts with the Phase 1 file of the same split (`canonical_100`, `ablation_30`, `linguistic_30`, `constraint_pairs_30`) and adds new problems drawn from the rest of the split with seed 0, so Phase 1 runs stay valid as the first part of each larger sample. The Phase 1 files are kept unchanged. New constraint pairs never reuse a problem of an earlier pair. The dev sample shares no problem with any test sample; it was regenerated for Phase 2 because 5 of its old problems are now in canonical_200. Regenerate every file with `python scripts/make_samples.py`; `tests/test_samples.py` checks that the result matches the checked-in files.
 
 Gap 2 calibration is leave-one-class-out inside the canonical test sample, so each problem is scored only in the fold that holds out its class.
 
