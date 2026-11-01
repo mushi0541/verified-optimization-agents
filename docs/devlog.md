@@ -20,6 +20,7 @@ Add an entry for each fix that answers a failure, newest last, and link it in th
 | 10 | 2026-11-01 | Requirement coverage: cut-off parser output, variable types, lost constraint names | #60 |
 | 11 | 2026-11-01 | B2 records crashed the calibration; calibration used for another configuration | #57, #61 |
 | 12 | 2026-11-01 | Network outage during an E3 run | #64, #66 |
+| 13 | 2026-11-02 | Too little calibration data to certify alpha = 10% | this PR |
 
 ## 1. Provider limits: request pacing, fitted output cap, then Amazon Bedrock
 
@@ -240,3 +241,34 @@ is saved next to the records (`pass_1.txt` to `pass_3.txt`):
 
 All three ended with their complete samples and 0 failed problems (#66), and no finished problem was run or paid for
 twice. `summary.json` lists only the last pass's failures, so the pass files are the record of the first pass.
+
+## 13. Too little calibration data to certify alpha = 10%
+
+**Date.** 2026-11-02 (this PR). Found in the Gap 2 analysis of E3 repeat 1 (#65, #66).
+
+**Failure.** At alpha = 10%, the leave-one-class-out test answered only 6 of 200 problems. A threshold is accepted
+only when the one-sided exact 95% bound on its calibration wrong-accept rate is at most 10%, and each fold calibrates
+on about 180 problems. With the pipeline's error rates that is too few accepted answers. Using the bound of
+`optverify/calibration.py`, the accepted calibration answers needed are:
+
+| Wrong-accept rate among accepted | Accepted answers needed for a bound of at most 10% |
+|---|---|
+| 5% | about 90 |
+| 6% | about 170 |
+| 7% | about 290 |
+| 8% | about 630 |
+
+At the fixed 0.8 threshold the rate is 8.0% with 163 accepted, and the strictest thresholds give about 5.5% but answer
+only 45 to 50% of the problems, below the 50% that H2 needs.
+
+**Change.**
+- `canonical_587` adds up to 40 new problems per class to `canonical_200`, giving 60 per class. NetworkFlow gets 47,
+  because the benchmark has only 50 and 3 are in the development split. Each fold then calibrates on about 530 problems.
+- `dev_93` grows the development split (dev_30 plus 7 per class) for signal design.
+- **Rules kept:** the H2 rule and alpha are unchanged, `canonical_200` is still reported, and the sample size was
+  chosen from this power analysis, not from a test result on the new problems.
+- Pooling the three repeats would not help, because they hold the same problems and are not independent.
+
+**Effect.** The E3 run on `canonical_587` gives the Gap 2 test enough data. Its result is reported next to
+`canonical_200` in `results/gap2/`.
+
