@@ -249,7 +249,9 @@ report objective D1), solver error and timeout rates, and the repair success rat
 as the repair success rate when nothing needed repair) is left out of that mean, and the output says how many repeats
 had a value. Cost uses the price of each run's model from the `PRICES` table in the script, with the date the price
 was read (Bedrock, us-east-1: `openai.gpt-oss-120b-1:0` at US$0.15 and US$0.60 per million input and output tokens,
-2026-10-20). A model without a price gets an empty cost cell. Tokens and cost cover finished problems only, because no
+2026-10-20). A model without a price gets an empty cost cell. When a record splits its tokens by model (a
+second paraphrase model), each model is priced on its own. Runs with a second paraphraser or other verifier switches
+are never averaged with the main runs. Tokens and cost cover finished problems only, because no
 usage is saved for a failed problem, so the cost is a lower bound when runs fail. It writes `efficiency.csv`,
 `tokens_by_step.csv` (where each system spends its tokens, from `usage_by_step`) and `efficiency.json`.
 
