@@ -45,7 +45,8 @@ operations questions into optimization models, verify those models, and answer, 
 | OpsOR-Bench: 36 problems in three families (gate assignment, ground-crew rostering, equipment dispatch) | Gap 2 | `optverify/opsor/`, `data/opsor/opsor_bench.jsonl`, `scripts/make_opsor.py` | Done |
 | Interactive interface | All | `optverify/web.py`, `optverify/static/index.html` | Done |
 | Requirement coverage: the parser's requirements get IDs (R1, R2, ...), the formalizer names each constraint after its requirement, and the verifier scores the share of requirements linked to a constraint | Gap 1 | `optverify/roles.py` `number_requirements`, `optverify/prompts.py`, `optverify/solver_tool.py`, `optverify/verifier.py` `requirement_coverage` | Done; checked on the dev split (see below) |
-| Calibrated threshold | Gap 2 | | Planned (#29) |
+| Switches for each signal and the parser, and rescoring of saved records for ablations (i) to (vii) | Gap 1 | `--signals`, `--no-parser` in `run.py`; `optverify/rescore.py`, `scripts/rescore.py` | Done |
+| Calibrated threshold for a target wrong-accept rate alpha, with the leave-one-class-out test | Gap 2 | `optverify/calibration.py`, `scripts/calibrate.py`, `--calibration` in `run.py` and `web.py` | Done; runs in #36 |
 
 ## Setup
 
@@ -140,6 +141,34 @@ To regenerate the OpsOR-Bench problem file:
 
     python scripts/make_opsor.py
 
+## Calibrated threshold (Gap 2, no API calls)
+
+Instead of the fixed threshold 0.8, the decision layer can use a threshold calibrated to a target wrong-accept rate
+alpha. Thresholds are scanned from strict to lenient; only thresholds that accept at least 29 problems are tried
+(fewer cannot give a bound below 10%), and the scan stops before the first threshold whose one-sided exact 95%
+(Clopper-Pearson) upper bound on the wrong-accept rate exceeds alpha. If none passes, nothing is answered.
+
+```bash
+python scripts/calibrate.py --records results/<pipeline run>/records.jsonl --alpha 0.10 --out results/calibration/<name>.json
+```
+
+The file holds the leave-one-class-out test (calibrate on nine classes, test on the tenth; the pooled held-out
+wrong-accept rate with its exact 95% interval, coverage and the per-fold thresholds), the same numbers for the fixed
+threshold (ablation vi), and one threshold calibrated on every class. That threshold is used by:
+
+```bash
+python -m optverify.run pipeline --model <model> --sample-file <sample> --repairs 1 --calibration results/calibration/<name>.json
+python -m optverify.web --calibration results/calibration/<name>.json
+```
+
+The web page then shows alpha and the calibrated threshold instead of the threshold field.
+
+B2 is calibrated the same way on its own records, with its sample agreement rate as the score
+(`scripts/calibrate.py --records results/<b2 run>/records.jsonl`). The file records the configuration it was made
+from: the system name (for example `pipeline_p3` or `b2_r1`), the enabled signals and the parser switch. `run.py`
+refuses a file made for another configuration, because the scores differ (B2's agreement rate is not a verifier
+score, and k or a switched-off signal changes the verifier score). `web.py` accepts only a pipeline file.
+
 ## Requirement coverage (Gap 1)
 
 The parser's requirements are numbered R1, R2, ... and the formalizer names every constraint after the requirement it
@@ -170,6 +199,36 @@ runs in `results/dev_requirement_coverage/`):
 
 These are 30 problems with 5 to 7 wrong answers, so the numbers move a lot between runs (compare runs 1 and 2). They
 were used only to fix the prompts; the signal is evaluated on the test samples in E4 (#35).
+
+## Ablations
+
+Each Gap 1 part can be switched off in a run:
+
+```bash
+python -m optverify.run pipeline --model <model> --sample-file <sample> --repairs 1 --signals number,paraphrase  # no requirement coverage
+python -m optverify.run pipeline --model <model> --sample-file samples/ablation_50.json --repairs 1 --no-parser  # ablation iv
+```
+
+`--signals` takes any of `number`, `requirement`, `paraphrase` (or `none` for feasibility alone); without
+`paraphrase` the paraphrase runs are skipped. Every record still stores every signal that was computed, so most
+ablations need no new run. `scripts/rescore.py` reads them from the main records, takes off the tokens of the steps
+it drops, and makes no API calls:
+
+| Ablation | Command (add `--records results/<pipeline run>/records.jsonl`) |
+|---|---|
+| (i) without number coverage | `python scripts/rescore.py --signals requirement,paraphrase` |
+| (ii) without requirement coverage | `python scripts/rescore.py --signals number,paraphrase` |
+| (iii) without paraphrase agreement | `python scripts/rescore.py --signals number,requirement` |
+| (iv) without the parser | new run with `--no-parser` (above) |
+| (v) k = 1, 2, 3 paraphrases | `python scripts/rescore.py --k 1` (any k up to the run's k) |
+| (vi) fixed against calibrated threshold | `python scripts/rescore.py --threshold 0.8` and `python scripts/rescore.py --alpha 0.10` |
+| (vii) r = 0, 1, 2 repairs | r = 0: `python scripts/rescore.py --no-repair`; r = 1: the main run; r = 2: new run with `--repairs 2` |
+
+The options combine (for example `--signals number,paraphrase --k 2 --alpha 0.10`), `--calibration <file>` applies
+the threshold of a calibration file, and `--out <file>` saves the JSON. The output gives the accuracy of the final
+model, mean tokens and calls, and the decision: answered, wrong accepted, coverage and the wrong-accept rate with
+its exact 95% interval (per fold and pooled with `--alpha`). `--no-repair` is exact: a first attempt that is optimal
+never ran a repair, and one that is not means the pipeline abstains.
 
 ## E3 analysis (Gap 3, no API calls)
 
@@ -260,30 +319,87 @@ usage is saved for a failed problem, so the cost is a lower bound when runs fail
 A predicted objective counts as correct when `|predicted - reference| <= 0.002 * |reference|`, the same rule as the
 base paper's evaluation script. The reference answer is used only for grading; it is never shown to any agent.
 
+## Reproduce the experiments
+
+`experiments/run.py` runs one experiment from its config in `experiments/configs/`:
+
+```bash
+# every repeat of an experiment
+python experiments/run.py E1
+
+# one repeat (0-based), or another sample
+python experiments/run.py E3 --repeat 0
+python experiments/run.py E3 --sample-file samples/constraint_pairs_60.json
+```
+
+Each repeat goes to `results/<exp>/<model-slug>/repeat_<n>/` with `config.json`, `records.jsonl` and `summary.json`.
+A failed problem stays in `records.jsonl` with `"failed": true`, and `summary.json` gives `failed_rate` over the whole
+sample. Analysis-only configs (E4, E5, E6) refuse to run and say what to run instead.
+
+```bash
+python experiments/aggregate.py E1
+```
+
+This writes `results/<exp>/<model-slug>/summary.json` and `summary.csv` (mean and sample standard deviation over the
+repeats) and updates `results/manifest.json`.
+
+| Course | Our experiment | Config | What it runs |
+|---|---|---|---|
+| E1 | Baseline B1 | `E1.json` | Single pass with one repair on `canonical_200` |
+| E2 | Base paper B0 | `E2.json` | No repair, with gpt-oss-120b and DeepSeek-V3.2; the paper's reported numbers are labelled |
+| E3 | Proposed pipeline (k = 3, r = 1) | `E3.json` | `canonical_200`, plus the shift samples with `--sample-file`; threshold 0.8 or a calibration file |
+| G3 | B2 at the pipeline's budget (Gap 3) | `G3.json` | Needs `budget` (E3 mean tokens per problem) or `--budget-tokens` |
+| E4 | Gap-wise tests (H1, H2, H3) | `E4.json` | Analysis of E1 to E3 and OpsOR-Bench |
+| E5 | Ablations (i) to (vii) | `E5.json`, `E5-NOPARSER.json`, `E5-R2.json` | Most ablations rescore E3 records (`scripts/rescore.py`); (iv) and r = 2 are new runs |
+| E6 | Efficiency and reliability | `E6.json` | Metrics from E1 to E3 records |
+
+## Observability
+
+Pass `--trace` to write per-step JSON lines to `logs/<run_name>/<problem_id>.jsonl`. Each line records one step with the following keys:
+- `time`: UTC ISO 8601 timestamp.
+- `role`: One of `parser`, `formalizer`, `repair`, `solver`, `paraphrase_<j>`, `verifier`, `decision`, `explainer`.
+- `input`: The prompt text or step inputs.
+- `output`: The model reply text, solver status and objective, or decision summary.
+- `tokens`: Token counts (`input_tokens`, `output_tokens`, `calls`).
+- `latency_s`: Step duration in seconds.
+
+Sensitive environment variable values and keys are automatically redacted.
+
 ## Repository layout
 
 ```
+experiments/
+  configs/        experiment definitions (E1 to E6, G3 and the E5 ablation runs)
+  prompt_version.py prompt template SHA-256 and git commit hash
+  run.py          experiment runner with repeats
+  aggregate.py    summary statistics aggregator and manifest updater
 optverify/
+  calibration.py  Gap 2 calibrated threshold and the leave-one-class-out test
   contracts.py    shared data records
   data.py         OPT-Engine loader and per-class sampling
   interactive.py  shared interactive problem solver helper
   llm.py          provider clients with token counting; request pacing in the OpenAI-compatible client
   opsor/          OpsOR-Bench problem families and reference models
   prompts.py      prompt templates
+  rescore.py      a saved pipeline record under a smaller configuration (signals, k, no repair)
   roles.py        parser, formalizer with repair, paraphraser, explainer
   solver_tool.py  runs generated PuLP code with HiGHS
   static/         interactive interface template (index.html)
+  trace.py        per-step trace writer with secret redaction
   verifier.py     verifier signals and the answer / abstain / escalate decision
   systems.py      baseline (B0/B1), single agent B2 and proposed pipeline
   grading.py      correctness rule and run summaries
   run.py          command line entry point
   web.py          interactive web interface entry point
 data/opsor/       generated OpsOR-Bench problem file
+logs/sample/      sample trace files for answered and escalated cases
 samples/          fixed evaluation sample ID files (canonical, ablation, linguistic, constraint pairs)
 scripts/download_data.py     pinned data download
 scripts/make_opsor.py        regenerates the OpsOR-Bench file with fixed seeds
 scripts/make_samples.py      regenerates the sample files with seed 0
 scripts/analyze_e3.py        E3 equal-budget analysis from saved records
+scripts/calibrate.py         Gap 2 calibration and leave-one-class-out test from saved records
+scripts/rescore.py           ablations (i) to (vii) from saved records, no API calls
 scripts/compare_baselines.py B0 and B1 per class and the base-paper comparison
 scripts/plot_e3.py           E3 accuracy-cost and risk-coverage plots
 scripts/efficiency.py        E6 efficiency and reliability from saved runs
@@ -294,6 +410,7 @@ docs/paper_sir.json  base-paper SIR accuracy per class, for compare_baselines.py
 docs/phase1/      submitted Phase 1 report (PDF and LaTeX source)
 docs/paper/       Phase 2 paper (IEEEtran LaTeX source and references)
 results/          saved runs
+results/manifest.json completed experiment runs and config hashes
 ```
 
 ## Data splits
