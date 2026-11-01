@@ -17,15 +17,15 @@
     },
     "Inventory": {
       "problems": 160,
-      "checked": 117,
-      "reproduced": 106,
+      "checked": 125,
+      "reproduced": 122,
       "by_reading": {
-        "capacity also after arrival": 106,
-        "capacity at end of period": 59
+        "capacity at end of period": 69,
+        "capacity also after arrival": 122
       },
-      "pipeline_answers": 16,
-      "pipeline_equals_reference": 9,
-      "pipeline_equals_a_stated_reading_only": 5
+      "pipeline_answers": 19,
+      "pipeline_equals_reference": 10,
+      "pipeline_equals_a_stated_reading_only": 7
     }
   }
 }

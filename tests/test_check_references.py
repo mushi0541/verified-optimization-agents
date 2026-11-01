@@ -55,6 +55,10 @@ def test_lead_times_are_read_or_the_question_is_not_checked():
     assert parse_inventory(transit)["lead"] == 4
     assert parse_inventory(INVENTORY.replace("Unmet demand is lost.", "There is a 2-hour transmission delay. Unmet demand is lost."))["lead"] == 2
     assert parse_inventory(INVENTORY.replace("Unmet demand is lost.", "Shipments are delivered instantly. Unmet demand is lost."))["lead"] == 0
+    for sentence, lead in (("There is a lag of 2 days.", 2), ("Each order requires 3 days to travel.", 3),
+                           ("The transit time of 3 legs applies.", 3), ("Orders take a lead time of 2 port calls.", 2),
+                           ("An order becomes available for use in the subsequent week.", 1)):
+        assert parse_inventory(INVENTORY.replace("Unmet demand is lost.", sentence + " Unmet demand is lost."))["lead"] == lead
     # A delay the parser cannot read must not be solved as lead 0.
     assert parse_inventory(INVENTORY.replace("Unmet demand is lost.", "Shipments arrive after a short transit. Unmet demand is lost.")) is None
 

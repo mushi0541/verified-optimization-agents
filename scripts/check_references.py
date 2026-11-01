@@ -81,12 +81,16 @@ def parse_inventory(question: str) -> dict | None:
               or re.search(rf"from {NUMBER} to {NUMBER}", text))
     capacity = (re.search(rf"capacity[^.0-9]{{0,40}}?{NUMBER}", text, re.I)
                 or re.search(rf"(?:must not exceed|cannot exceed|may not exceed|must not surpass|cannot surpass)[^.0-9]{{0,40}}?{NUMBER}", text))
-    units = r"(?:day|week|month|period|hour|leg|shift|quarter)"
-    lead = (re.search(rf"(?:lead time of|requires an?|require an?|delay of|takes|needs) {NUMBER}[- ]{units}", text, re.I)
+    units = r"(?:day|week|month|period|hour|leg|shift|quarter|port call|cycle)"
+    lead = (re.search(rf"(?:lead time of|lag of|transit time of|delay of|requires(?: an?)?|require(?: an?)?|takes|needs) "
+                      rf"{NUMBER}[- ]{units}", text, re.I)
             or re.search(rf"{NUMBER}[- ]{units}s?(?:\(s\))?(?:\s+\w+){{0,3}}?\s+(?:transit|lead|deliver|arriv|ship|delay|transmission)",
                          text, re.I))
+    next_period = re.search(rf"(?:available|arriv\w*|deliver\w*)[^.]*\b(?:subsequent|following|next) {units}\b", text, re.I)
     if lead:
         lead_time = int(float(lead.group(1)))
+    elif next_period:
+        lead_time = 1  # "available in the subsequent week"
     elif re.search(r"instant|immediately|same (?:day|period)|without delay|no delay", text, re.I):
         lead_time = 0
     elif re.search(r"transit|arriv|lead time|delay|shipping time|deliver(?:ed|y)? after", text, re.I):
@@ -171,8 +175,8 @@ def summarize(rows: list[dict]) -> dict:
             "checked": len(checked),
             "reproduced": sum(r["reproduced_by"] != "none" for r in checked),
             "by_reading": {name: sum(name in r["reproduced_by"] for r in checked)
-                           for name in ({"stated model"} if problem_class == "Pollution"
-                                        else {"capacity at end of period", "capacity also after arrival"})},
+                           for name in (("stated model",) if problem_class == "Pollution"  # a tuple: a fixed key order
+                                        else ("capacity at end of period", "capacity also after arrival"))},
             "pipeline_answers": len(with_pipeline),
             "pipeline_equals_reference": sum(r["pipeline_equals"] == "reference" for r in with_pipeline),
             "pipeline_equals_a_stated_reading_only": sum(r["pipeline_equals"] not in ("reference", "neither") for r in with_pipeline),
