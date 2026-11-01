@@ -3,6 +3,10 @@
   "description": "Baseline B1: single pass with one repair on canonical test sample",
   "system": "baseline",
   "sample_file": "samples/canonical_100.json",
+  "sample_file_pending": "samples/canonical_200.json",
+  "models": [
+    "bedrock:openai.gpt-oss-120b-1:0"
+  ],
   "paraphrases": null,
   "repairs": 1,
   "budget": null,

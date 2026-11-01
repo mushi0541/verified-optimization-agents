@@ -3,10 +3,15 @@
   "description": "Proposed verification pipeline on canonical test sample",
   "system": "pipeline",
   "sample_file": "samples/canonical_100.json",
+  "sample_file_pending": "samples/canonical_200.json",
+  "models": [
+    "bedrock:openai.gpt-oss-120b-1:0"
+  ],
   "paraphrases": 3,
   "repairs": 1,
   "threshold": 0.8,
+  "calibration": null,
   "budget": null,
   "repeats": 3,
-  "notes": "Proposed pipeline with k = 3 paraphrases and r = 1 repair. Threshold is fixed at 0.8 for now (replaced by calibrated tau(alpha) after issue 29)."
+  "notes": "Proposed pipeline with k = 3 paraphrases and r = 1 repair. Threshold is fixed at 0.8 for now (calibration is filled once issue #29 lands with alpha = 0.05)."
 }

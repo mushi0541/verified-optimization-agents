@@ -3,6 +3,11 @@
   "description": "Base paper B0 setting reproduced with gpt-oss-120b, plus reported DeepSeek-V3.2 numbers",
   "system": "baseline",
   "sample_file": "samples/canonical_100.json",
+  "sample_file_pending": "samples/canonical_200.json",
+  "models": [
+    "bedrock:openai.gpt-oss-120b-1:0",
+    "bedrock:deepseek.v3.2"
+  ],
   "paraphrases": null,
   "repairs": 0,
   "budget": null,
@@ -21,5 +26,5 @@
       "source": "OPT-Engine Table 2 (Netflow), DeepSeek-V3.2, SIR: 100% at Easy, Medium and Hard"
     }
   },
-  "notes": "Base paper B0 setting (SIR: zero-shot without repair, r = 0). Reported DeepSeek-V3.2 SIR numbers are taken from docs/paper_sir.json (OPT-Engine Table 2)."
+  "notes": "Base paper B0 setting (SIR: zero-shot without repair, r = 0). B0 runs with both models. Reported DeepSeek-V3.2 SIR numbers are taken from docs/paper_sir.json (OPT-Engine Table 2)."
 }

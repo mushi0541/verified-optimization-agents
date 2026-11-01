@@ -3,6 +3,9 @@
   "description": "Ablation study on ablation_30 sample",
   "system": "pipeline",
   "sample_file": "samples/ablation_30.json",
+  "models": [
+    "bedrock:openai.gpt-oss-120b-1:0"
+  ],
   "paraphrases": 3,
   "repairs": 1,
   "budget": null,
