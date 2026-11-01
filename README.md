@@ -232,6 +232,23 @@ paper does not say which sizes belong to each tier. The paper grades at a 0.1% r
 at the 0.1% rule. The model and the solver differ from ours (DeepSeek-V3.2 and Gurobi), so this column gives context;
 our own B0 on the same problems is the baseline.
 
+## E6: efficiency and reliability (no API calls)
+
+```bash
+python scripts/efficiency.py --out-dir results/e6
+```
+
+Reads every run in `results/` (or only the folders given with `--runs`). Runs with the same system, model, endpoint
+and problem set are treated as repeats, so each number is the mean and sample standard deviation over the repeats:
+input and output tokens, LLM calls, solver calls, latency and cost per problem, the failed-run rate (target under 5%,
+report objective D1), solver error and timeout rates, and the repair success rate. A repeat without a measure (such
+as the repair success rate when nothing needed repair) is left out of that mean, and the output says how many repeats
+had a value. Cost uses the price of each run's model from the `PRICES` table in the script, with the date the price
+was read (Bedrock, us-east-1: `openai.gpt-oss-120b-1:0` at US$0.15 and US$0.60 per million input and output tokens,
+2026-10-20). A model without a price gets an empty cost cell. Tokens and cost cover finished problems only, because no
+usage is saved for a failed problem, so the cost is a lower bound when runs fail. It writes `efficiency.csv`,
+`tokens_by_step.csv` (where each system spends its tokens, from `usage_by_step`) and `efficiency.json`.
+
 ## Evaluation rule
 
 A predicted objective counts as correct when `|predicted - reference| <= 0.002 * |reference|`, the same rule as the
@@ -263,6 +280,7 @@ scripts/make_samples.py      regenerates the sample files with seed 0
 scripts/analyze_e3.py        E3 equal-budget analysis from saved records
 scripts/compare_baselines.py B0 and B1 per class and the base-paper comparison
 scripts/plot_e3.py           E3 accuracy-cost and risk-coverage plots
+scripts/efficiency.py        E6 efficiency and reliability from saved runs
 tests/
 docs/architecture.md
 docs/devlog.md    development log: each failure, the fix and its measured effect
