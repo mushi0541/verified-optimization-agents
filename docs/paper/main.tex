@@ -296,7 +296,7 @@ Integrality error & 0 & 2 & 2 \\
 \textbf{Wrong constraints, mostly in TSP.} All 16 infeasible models are TSP models with a wrongly written
 Miller-Tucker-Zemlin subtour constraint. Fourteen apply it to every pair of cities, the start city included, which
 rules out every complete tour; two apply it to undirected edges, which forces $u_i < u_j$ and $u_j < u_i$ at once.
-For 11 of the 14, leaving the start city out of that one constraint makes the same code return the reference value.
+For 10 of the 14, leaving the start city out of that one constraint makes the same code return the reference value.
 The repair round sees an infeasible status but does not find the cause, so these problems are refused rather than
 answered. A repair prompt that names common causes of infeasibility is a direct fix.
 
@@ -330,7 +330,8 @@ stated model's optimum to every digit. These references therefore follow a model
 \item \textbf{Inventory:} 106 of 117 readable references are reproduced, all of them with the storage capacity
 applying also right after a delivery arrives, which matches the usual wording (``at any moment''). Those references
 are sound, and an answer that checks the capacity only at the end of the day is a real model error. Three questions
-say ``at the end of any day'', yet their references still use the stricter rule.
+say ``at the end of any day''; for two of them only the stricter rule gives the reference, which contradicts their
+text.
 \end{itemize}
 Following our protocol, every result is reported with all problems, and Gap~2 is also reported without Pollution,
 with this reason stated; no problem is dropped silently.
