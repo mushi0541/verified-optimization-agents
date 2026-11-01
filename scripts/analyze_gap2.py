@@ -12,8 +12,10 @@ For each pipeline repeat and each target alpha (5%, 10% and 20% by default):
 B0 is the reference: it answers whenever its first model is optimal and never abstains.
 
 H2 is supported in a repeat when, at alpha = 10%, the pooled held-out wrong-accept rate is at most alpha and at least
-50% of all problems are answered; the exact upper bound is reported next to it. Over the repeats the verdict is
-"supported" only if it holds in every repeat.
+50% of all problems are answered. Failed problems (from each run's summary.json) count as problems that were not
+answered. The one-sided 95% exact upper bound, the same bound the calibration uses, is reported next to it; the
+interval in the table is the two-sided 95% exact interval. Over the repeats the verdict is "supported" only if it holds
+in every repeat.
 
 The risk-coverage curve (wrong-accept rate against coverage as the threshold moves over every score) is written to
 risk_coverage.csv and drawn to risk_coverage.pdf and .png, with the calibrated and fixed thresholds marked.
@@ -22,42 +24,55 @@ risk_coverage.csv and drawn to risk_coverage.pdf and .png, with the calibrated a
 import argparse
 import csv
 import json
+import math
 import statistics
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from optverify.calibration import fixed_threshold, leave_one_class_out, scored_answers  # noqa: E402
+from optverify.calibration import (  # noqa: E402
+    fixed_threshold,
+    leave_one_class_out,
+    load_run,
+    scored_answers,
+    upper_bound,
+)
 from optverify.grading import is_correct  # noqa: E402
 
 H2_ALPHA = 0.10
 MIN_COVERAGE = 0.5
 
 
-def load(path: Path) -> list[dict]:
-    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+def alpha_key(alpha: float) -> str:
+    """The key of an alpha in the results, e.g. 0.1 -> "0.1"."""
+    return f"{alpha:g}"
+
+
+def h2_alpha(alphas: list[float]) -> float | None:
+    """The alpha among the given ones that H2 is tested at, compared as numbers, not as text."""
+    return next((alpha for alpha in alphas if math.isclose(alpha, H2_ALPHA)), None)
 
 
 def risk_coverage(records: list[dict]) -> list[dict]:
-    """Coverage and wrong-accept rate for every threshold, from strict to lenient."""
-    finished = [r for r in records if "failed" not in r]
-    scored = scored_answers(finished)
+    """Coverage (over every problem, failed ones included) and wrong-accept rate for every threshold, strict to lenient."""
+    scored = scored_answers([r for r in records if "failed" not in r])
     points = []
     for threshold in sorted({score for score, _ in scored}, reverse=True):
         accepted = [correct for score, correct in scored if score >= threshold]
         points.append({
             "threshold": threshold,
-            "coverage": len(accepted) / len(finished),
+            "coverage": len(accepted) / len(records),
             "wrong_accept_rate": accepted.count(False) / len(accepted),
         })
     return points
 
 
 def b0_reference(baseline: list[dict], problem_ids: set[str]) -> dict:
-    """B0 (the first attempt of B1 records) on the same problems; it answers whenever its model is optimal."""
-    rows = [r for r in baseline if "failed" not in r and r["problem_id"] in problem_ids]
-    answered = [r for r in rows if r["attempts"][0]["solve"]["status"] == "optimal"]
+    """B0 (the first attempt of B1 records) on the same problems; it answers whenever its model is optimal. A failed
+    problem counts as not answered."""
+    rows = [r for r in baseline if r["problem_id"] in problem_ids]
+    answered = [r for r in rows if "failed" not in r and r["attempts"][0]["solve"]["status"] == "optimal"]
     wrong = sum(not is_correct(r["attempts"][0]["solve"]["objective"], r["reference"]) for r in answered)
     return {
         "problems": len(rows),
@@ -71,17 +86,23 @@ def b0_reference(baseline: list[dict], problem_ids: set[str]) -> dict:
 def h2_check(test: dict) -> dict:
     pooled = test["pooled"]
     rate = pooled["wrong_accept_rate"]
+    bound = upper_bound(pooled["wrong_accepted"], pooled["answered"]) if pooled["answered"] else None
     return {
         "rate_ok": rate is not None and rate <= test["alpha"],
         "coverage_ok": pooled["coverage"] >= MIN_COVERAGE,
-        "upper_bound_ok": pooled["exact_interval"][1] <= test["alpha"],
+        "one_sided_upper_bound": bound,
+        "upper_bound_ok": bound is not None and bound <= test["alpha"],
         "supported": rate is not None and rate <= test["alpha"] and pooled["coverage"] >= MIN_COVERAGE,
     }
 
 
 def analyze_run(records: list[dict], alphas: list[float], fixed: float, subset: set[str] | None) -> dict:
+    if subset:
+        found = subset & {r["problem_id"] for r in records}
+        if found != subset:
+            raise SystemExit(f"the records hold {len(found)} of the {len(subset)} --subset problems; use the subset's own runs")
     result = {
-        "problems": sum("failed" not in r for r in records),
+        "problems": len(records),
         "failed_problems": sum("failed" in r for r in records),
         "by_alpha": {},
         "fixed": fixed_threshold(records, fixed),
@@ -94,7 +115,7 @@ def analyze_run(records: list[dict], alphas: list[float], fixed: float, subset: 
             small = leave_one_class_out([r for r in records if r["problem_id"] in subset], alpha)
             entry["subset"] = {"problems": small["problems"], "pooled": small["pooled"]}
             entry["interval_width"] = {"all": _width(test["pooled"]), "subset": _width(small["pooled"])}
-        result["by_alpha"][str(alpha)] = entry
+        result["by_alpha"][alpha_key(alpha)] = entry
     return result
 
 
@@ -115,17 +136,18 @@ def mean_and_sd(values: list[float | None]) -> dict:
 def summarize(runs: list[dict], alphas: list[float]) -> dict:
     summary = {"by_alpha": {}}
     for alpha in alphas:
-        tests = [run["by_alpha"][str(alpha)]["test"] for run in runs]
-        summary["by_alpha"][str(alpha)] = {
-            "wrong_accept_rate": mean_and_sd([t["pooled"]["wrong_accept_rate"] for t in tests]),
-            "coverage": mean_and_sd([t["pooled"]["coverage"] for t in tests]),
-            "upper_bound": mean_and_sd([t["pooled"]["exact_interval"][1] for t in tests]),
+        entries = [run["by_alpha"][alpha_key(alpha)] for run in runs]
+        summary["by_alpha"][alpha_key(alpha)] = {
+            "wrong_accept_rate": mean_and_sd([e["test"]["pooled"]["wrong_accept_rate"] for e in entries]),
+            "coverage": mean_and_sd([e["test"]["pooled"]["coverage"] for e in entries]),
+            "one_sided_upper_bound": mean_and_sd([e["h2"]["one_sided_upper_bound"] for e in entries]),
         }
     summary["fixed"] = {
         "wrong_accept_rate": mean_and_sd([run["fixed"]["wrong_accept_rate"] for run in runs]),
         "coverage": mean_and_sd([run["fixed"]["coverage"] for run in runs]),
     }
-    checks = [run["by_alpha"][str(H2_ALPHA)]["h2"] for run in runs] if str(H2_ALPHA) in runs[0]["by_alpha"] else []
+    tested = h2_alpha(alphas)
+    checks = [run["by_alpha"][alpha_key(tested)]["h2"] for run in runs] if tested is not None else []
     if not checks:
         summary["h2"] = f"not tested (alpha {H2_ALPHA} was not among the alphas)"
     elif all(c["supported"] for c in checks):
@@ -144,7 +166,7 @@ def markdown(result: dict) -> str:
              "|---|---|---|---|---|---|---|"]
     for i, run in enumerate(runs, start=1):
         for alpha in alphas:
-            test = run["by_alpha"][str(alpha)]["test"]
+            test = run["by_alpha"][alpha_key(alpha)]["test"]
             pooled = test["pooled"]
             low, high = pooled["exact_interval"]
             threshold = "answer nothing" if test["threshold"] is None else f"{test['threshold']:.3f}"
@@ -153,11 +175,11 @@ def markdown(result: dict) -> str:
         fixed = run["fixed"]
         lines.append(f"| {i} | fixed {fixed['threshold']} | {fixed['answered']} / {run['problems']} | {_pct(fixed['coverage'])} | "
                      f"{fixed['wrong_accepted']} | {_pct(fixed['wrong_accept_rate'])} | {fixed['threshold']} |")
-    if any("interval_width" in run["by_alpha"][str(a)] for run in runs for a in alphas):
+    if any("interval_width" in run["by_alpha"][alpha_key(a)] for run in runs for a in alphas):
         lines += ["", "Width of the pooled exact interval, all problems against the subset:", ""]
         for i, run in enumerate(runs, start=1):
             for alpha in alphas:
-                entry = run["by_alpha"][str(alpha)]
+                entry = run["by_alpha"][alpha_key(alpha)]
                 if "interval_width" in entry:
                     w = entry["interval_width"]
                     lines.append(f"- Run {i}, alpha {alpha:.0%}: {w['all']:.3f} ({run['problems']} problems) against "
@@ -193,8 +215,9 @@ def write_curve(result: dict, out: Path) -> None:
         fixed = run["fixed"]
         if fixed["wrong_accept_rate"] is not None:
             axis.scatter([fixed["coverage"]], [fixed["wrong_accept_rate"]], marker="s", color="black", zorder=3,
-                         label="Fixed threshold 0.8" if i == 1 else None)
-        pooled = run["by_alpha"].get(str(H2_ALPHA), {}).get("test", {}).get("pooled")
+                         label=f"Fixed threshold {fixed['threshold']:g}" if i == 1 else None)
+        tested = h2_alpha(result["settings"]["alphas"])
+        pooled = run["by_alpha"][alpha_key(tested)]["test"]["pooled"] if tested is not None else None
         if pooled and pooled["wrong_accept_rate"] is not None:
             axis.scatter([pooled["coverage"]], [pooled["wrong_accept_rate"]], marker="*", s=90, color="tab:red", zorder=3,
                          label=f"Calibrated, alpha {H2_ALPHA:.0%} (held out)" if i == 1 else None)
@@ -223,7 +246,7 @@ def main() -> None:
     parser.add_argument("--out", type=Path, help="folder for gap2.json, gap2.md and the risk-coverage curve")
     args = parser.parse_args()
 
-    all_records = [load(path) for path in args.records]
+    all_records = [load_run(path) for path in args.records]  # failed problems included, as unanswered
     subset = set(json.loads(args.subset.read_text(encoding="utf-8"))) if args.subset else None
     runs = [analyze_run(records, args.alphas, args.fixed_threshold, subset) for records in all_records]
     result = {
@@ -234,8 +257,8 @@ def main() -> None:
         "summary": summarize(runs, args.alphas),
     }
     if args.baseline:
-        problem_ids = {r["problem_id"] for records in all_records for r in records if "failed" not in r}
-        result["b0"] = b0_reference(load(args.baseline), problem_ids)
+        problem_ids = {r["problem_id"] for records in all_records for r in records}
+        result["b0"] = b0_reference(load_run(args.baseline), problem_ids)
     text = markdown(result)
     print(text)
     if args.out:

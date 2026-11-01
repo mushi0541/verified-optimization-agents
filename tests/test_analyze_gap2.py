@@ -1,7 +1,11 @@
 """Tests for the Gap 2 (H2) analysis on small hand-made records."""
 
+import json
+
 import pytest
 
+import optverify.calibration
+from optverify.calibration import load_run
 from scripts.analyze_gap2 import analyze_run, b0_reference, h2_check, risk_coverage, summarize
 
 
@@ -31,10 +35,10 @@ def _canonical(per_class: int) -> list[dict]:
 
 def test_risk_coverage_moves_from_strict_to_lenient():
     records = [_record("a", "A", 1.0, True), _record("b", "A", 0.9, False), _record("c", "A", 0.5, True),
-               _record("d", "A", 0.0, False, feasible=False), {"problem_id": "e", "failed": "timeout"}]
+               _record("d", "A", 0.0, False, feasible=False), {"problem_id": "e", "problem_class": "A", "failed": True}]
     points = risk_coverage(records)
     assert [p["threshold"] for p in points] == [1.0, 0.9, 0.5]
-    assert [p["coverage"] for p in points] == [0.25, 0.5, 0.75]  # over the 4 finished problems
+    assert [p["coverage"] for p in points] == [0.2, 0.4, 0.6]  # over all 5 problems: the failed one is not answered
     assert [p["wrong_accept_rate"] for p in points] == [0.0, 0.5, pytest.approx(1 / 3)]
 
 
@@ -54,13 +58,19 @@ def test_twenty_per_class_narrows_the_interval_against_ten():
 
 
 def test_h2_needs_the_rate_and_half_of_the_problems_answered():
-    def test_with(rate, coverage, upper):
-        return {"alpha": 0.10, "pooled": {"wrong_accept_rate": rate, "coverage": coverage, "exact_interval": [0.0, upper]}}
+    def test_with(wrong, answered, coverage):
+        rate = wrong / answered if answered else None
+        return {"alpha": 0.10,
+                "pooled": {"wrong_accepted": wrong, "answered": answered, "wrong_accept_rate": rate, "coverage": coverage}}
 
-    assert h2_check(test_with(0.05, 0.9, 0.08)) == {"rate_ok": True, "coverage_ok": True, "upper_bound_ok": True, "supported": True}
-    assert not h2_check(test_with(0.05, 0.4, 0.08))["supported"]  # too few answered
-    assert not h2_check(test_with(0.12, 0.9, 0.2))["supported"]
-    assert not h2_check(test_with(None, 0.0, 1.0))["supported"]  # nothing answered
+    check = h2_check(test_with(2, 100, 0.9))
+    assert (check["rate_ok"], check["coverage_ok"], check["upper_bound_ok"], check["supported"]) == (True, True, True, True)
+    assert check["one_sided_upper_bound"] == pytest.approx(0.0616, abs=1e-4)  # the bound the calibration uses
+    point_only = h2_check(test_with(5, 100, 0.9))  # 5% wrong, but the one-sided bound is 10.2%
+    assert point_only["supported"] and not point_only["upper_bound_ok"]
+    assert not h2_check(test_with(5, 100, 0.4))["supported"]  # too few answered
+    assert not h2_check(test_with(12, 100, 0.9))["supported"]
+    assert not h2_check(test_with(0, 0, 0.0))["supported"]  # nothing answered
 
     run = analyze_run(_canonical(20), [0.10], 0.8, None)
     summary = summarize([run, run], [0.10])
@@ -78,3 +88,28 @@ def test_b0_answers_whenever_its_first_model_is_optimal():
     ]
     b0 = b0_reference(baseline, {"a", "b", "c", "z"})
     assert (b0["problems"], b0["answered"], b0["wrong_accepted"], b0["wrong_accept_rate"]) == (3, 2, 1, 0.5)
+    with_failed = b0_reference(baseline + [{"problem_id": "z", "problem_class": "A", "failed": True}], {"a", "b", "c", "z"})
+    assert (with_failed["problems"], with_failed["answered"]) == (4, 2)  # a failed problem is not answered
+
+
+def test_failed_problems_in_the_summary_lower_coverage(tmp_path, monkeypatch):
+    # A real run folder: run.py writes failed problems only to summary.json, never to records.jsonl.
+    records = _canonical(20)
+    failed = [r for r in records if int(r["problem_id"].split("-")[1]) >= 12]  # 8 per class, 80 of 200
+    finished = [r for r in records if r not in failed]
+    (tmp_path / "records.jsonl").write_text("".join(json.dumps(r) + "\n" for r in finished), encoding="utf-8")
+    summary = {"failed_problems": [r["problem_id"] for r in failed]}
+    (tmp_path / "summary.json").write_text(json.dumps(summary), encoding="utf-8")
+    monkeypatch.setattr(optverify.calibration, "problem_classes",
+                        lambda ids: {r["problem_id"]: r["problem_class"] for r in failed if r["problem_id"] in ids})
+
+    run = analyze_run(load_run(tmp_path / "records.jsonl"), [0.10], 0.8, None)
+    assert (run["problems"], run["failed_problems"]) == (200, 80)
+    pooled = run["by_alpha"]["0.1"]["test"]["pooled"]
+    assert pooled["coverage"] < 0.5  # with the failed problems counted, H2's coverage condition fails
+    assert not run["by_alpha"]["0.1"]["h2"]["coverage_ok"]
+
+
+def test_subset_must_be_in_the_records():
+    with pytest.raises(SystemExit, match="0 of the 2 --subset problems"):
+        analyze_run(_canonical(20), [0.10], 0.8, {"other-1", "other-2"})
