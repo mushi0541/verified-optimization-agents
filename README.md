@@ -129,6 +129,19 @@ The fixed problem sets are stored as ID lists in `samples/`. To run on one, pass
 
 `--sample-file` also reads constraint pair files (it runs both problems of every pair). It cannot be combined with `--per-class` or `--seed`.
 
+### Continuing a run after failures
+
+A problem whose LLM calls fail (for example during a network outage) is listed under `failed_problems` in the run's
+`summary.json` and left out of `records.jsonl`. To run only those problems again and add them to the same run, repeat
+the command with `--resume` and the run's folder:
+
+    python -m optverify.run pipeline --model <model> --sample-file samples/canonical_200.json --repairs 1 --paraphrases 3 \
+        --resume results/<run folder>
+
+All settings must be the same as in the first command (only `--workers` and `--env-file` may change); otherwise the
+run is refused. `summary.json` is then rewritten over all records, and its `resumes` field counts how often the run
+was continued.
+
 To regenerate the sample files (needs the downloaded data):
 
     python scripts/make_samples.py
@@ -308,7 +321,9 @@ report objective D1), solver error and timeout rates, and the repair success rat
 as the repair success rate when nothing needed repair) is left out of that mean, and the output says how many repeats
 had a value. Cost uses the price of each run's model from the `PRICES` table in the script, with the date the price
 was read (Bedrock, us-east-1: `openai.gpt-oss-120b-1:0` at US$0.15 and US$0.60 per million input and output tokens,
-2026-10-20). A model without a price gets an empty cost cell. Tokens and cost cover finished problems only, because no
+2026-10-20). A model without a price gets an empty cost cell. When a record splits its tokens by model (a
+second paraphrase model), each model is priced on its own. Runs with a second paraphraser or other verifier switches
+are never averaged with the main runs. Tokens and cost cover finished problems only, because no
 usage is saved for a failed problem, so the cost is a lower bound when runs fail. It writes `efficiency.csv`,
 `tokens_by_step.csv` (where each system spends its tokens, from `usage_by_step`) and `efficiency.json`.
 
