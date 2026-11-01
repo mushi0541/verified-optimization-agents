@@ -12,9 +12,13 @@ With --paper, the base paper's SIR accuracy per class (entered by hand from the 
 paper's 0.1% rule. The file maps our class names to a value and its source, for example:
     {"Knapsack": {"sir_accuracy": 0.95, "source": "Table 3, DeepSeek-V3.2, mean over levels"}}
 
-Repeats (course E1 and E2): pass each run with its own --repeat. The tables then give the mean and standard deviation
-over the repeats, with our reproduced numbers and the numbers reported in the paper in separate, labelled columns,
-and --out-dir writes e1_e2.json, e1_e2.md and e1_e2.csv.
+Repeats (course E1 and E2): pass each run with its own --repeat. Runs are grouped by the model in their records, and
+each model gets one block labelled "reproduced (<model>, our runs)", so our gpt-oss-120b runs and the DeepSeek-V3.2
+reproduction sit side by side; a block of B0-only runs (no repair round) leaves the B1 and repair cells empty. Each
+number is the mean and sample standard deviation (n - 1) over the block's repeats, which needs 2 or more repeats.
+The last column is the SIR accuracy reported in the paper: one number, with no standard deviation. The tables also
+give silent failures and the problems fixed and broken by the repair round. --out-dir writes e1_e2.json, e1_e2.md
+and e1_e2.csv.
 
 Examples:
     python scripts/compare_baselines.py --baseline results/baseline_..._r1_.../records.jsonl --paper paper_sir.json --markdown
@@ -36,17 +40,26 @@ from scripts.analyze_e3 import baseline_points, clopper_pearson, load_records, m
 
 PAPER_TOLERANCE = 0.001  # the tolerance stated in the base paper's text
 SYSTEMS = ("B0", "B1")
-REPRODUCED = "reproduced (gpt-oss-120b, our runs)"
+REPRODUCED = "reproduced ({model}, our runs)"
 REPORTED = "reported in OPT-Engine (DeepSeek-V3.2, Table 2)"
+DEVIATION_NOTE = (
+    "Mean ± sample standard deviation (n - 1) over the repeats; the deviation needs 2 or more repeats. "
+    "The paper's value is one reported number, with no standard deviation, and uses its 0.1% rule."
+)
 SYSTEM_METRICS = ("accuracy", "accuracy_strict", "solved_rate", "silent_failures", "mean_tokens", "mean_calls")
 REPAIR_METRICS = ("fixed", "broken")
-# Columns of the repeat tables: (system, metric, label).
+# Columns of the repeat tables: (system or "repair", metric, label).
 TABLE_COLUMNS = [
     ("B0", "accuracy", "B0 accuracy, 0.2% rule"),
     ("B0", "accuracy_strict", "B0 accuracy, 0.1% rule"),
     ("B1", "accuracy", "B1 accuracy, 0.2% rule"),
     ("B1", "accuracy_strict", "B1 accuracy, 0.1% rule"),
+    ("B0", "silent_failures", "B0 silent failures"),
+    ("B1", "silent_failures", "B1 silent failures"),
+    ("repair", "fixed", "Fixed by repair"),
+    ("repair", "broken", "Broken by repair"),
 ]
+COUNT_COLUMNS = {label for _, metric, label in TABLE_COLUMNS if metric in ("silent_failures", "fixed", "broken")}
 
 
 def main() -> None:
@@ -54,7 +67,7 @@ def main() -> None:
     runs = parser.add_mutually_exclusive_group(required=True)
     runs.add_argument("--baseline", nargs="+", help="records.jsonl of one B1 run (baseline with --repairs 1)")
     runs.add_argument(
-        "--repeat", nargs="+", action="append", help="records.jsonl of one repeat of the B1 run; give once per repeat"
+        "--repeat", nargs="+", action="append", help="records.jsonl of one repeat (B1, or B0 only); give once per repeat; grouped by model"
     )
     parser.add_argument("--paper", help="JSON file with the base paper's SIR accuracy per class")
     parser.add_argument("--out", help="file to write the JSON result to")
@@ -64,7 +77,10 @@ def main() -> None:
 
     paper = json.loads(Path(args.paper).read_text(encoding="utf-8")) if args.paper else None
     if args.repeat:
-        result = compare_repeats([load_records(paths) for paths in args.repeat], paper)
+        try:
+            result = compare_models([load_records(paths) for paths in args.repeat], paper)
+        except ValueError as error:
+            parser.error(str(error))
         if args.out_dir:
             write_repeat_tables(result, Path(args.out_dir))
         print(repeats_markdown_table(result) if args.markdown else json.dumps(result, indent=2))
@@ -165,22 +181,49 @@ def markdown_table(result: dict) -> str:
     return "\n".join(lines)
 
 
+def compare_models(repeats: list[dict[str, dict]], paper: dict | None = None) -> dict:
+    """Group the repeats by the model that produced them, then compare_repeats() for each model.
+
+    Each model gets its own block, labelled "reproduced (<model>, our runs)". A block may hold B0-only runs (no
+    repair round), as for the DeepSeek-V3.2 reproduction of the base paper; its B1 and repair cells stay empty.
+    """
+    by_model: dict[str, list] = {}
+    for records in repeats:
+        models = {record["model"] for record in records.values()}
+        if len(models) != 1:
+            raise ValueError(f"one repeat mixes models: {sorted(models)}")
+        by_model.setdefault(models.pop(), []).append(records)
+    return {
+        "labels": {"reproduced": REPRODUCED, "reported": REPORTED},
+        "deviation": DEVIATION_NOTE,
+        "models": [{"model": model, **compare_repeats(group, paper)} for model, group in by_model.items()],
+    }
+
+
 def compare_repeats(repeats: list[dict[str, dict]], paper: dict | None = None) -> dict:
-    """compare() for each repeat of the same B1 run, then the mean and standard deviation of each number."""
+    """compare() for each repeat of the same run, then the mean and standard deviation of each number."""
     if not repeats:
         raise ValueError("no repeats")
-    if any(set(records) != set(repeats[0]) for records in repeats):
-        raise ValueError("the repeats do not cover the same problems")
+    for records in repeats[1:]:
+        if set(records) != set(repeats[0]):
+            differing = sorted(set(records) ^ set(repeats[0]))
+            raise ValueError(f"the repeats do not cover the same problems; for example {', '.join(differing[:5])}")
+    systems = {record["system"] for records in repeats for record in records.values()}
+    if len(systems) != 1:
+        raise ValueError(f"the repeats mix settings: {sorted(systems)}")
+    with_repair = systems.pop() != "baseline_r0"
     runs = [compare(records, paper) for records in repeats]
+    model = next(iter(repeats[0].values()))["model"]
     result = {
+        "label": REPRODUCED.format(model=model),
         "repeats": len(runs),
-        "labels": {"reproduced": REPRODUCED, "reported": REPORTED},
+        "with_repair": with_repair,
         "tolerances": runs[0]["tolerances"],
-        "overall": _aggregate([run["overall"] for run in runs]),
+        "overall": _aggregate([run["overall"] for run in runs], with_repair),
         "classes": {},
     }
     for name in runs[0]["classes"]:
-        summary = _aggregate([run["classes"][name] for run in runs])
+        summary = _aggregate([run["classes"][name] for run in runs], with_repair)
         paper_sir = runs[0]["classes"][name].get("paper_sir")
         if paper_sir:
             summary["reported"] = {"accuracy": paper_sir["accuracy"], "source": paper_sir["source"]}
@@ -191,29 +234,36 @@ def compare_repeats(repeats: list[dict[str, dict]], paper: dict | None = None) -
     return result
 
 
-def _aggregate(summaries: list[dict]) -> dict:
+def _aggregate(summaries: list[dict], with_repair: bool = True) -> dict:
+    missing = {"mean": None, "sd": None}
     aggregated = {"problems": summaries[0]["problems"]}
     for name in SYSTEMS:
+        if name == "B1" and not with_repair:  # a B0-only run has no B1
+            aggregated[name] = {metric: missing for metric in SYSTEM_METRICS}
+            continue
         aggregated[name] = {metric: mean_and_sd([s[name][metric] for s in summaries]) for metric in SYSTEM_METRICS}
-    aggregated["repair"] = {metric: mean_and_sd([s["repair"][metric] for s in summaries]) for metric in REPAIR_METRICS}
+    aggregated["repair"] = {
+        metric: mean_and_sd([s["repair"][metric] for s in summaries]) if with_repair else missing
+        for metric in REPAIR_METRICS
+    }
     return aggregated
 
 
 def mean_and_sd(values: list) -> dict:
-    """Mean and sample standard deviation over repeats. The deviation needs two repeats, and a missing value
-    (an unknown cost) leaves both missing."""
+    """Mean and sample standard deviation (n - 1) over repeats. The deviation needs 2 or more repeats, and a missing
+    value (an unknown cost) leaves both missing."""
     if not values or None in values:
         return {"mean": None, "sd": None}
     return {"mean": statistics.mean(values), "sd": statistics.stdev(values) if len(values) >= 2 else None}
 
 
-def repeat_rows(result: dict) -> list[dict]:
+def repeat_rows(block: dict) -> list[dict]:
     """One row per class and one for all classes, shared by the Markdown and CSV tables."""
     rows = []
-    for name, summary in list(result["classes"].items()) + [("All classes", result["overall"])]:
+    for name, summary in list(block["classes"].items()) + [("All classes", block["overall"])]:
         row = {"class": name, "problems": summary["problems"]}
         for system, metric, label in TABLE_COLUMNS:
-            row[f"{label}, {REPRODUCED}"] = summary[system][metric]
+            row[label] = summary["repair"][metric] if system == "repair" else summary[system][metric]
         reported = summary.get("reported")
         row[f"SIR accuracy, {REPORTED}"] = reported["accuracy"] if reported else None
         rows.append(row)
@@ -221,18 +271,24 @@ def repeat_rows(result: dict) -> list[dict]:
 
 
 def repeats_markdown_table(result: dict) -> str:
-    rows = repeat_rows(result)
-    columns = list(rows[0])
-    lines = [
-        f"Mean ± standard deviation over {result['repeats']} repeat(s). The paper's values use its 0.1% rule.",
-        "",
-        "| " + " | ".join("Class" if c == "class" else "n" if c == "problems" else c for c in columns) + " |",
-        "|" + "---|" * len(columns),
-    ]
-    for row in rows:
-        cells = [str(row["class"]), str(row["problems"])]
-        cells += [_mean_sd_text(row[c]) if isinstance(row[c], dict) else _percent(row[c]) for c in columns[2:]]
-        lines.append("| " + " | ".join(cells) + " |")
+    lines = [DEVIATION_NOTE]
+    for block in result["models"]:
+        rows = repeat_rows(block)
+        columns = list(rows[0])[2:]
+        title = f"### {block['label']}: {block['repeats']} repeat(s)"
+        lines += [
+            "",
+            title if block["with_repair"] else title + ", B0 only (no repair round)",
+            "",
+            "| Class | n | " + " | ".join(columns) + " |",
+            "|---|---|" + "---|" * len(columns),
+        ]
+        for row in rows:
+            cells = [str(row["class"]), str(row["problems"])]
+            for column in columns:
+                value = row[column]
+                cells.append(_mean_sd_text(value, column in COUNT_COLUMNS) if isinstance(value, dict) else _percent(value))
+            lines.append("| " + " | ".join(cells) + " |")
     return "\n".join(lines)
 
 
@@ -240,26 +296,29 @@ def write_repeat_tables(result: dict, out_dir: Path) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "e1_e2.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
     (out_dir / "e1_e2.md").write_text(repeats_markdown_table(result) + "\n", encoding="utf-8")
-    rows = repeat_rows(result)
     with (out_dir / "e1_e2.csv").open("w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
-        header = ["class", "problems"]
-        for column in list(rows[0])[2:]:
-            header += [f"{column} (mean)", f"{column} (sd)"] if isinstance(rows[0][column], dict) else [column]
-        writer.writerow(header)
-        for row in rows:
-            cells = [row["class"], row["problems"]]
-            for column in list(row)[2:]:
-                value = row[column]
-                cells += [value["mean"], value["sd"]] if isinstance(value, dict) else [value]
-            writer.writerow(["" if cell is None else cell for cell in cells])
+        for number, block in enumerate(result["models"]):
+            rows = repeat_rows(block)
+            columns = list(rows[0])[2:]
+            if number == 0:
+                header = ["model", "repeats", "class", "problems"]
+                for column in columns:
+                    header += [f"{column} (mean)", f"{column} (sd)"] if isinstance(rows[0][column], dict) else [column]
+                writer.writerow(header)
+            for row in rows:
+                cells = [block["model"], block["repeats"], row["class"], row["problems"]]
+                for column in columns:
+                    value = row[column]
+                    cells += [value["mean"], value["sd"]] if isinstance(value, dict) else [value]
+                writer.writerow(["" if cell is None else cell for cell in cells])
 
 
-def _mean_sd_text(value: dict) -> str:
+def _mean_sd_text(value: dict, as_count: bool = False) -> str:
     if value["mean"] is None:
         return ""
-    text = f"{value['mean']:.1%}"
-    return text if value["sd"] is None else f"{text} ± {value['sd']:.1%}"
+    show = (lambda v: f"{v:.1f}") if as_count else (lambda v: f"{v:.1%}")
+    return show(value["mean"]) if value["sd"] is None else f"{show(value['mean'])} ± {show(value['sd'])}"
 
 
 def _percent(value: float | None) -> str:
