@@ -77,7 +77,8 @@ def main() -> None:
     load_dotenv(args.env_file, override=False)
     llm = make_llm(args.model)
     sample_llm = with_temperature(llm, args.sample_temperature)
-    paraphrase_llm = paraphrase_client(args, llm)
+    # The paraphraser exists only in the pipeline; baseline and b2 runs never build a second client.
+    paraphrase_llm = paraphrase_client(args, llm) if args.system == "pipeline" else None
     if args.sample_file:
         problems = load_sample_file(args.sample_file)
     else:
@@ -120,7 +121,7 @@ def main() -> None:
         "config": {
             **{k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
             "endpoint": _endpoint(args.model),
-            "paraphrase_endpoint": _endpoint(args.paraphrase_model or args.model),
+            "paraphrase_endpoint": _endpoint(args.paraphrase_model or args.model) if args.system == "pipeline" else None,
         },
         "failed_problems": [record["problem_id"] for record in records if "failed" in record],
         **summarize(finished),

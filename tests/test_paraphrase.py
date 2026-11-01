@@ -123,3 +123,24 @@ def test_the_run_records_the_paraphrase_model_and_its_endpoint(tmp_path, monkeyp
     config = json.loads((folder / "summary.json").read_text(encoding="utf-8"))["config"]
     assert config["paraphrase_model"] == "bedrock:deepseek.v3.2"
     assert config["paraphrase_endpoint"] == "bedrock us-east-1" and config["endpoint"] == "bedrock us-east-1"
+
+
+def test_only_the_pipeline_builds_a_second_paraphrase_client(tmp_path, monkeypatch):
+    made = []
+
+    def fake_make_llm(spec, temperature=0.0):
+        made.append(spec)
+        return FakeLLM()
+
+    monkeypatch.setattr(run_module, "make_llm", fake_make_llm)
+    monkeypatch.setattr(run_module, "RESULTS_DIR", tmp_path)
+    argv = ["run", "baseline", "--model", "bedrock:openai.gpt-oss-120b-1:0", "--paraphrase-model", "bedrock:deepseek.v3.2",
+            "--split", "opsor", "--per-class", "1", "--workers", "1", "--env-file", str(tmp_path / "none")]
+    monkeypatch.setattr("sys.argv", argv)
+    run_module.main()
+
+    assert made == ["bedrock:openai.gpt-oss-120b-1:0"]  # no unused second client for a baseline run
+    (folder,) = tmp_path.iterdir()
+    assert "_para-" not in folder.name
+    config = json.loads((folder / "summary.json").read_text(encoding="utf-8"))["config"]
+    assert config["paraphrase_endpoint"] is None
