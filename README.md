@@ -46,6 +46,7 @@ operations questions into optimization models, verify those models, and answer, 
 | Interactive interface | All | `optverify/web.py`, `optverify/static/index.html` | Done |
 | Requirement coverage: the parser's requirements get IDs (R1, R2, ...), the formalizer names each constraint after its requirement, and the verifier scores the share of requirements linked to a constraint | Gap 1 | `optverify/roles.py` `number_requirements`, `optverify/prompts.py`, `optverify/solver_tool.py`, `optverify/verifier.py` `requirement_coverage` | Done; checked on the dev split (see below) |
 | Switches for each signal and the parser, and rescoring of saved records for ablations (i) to (vii) | Gap 1 | `--signals`, `--no-parser` in `run.py`; `optverify/rescore.py`, `scripts/rescore.py` | Done |
+| E4 Gap 1 analysis: AUROC of each signal and of the combined score, bootstrap intervals, the H1 verdict | Gap 1 | `scripts/analyze_gap1.py` | Done; results after the E3 runs (#34) |
 | Calibrated threshold for a target wrong-accept rate alpha, with the leave-one-class-out test | Gap 2 | `optverify/calibration.py`, `scripts/calibrate.py`, `--calibration` in `run.py` and `web.py` | Done; runs in #36 |
 
 ## Setup
@@ -243,7 +244,24 @@ model, mean tokens and calls, and the decision: answered, wrong accepted, covera
 its exact 95% interval (per fold and pooled with `--alpha`). `--no-repair` is exact: a first attempt that is optimal
 never ran a repair, and one that is not means the pipeline abstains.
 
-## E3 analysis (Gap 3, no API calls)
+## Gap 1 analysis: do the signals detect wrong models? (E4, H1, no API calls)
+
+```bash
+python scripts/analyze_gap1.py --records results/<pipeline repeat 1>/records.jsonl results/<repeat 2>/records.jsonl \
+    --baseline results/<B1 run>/records.jsonl --out results/gap1/canonical_200
+```
+
+For each repeat it gives the AUROC for separating correct from wrong final answers of feasibility alone, of each
+signal alone, of the combined score and of the combined score without each signal (the same scores as ablations i to
+iii), with paired bootstrap 95% intervals and the mean and standard deviation over the repeats. At the decision
+threshold (`--threshold`, or `--calibration <file>`) it reports coverage, precision and recall of the accepted
+answers, and with `--baseline` the B0 numbers on the same problems. Constraint-pair and linguistic runs are also split
+into original and augmented problems and into easy, moderate and hard wording.
+
+H1 counts as supported in a repeat when the combined AUROC is at least 0.10 above feasibility alone with the interval
+of the gain above 0, and removing any one signal lowers the AUROC (each interval of the drop above 0). The verdict is
+"supported" only if this holds in every repeat, and "partly supported" if only the gain holds.
+
 
 Compares the pipeline and B2 at k = 1, 2, 3 from saved records. The pipeline records must come from a run with
 `--paraphrases 3`; lower k are read from them by dropping the last paraphrase runs.
@@ -413,6 +431,7 @@ scripts/make_samples.py      regenerates the sample files with seed 0
 scripts/analyze_e3.py        E3 equal-budget analysis from saved records
 scripts/calibrate.py         Gap 2 calibration and leave-one-class-out test from saved records
 scripts/rescore.py           ablations (i) to (vii) from saved records, no API calls
+scripts/analyze_gap1.py      E4 Gap 1: AUROC of each signal and of the combined score, and the H1 verdict
 scripts/compare_baselines.py B0 and B1 per class and the base-paper comparison
 scripts/plot_e3.py           E3 accuracy-cost and risk-coverage plots
 scripts/efficiency.py        E6 efficiency and reliability from saved runs
