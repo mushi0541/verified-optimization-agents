@@ -128,3 +128,16 @@ def test_prompt_version_v2_has_its_own_folder_and_v1_runs_still_resume(monkeypat
     (v1_dir / "summary.json").write_text(json.dumps(summary), encoding="utf-8")
     _run(monkeypatch, tmp_path, "--resume", str(v1_dir))
     assert json.loads((v1_dir / "summary.json").read_text(encoding="utf-8"))["failed_problems"] == []
+
+
+def test_a_no_parser_run_has_its_own_folder_name(monkeypatch, tmp_path):
+    monkeypatch.setattr(run_module, "make_llm", lambda spec, temperature=0.0: FakeLLM())
+    monkeypatch.setattr(run_module, "RESULTS_DIR", tmp_path / "results")
+    monkeypatch.setenv("AWS_REGION", "us-east-1")
+    argv = ["run", "pipeline", "--model", "bedrock:openai.gpt-oss-120b-1:0", "--split", "opsor", "--per-class", "1",
+            "--paraphrases", "1", "--workers", "1", "--env-file", str(tmp_path / "none"), "--no-parser"]
+    monkeypatch.setattr("sys.argv", argv)
+    run_module.main()
+    (out_dir,) = (tmp_path / "results").iterdir()
+    assert out_dir.name.startswith("pipeline_bedrock-openai.gpt-oss-120b-1-0_noparser_opsor_r0_")  # ablation (iv)
+    assert json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))["config"]["no_parser"] is True

@@ -1,0 +1,63 @@
+{
+  "records": [
+    "results/pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_587_r1_20261101-2254/records.jsonl"
+  ],
+  "sample": null,
+  "runs": [
+    {
+      "top_score": 1.0,
+      "by_class": {
+        "BinPacking": {
+          "answers": 19,
+          "wrong": 0
+        },
+        "Inventory": {
+          "answers": 4,
+          "wrong": 1
+        },
+        "JobShop": {
+          "answers": 23,
+          "wrong": 0
+        },
+        "Knapsack": {
+          "answers": 57,
+          "wrong": 1
+        },
+        "NetworkFlow": {
+          "answers": 45,
+          "wrong": 0
+        },
+        "Pollution": {
+          "answers": 10,
+          "wrong": 10
+        },
+        "Portfolio": {
+          "answers": 6,
+          "wrong": 1
+        },
+        "Production": {
+          "answers": 54,
+          "wrong": 8
+        },
+        "TSP": {
+          "answers": 17,
+          "wrong": 0
+        },
+        "Transportation": {
+          "answers": 45,
+          "wrong": 0
+        }
+      },
+      "all": {
+        "answers": 280,
+        "wrong": 21,
+        "rate": 0.075
+      },
+      "without_pollution": {
+        "answers": 270,
+        "wrong": 11,
+        "rate": 0.040740740740740744
+      }
+    }
+  ]
+}

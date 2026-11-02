@@ -392,3 +392,130 @@ development split.
 which has only 5 TSP problems. It shows a cost of the parser that the Phase 1 design did not expect: an error in the
 parser's requirements reaches the model built from them. Here the models are mostly infeasible, so the checks refuse
 them: the cost falls on coverage, not on the wrong-accept rate.
+
+## 15. B2 stopped at its sample cap, below the pipeline's token budget
+
+**Date.** 2026-11-02 (#37, Gap 3). Found in the first 4 problems of B2 repeat 1 on `canonical_200`.
+
+**Failure.** B2 draws samples until its tokens reach the budget, or until it has `max_samples` samples. The budget is
+the E3 repeat 1 mean, 20,783 tokens per problem. With `max_samples` 10, all 10 samples were used at 15,196 to
+19,500 tokens, so the cap stopped B2 first, at a mean near 17,600. That is outside the 10% band of objective D3
+(18,705 to 22,861) and would compare B2 at a smaller budget than the pipeline, which is unfair to B2.
+
+**Change.** `--max-samples 20`, so the budget is what stops B2 on 199 of the 200 problems. The cap still stopped one:
+canonical-0947, a Knapsack problem with short samples, at 20,401 tokens. B2 is charged only for the samples within
+the budget (`samples_within_budget`). The 4-problem partial run was stopped and is not in `results/`, and the run started again
+from the beginning. `experiments/configs/G3.json` now says 20. A network outage stopped 88 problems of the new run;
+they were run again with `--resume` (`pass_2.txt`), so 200 of 200 finished with 0 failed.
+
+**Effect** (`results/gap3/canonical_200/`, `scripts/analyze_e3.py` against E3 repeat 1, B0 and B1 from #90):
+
+| Paraphrases k | Tokens per problem, pipeline / B2 | Wrong-accept rate at 50% coverage, pipeline / B2 | Paired 95% interval (pipeline minus B2) |
+|---|---|---|---|
+| 1 | 12,418 / 12,344 | 9.0% / 10.1% | [-6.7, +4.8] points |
+| 2 | 16,642 / 16,721 | 7.0% / 8.1% | [-6.6, +3.7] points |
+| 3 | 20,783 / 20,881 | 6.0% / 6.4% | [-5.0, +4.3] points |
+
+- **Budget match:** B2 is within 0.6% of the pipeline at every level, so D3 holds.
+- **H3: not supported.** At equal tokens, the pipeline's wrong-accept rate is lower at every level, but every interval
+  contains 0. Accuracy is 78.0% against 80.5% (exact McNemar p = 0.30), so B2 is not significantly better either.
+- **Reading:** at the same cost, the pipeline's verification signals and majority-vote sampling refuse wrong answers
+  about equally well on this benchmark. The pipeline gives reasons for each refusal (missing requirements,
+  disagreeing rewordings) where B2 only gives a vote share; that is a difference in what the user learns, not in the
+  error rate. This is one repeat; repeats 2 and 3 of B2 (#37) would narrow the intervals.
+
+## 16. Why no threshold meets alpha = 10% under leave-one-class-out
+
+**Date.** 2026-11-02 (#36, exploratory). A follow-up to devlog 13: is the calibration rule the problem, or the
+score?
+
+**Failure.** H2 fails at alpha = 10% on every canonical run. Devlog 13 showed that most of the failure comes from
+held-out classes with their own kind of error. This entry asks whether another rule for picking the threshold would
+avoid it.
+
+**The floor of the score** (`scripts/score_floor.py`, `results/gap2/score_floor/`). No threshold accepts fewer wrong
+answers than the strictest one, which keeps only the answers at the top score (1.0). On `canonical_587`:
+- 280 answers have score 1.0, and 21 of them (7.5%) are wrong. Without Pollution it is 11 of 270 (4.1%).
+- **Pollution:** 10 of 10 answers at score 1.0 are wrong. Their references do not follow from the text (#79).
+- **Production:** 8 of 54 answers at score 1.0 are wrong (14.8%). This is the cargo misreading that every rewording
+  repeats (devlog 9, #41).
+- **Two smaller classes** are also above 10% at score 1.0: Inventory (1 of 4) and Portfolio (1 of 6).
+
+So when one of these classes is held out, no threshold can bring *that fold* below 10%. But H2 is judged on the
+held-out answers pooled over all ten folds, and the pooled floor is below 10% (4% to 8% in every `canonical_200`
+repeat).
+
+**One threshold could meet H2 on all classes.** Over all 587 problems of `canonical_587`, the thresholds from 0.99145
+to 0.99187 answer 54.7% to 55.2% with 23 wrong (7.1% to 7.2%), and their one-sided bound is at most 10.0%. That meets
+every part of H2. These thresholds are picked in hindsight, and the window is only three thresholds wide, so this is
+not a result. It shows that the score separates well enough. What fails is the rule: from nine classes, no rule finds
+such a threshold, because R0's threshold swings with whether Pollution is in the calibration set (devlog 13).
+
+**Other rules** (`scripts/threshold_rules.py`, `results/gap2/threshold_rules/`, each tested leave-one-class-out as in
+H2):
+- R0, the H2 rule (pooled one-sided bound);
+- R1, nested strictest: hold out each calibration class in turn, and take the strictest of those thresholds;
+- R2, worst class: every calibration class must be at most alpha;
+- R3, pooled observed rate with no bound.
+
+On E3 repeat 1 of `canonical_200`, no rule set to alpha = 10% meets it with at least 50% answered. (R2 set to 12%
+answers 54.5% with 6.4% wrong, but reaching 10% by setting the rule to 12% would be tuning it on the result.) On
+`canonical_587`:
+- **All classes:** none meets it either. R2 answers nothing, because three classes with 5 or more answers at score
+  1.0 are above alpha there (Pollution, Production and Portfolio; Inventory has only 4). R3 answers 80.2%, with
+  13.2% wrong.
+- **Without Pollution:** R1 at alpha 10% answers 86.1% with 7.5% wrong, and a one-sided bound of 9.8%. That meets both
+  the H2 rule and the bound. R0 gives 10.7% there (devlog 13). But R0 at alpha 8% answers 451 of 527 with the same
+  34 wrong, so R1 at 10% picks almost the threshold R0 picks one step stricter. Its gain is close to "use a lower
+  alpha", which the alpha scan already shows (the smallest alpha meeting H2's rule without Pollution is 8%).
+
+**Change.** None to H2. R1 was not chosen in advance, and on `canonical_200` it answers almost nothing, because its
+inner folds are too small. Reporting it as the H2 result would be choosing the rule after seeing the results.
+
+**Effect.** Two findings for the paper:
+1. The per-class floor explains why the Pollution and Production folds fail: errors that every signal agrees with
+   (Pollution's doubtful references, Production's shared misreading). The pooled failure is the rule's sensitivity to
+   which classes are in the calibration set. A threshold that meets H2 on all classes exists, but no rule finds it
+   from nine classes.
+2. The nested rule R1 is close to R0 with a lower alpha, so it is not a new idea in itself. A rule that is robust to
+   which classes are calibrated on remains the open problem, and needs a test set up in advance, on new problems.
+
+## 17. Ablations (i) to (vii): the paraphrase check carries the system, the parser costs tokens for nothing here
+
+**Date.** 2026-11-02 (#38, E5). The two runs that need new calls are in: ablation (iv) without the parser and (vii)
+r = 2, both on `ablation_50`, with the #34 settings otherwise and the v1 prompts.
+
+**Change.** None to the system. `results/ablations/ablations.csv` is written by `scripts/ablation_table.py` from:
+- the three `canonical_200` repeats (E3 repeats 1 and 3, and the `canonical_200` part of the `canonical_587` run),
+  which all hold `ablation_50`, for every row read from saved records;
+- the two new runs, for (iv) and r = 2 (one repeat each).
+
+**Effect** (on the 50 problems, at the fixed 0.8 threshold, mean of 3 repeats unless one):
+
+| Ablation | Coverage | Wrong-accept rate | AUROC | Tokens per problem |
+|---|---|---|---|---|
+| Main pipeline (k = 3, r = 1, all signals) | 84.0% | 5.6% | 0.913 | 21,381 |
+| (i) without number coverage | 81.3% | 5.0% | 0.878 | 21,381 |
+| (ii) without requirement coverage | 85.3% | 7.1% | 0.932 | 21,381 |
+| (iii) without paraphrase agreement | 94.7% | 14.1% | 0.688 | 8,389 |
+| (iv) without the parser, and so without requirement coverage (1 repeat) | 84.0% | 4.8% | 0.934 | 16,594 |
+| (v) k = 1 / k = 2 | 86.7% / 83.3% | 7.7% / 5.6% | 0.862 / 0.911 | 12,830 / 17,042 |
+| (vi) calibrated threshold, alpha = 10% | 3.3% | 20.0% (1 of 3 repeats, 5 answers) | 0.913 | 21,381 |
+| (vii) r = 0 / r = 2 (r = 2: 1 repeat) | 78.7% / 84.0% | 5.1% / 9.5% | 0.943 / 0.935 | 19,374 / 20,341 |
+
+- **Paraphrase agreement carries the system.** Without it, the wrong-accept rate goes from 5.6% to 14.1% and the
+  AUROC from 0.91 to 0.69. Every other signal changes these by less than its sd over the repeats.
+- **The parser does not pay for itself on this sample.** Without the parser there is no requirement coverage either
+  (the records have `requirement_coverage: null`, and the score uses number coverage and paraphrase agreement), so
+  (iv) changes two things at once. The like-for-like comparison for "does the parser help the formalizer" is (iv)
+  against (ii): 84.0% / 4.8% / 0.934 against 85.3% / 7.1% / 0.932. Either way, accuracy is the same (82%) and (iv)
+  costs 22% fewer tokens. This agrees with the TSP diagnostic (devlog 14). It is one repeat.
+- **One repair round helps, a second does not.** r = 0 drops accuracy from 82% to 77%; r = 2 gives 80% with a higher
+  wrong-accept rate (one repeat).
+- **k = 2 is as good as k = 3** here (5.6% at both) for 20% fewer tokens. k = 1 is lower on both the wrong-accept rate
+  (7.7% ± 2.6 against 5.6% ± 2.8) and the AUROC (0.862 against 0.913), but within the noise.
+- **The calibrated threshold at 10%** answers almost nothing, as in Gap 2 (devlog 13 and 16): one repeat answers 5 of
+  the 50 problems, 1 of them wrong, and the other two answer nothing.
+
+These are 50 problems, so differences of a few points are within the noise (the sd over repeats is about 2 to 3
+points for the wrong-accept rate). The two clear effects are (iii) and the token saving of (iv).
