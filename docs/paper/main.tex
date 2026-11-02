@@ -158,7 +158,7 @@ the closest systems with ours.
 \begin{table}[t]
 \centering
 \caption{Closest work compared with ours. ``Refuses'': the system can decline to answer with a target error rate.
-``Shift'': that error control is tested on problems unlike the calibration set.}
+``Shift'': that error control is tested on problems unlike the calibration set. ``Tokens'': the paper reports the LLM tokens its check costs (ReLoop only as about three times the base cost; the test battery only its solver time).}
 \label{tab:related}
 \footnotesize
 \setlength{\tabcolsep}{3pt}
@@ -168,8 +168,8 @@ the closest systems with ours.
 \midrule
 Opt-Verifier~\cite{liu2026optverifier} & LLM verdicts on structure & no & -- & yes \\
 VeriSimpl~\cite{abdulrahman2026verisimpl} & solver queries on simplified problems & no & -- & no \\
-ReLoop~\cite{lian2026reloop} & responses to changed data & no & -- & \plan{check} \\
-Test battery~\cite{li2026falsification} & sound test batteries & no & -- & \plan{check} \\
+ReLoop~\cite{lian2026reloop} & responses to changed data & no & -- & partly \\
+Test battery~\cite{li2026falsification} & sound test batteries & no & -- & no \\
 AdmitOR~\cite{lian2026admitor} & agreement of three model families & yes & yes & no \\
 \textbf{Ours} & number and requirement coverage, agreement of rewordings & yes & yes & yes \\
 \bottomrule
