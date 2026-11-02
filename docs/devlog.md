@@ -479,3 +479,43 @@ inner folds are too small. Reporting it as the H2 result would be choosing the r
    from nine classes.
 2. The nested rule R1 is close to R0 with a lower alpha, so it is not a new idea in itself. A rule that is robust to
    which classes are calibrated on remains the open problem, and needs a test set up in advance, on new problems.
+
+## 17. Ablations (i) to (vii): the paraphrase check carries the system, the parser costs tokens for nothing here
+
+**Date.** 2026-11-02 (#38, E5). The two runs that need new calls are in: ablation (iv) without the parser and (vii)
+r = 2, both on `ablation_50`, with the #34 settings otherwise and the v1 prompts.
+
+**Change.** None to the system. `results/ablations/ablations.csv` is written by `scripts/ablation_table.py` from:
+- the three `canonical_200` repeats (E3 repeats 1 and 3, and the `canonical_200` part of the `canonical_587` run),
+  which all hold `ablation_50`, for every row read from saved records;
+- the two new runs, for (iv) and r = 2 (one repeat each).
+
+**Effect** (on the 50 problems, at the fixed 0.8 threshold, mean of 3 repeats unless one):
+
+| Ablation | Coverage | Wrong-accept rate | AUROC | Tokens per problem |
+|---|---|---|---|---|
+| Main pipeline (k = 3, r = 1, all signals) | 84.0% | 5.6% | 0.913 | 21,381 |
+| (i) without number coverage | 81.3% | 5.0% | 0.878 | 21,381 |
+| (ii) without requirement coverage | 85.3% | 7.1% | 0.932 | 21,381 |
+| (iii) without paraphrase agreement | 94.7% | 14.1% | 0.688 | 8,389 |
+| (iv) without the parser, and so without requirement coverage (1 repeat) | 84.0% | 4.8% | 0.934 | 16,594 |
+| (v) k = 1 / k = 2 | 86.7% / 83.3% | 7.7% / 5.6% | 0.862 / 0.911 | 12,830 / 17,042 |
+| (vi) calibrated threshold, alpha = 10% | 3.3% | 20.0% (1 of 3 repeats, 5 answers) | 0.913 | 21,381 |
+| (vii) r = 0 / r = 2 (r = 2: 1 repeat) | 78.7% / 84.0% | 5.1% / 9.5% | 0.943 / 0.935 | 19,374 / 20,341 |
+
+- **Paraphrase agreement carries the system.** Without it, the wrong-accept rate goes from 5.6% to 14.1% and the
+  AUROC from 0.91 to 0.69. Every other signal changes these by less than its sd over the repeats.
+- **The parser does not pay for itself on this sample.** Without the parser there is no requirement coverage either
+  (the records have `requirement_coverage: null`, and the score uses number coverage and paraphrase agreement), so
+  (iv) changes two things at once. The like-for-like comparison for "does the parser help the formalizer" is (iv)
+  against (ii): 84.0% / 4.8% / 0.934 against 85.3% / 7.1% / 0.932. Either way, accuracy is the same (82%) and (iv)
+  costs 22% fewer tokens. This agrees with the TSP diagnostic (devlog 14). It is one repeat.
+- **One repair round helps, a second does not.** r = 0 drops accuracy from 82% to 77%; r = 2 gives 80% with a higher
+  wrong-accept rate (one repeat).
+- **k = 2 is as good as k = 3** here (5.6% at both) for 20% fewer tokens. k = 1 is lower on both the wrong-accept rate
+  (7.7% ± 2.6 against 5.6% ± 2.8) and the AUROC (0.862 against 0.913), but within the noise.
+- **The calibrated threshold at 10%** answers almost nothing, as in Gap 2 (devlog 13 and 16): one repeat answers 5 of
+  the 50 problems, 1 of them wrong, and the other two answer nothing.
+
+These are 50 problems, so differences of a few points are within the noise (the sd over repeats is about 2 to 3
+points for the wrong-accept rate). The two clear effects are (iii) and the token saving of (iv).
