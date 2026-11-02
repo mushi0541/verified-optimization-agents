@@ -75,6 +75,7 @@ Supervisor feedback on Phase 1 and where each point is handled: issue #23.
 | E4 Gap 1 analysis: AUROC of each signal and of the combined score, bootstrap intervals, the H1 verdict | Gap 1 | `scripts/analyze_gap1.py` | Done; results after the E3 runs (#34) |
 | Calibrated threshold for a target wrong-accept rate alpha, with the leave-one-class-out test | Gap 2 | `optverify/calibration.py`, `scripts/calibrate.py`, `--calibration` in `run.py` and `web.py` | Done; runs in #36 |
 | E4 Gap 2 analysis over the repeats: alphas, fixed threshold, B0, 10 against 20 per class, risk-coverage curve, the H2 verdict | Gap 2 | `scripts/analyze_gap2.py` | Done; results after the E3 runs (#34) |
+| Comparison of two paraphrase models: AUROC, false alarms, and the misreadings each one catches on problems with the same answer | Gap 1 | `scripts/compare_paraphrasers.py`, `results/paraphraser/` | Done on `dev_93`; `canonical_200` in progress (#56) |
 
 ## Setup
 
@@ -474,6 +475,7 @@ scripts/calibrate.py         Gap 2 calibration and leave-one-class-out test from
 scripts/analyze_gap2.py      E4 Gap 2 over the repeats: alphas, fixed threshold, B0, risk-coverage curve, H2 verdict
 scripts/rescore.py           ablations (i) to (vii) from saved records, no API calls
 scripts/analyze_gap1.py      E4 Gap 1: AUROC of each signal and of the combined score, and the H1 verdict
+scripts/compare_paraphrasers.py  two paraphrase models compared on saved runs (#56)
 scripts/compare_baselines.py B0 and B1 per class and the base-paper comparison
 scripts/plot_e3.py           E3 accuracy-cost and risk-coverage plots
 scripts/efficiency.py        E6 efficiency and reliability from saved runs

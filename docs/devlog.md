@@ -177,9 +177,26 @@ changes. The run config records `paraphrase_model` and `paraphrase_endpoint`, an
 `_para-<model>`, so runs with the two paraphraser settings are never mixed. The candidate is `bedrock:deepseek.v3.2`,
 a different model family.
 
-**Effect.** To be measured: one pipeline run on `canonical_200` with the second paraphraser, compared with the
-same-model paraphraser on the paraphrase-agreement AUROC and the false-alarm rate. This entry is updated with the
-result when the run is in.
+**Effect.** On the development split `dev_93` (`results/paraphraser/dev_93/`, `scripts/compare_paraphrasers.py`):
+- **AUROC:** no gain. Paraphrase agreement scores 0.804 with DeepSeek against 0.818 with the same model, and the
+  combined score 0.815 against 0.866. The intervals overlap widely (`results/gap1/dev_93*`).
+- **False alarms:** 4 correct answers fall below the 0.8 threshold with DeepSeek, against 2, all from disagreeing
+  rewordings. Of the 2 extra ones, canonical-0652 has a wrong main answer in the gpt-oss run, and canonical-0623 has
+  the same correct answer in both runs, but DeepSeek's rewordings reach 1,020 twice instead of once.
+- **Shared misreadings:** the main model's answer is sampled again in each run, so the fair comparison uses the 75
+  problems where both runs gave the same feasible answer (7 wrong).
+  - Same-model rewordings all agree on 5 of the 7 wrong answers, and DeepSeek rewordings on 3.
+  - DeepSeek catches canonical-1653 (the Production cargo misreading of the failure analysis) and canonical-1643,
+    and misses none that the same model catches.
+  - Three of the 7 are Pollution, whose references are doubtful (#79). canonical-1571 equals the stated model's
+    optimum, so it is wrong only against the reference, and canonical-1609 is infeasible as stated. So at most 4 of
+    the 5 are clear errors. canonical-1643 is a real catch under either reading: two DeepSeek rewordings reach the
+    stated optimum 23,625.8, while the pipeline's 24,530.2 is neither that nor the reference.
+  - On the 68 correct answers, full agreement is about the same: 64 against 65.
+- **Cost:** 19,128 tokens per problem against 21,678.
+- **Reading:** a second paraphrase model breaks some errors that every same-model rewording repeats, which supports
+  the supervisor's point, but 2 cases are too few to show a gain. The run on `canonical_200` is in progress and
+  this entry is updated with its result.
 
 ## 10. Requirement coverage: cut-off parser output, variable types, lost constraint names
 

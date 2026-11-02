@@ -1,0 +1,129 @@
+[1/93] canonical-0602 BinPacking: correct=True
+[2/93] canonical-0066 BinPacking: correct=True
+[3/93] canonical-0139 BinPacking: correct=True
+[4/93] canonical-0695 Inventory: correct=False
+[5/93] canonical-0652 Inventory: correct=True
+[6/93] canonical-0761 Inventory: correct=False
+[7/93] canonical-0912 JobShop: correct=True
+[8/93] canonical-0917 JobShop: correct=True
+[9/93] canonical-1155 Knapsack: correct=True
+[10/93] canonical-0890 JobShop: correct=True
+[11/93] canonical-0998 Knapsack: correct=True
+[12/93] canonical-0967 Knapsack: correct=True
+[13/93] canonical-1201 NetworkFlow: correct=True
+[14/93] canonical-1228 NetworkFlow: correct=True
+[15/93] canonical-1643 Pollution: correct=False
+[16/93] canonical-1244 NetworkFlow: correct=True
+[17/93] canonical-1601 Pollution: correct=False
+[18/93] canonical-1607 Pollution: correct=False
+[19/93] canonical-1250 Portfolio: correct=True
+[20/93] canonical-1325 Portfolio: correct=True
+[21/93] canonical-1375 Portfolio: correct=True
+[22/93] canonical-1712 Production: correct=True
+[23/93] canonical-1718 Production: correct=True
+[24/93] canonical-1667 Production: correct=True
+[25/93] canonical-1446 TSP: correct=True
+[26/93] canonical-1417 TSP: correct=True
+[27/93] canonical-1508 TSP: correct=True
+[28/93] canonical-1731 Transportation: correct=True
+[29/93] canonical-1774 Transportation: correct=True
+[30/93] canonical-1782 Transportation: correct=True
+[31/93] canonical-0071 BinPacking: correct=True
+[32/93] canonical-0152 BinPacking: correct=True
+[33/93] canonical-0132 BinPacking: correct=True
+[34/93] canonical-0284 BinPacking: correct=True
+[35/93] canonical-0565 BinPacking: correct=True
+[36/93] canonical-0539 BinPacking: correct=True
+[37/93] canonical-0512 BinPacking: correct=True
+[38/93] canonical-0699 Inventory: correct=False
+[39/93] canonical-0750 Inventory: correct=False
+[40/93] canonical-0658 Inventory: correct=False
+[41/93] canonical-0637 Inventory: correct=True
+[42/93] canonical-0623 Inventory: correct=True
+[43/93] canonical-0722 Inventory: correct=False
+[44/93] canonical-0865 JobShop: correct=True
+[45/93] canonical-0700 Inventory: correct=True
+[46/93] canonical-0780 JobShop: correct=True
+[47/93] canonical-0902 JobShop: correct=True
+[48/93] canonical-0868 JobShop: correct=True
+[49/93] canonical-0829 JobShop: correct=True
+[50/93] canonical-0927 JobShop: correct=True
+[51/93] canonical-1019 Knapsack: correct=True
+[52/93] canonical-0930 JobShop: correct=True
+[53/93] canonical-1135 Knapsack: correct=True
+[54/93] canonical-0978 Knapsack: correct=True
+[55/93] canonical-0950 Knapsack: correct=True
+[56/93] canonical-1047 Knapsack: correct=True
+[57/93] canonical-0949 Knapsack: correct=True
+[58/93] canonical-0948 Knapsack: correct=True
+[59/93] canonical-1571 Pollution: correct=False
+[60/93] canonical-1637 Pollution: correct=False
+[61/93] canonical-1631 Pollution: correct=False
+[62/93] canonical-1597 Pollution: correct=False
+[63/93] canonical-1609 Pollution: correct=False
+[64/93] canonical-1633 Pollution: correct=False
+[65/93] canonical-1647 Pollution: correct=False
+[66/93] canonical-1359 Portfolio: correct=True
+[67/93] canonical-1292 Portfolio: correct=True
+[68/93] canonical-1336 Portfolio: correct=True
+[69/93] canonical-1353 Portfolio: correct=True
+[70/93] canonical-1364 Portfolio: correct=True
+[71/93] canonical-1294 Portfolio: correct=True
+[72/93] canonical-1315 Portfolio: correct=True
+[73/93] canonical-1675 Production: correct=True
+[74/93] canonical-1688 Production: correct=True
+[75/93] canonical-1724 Production: correct=False
+[76/93] canonical-1664 Production: correct=True
+[77/93] canonical-1722 Production: correct=True
+[78/93] canonical-1653 Production: correct=False
+[79/93] canonical-1672 Production: correct=True
+[80/93] canonical-1526 TSP: correct=True
+[81/93] canonical-1440 TSP: correct=True
+[82/93] canonical-1547 TSP: correct=True
+[83/93] canonical-1462 TSP: correct=True
+[84/93] canonical-1561 TSP: correct=True
+[85/93] canonical-1542 TSP: correct=False
+[86/93] canonical-1741 Transportation: correct=True
+[87/93] canonical-1483 TSP: correct=True
+[88/93] canonical-1770 Transportation: correct=True
+[89/93] canonical-1792 Transportation: correct=True
+[90/93] canonical-1773 Transportation: correct=True
+[91/93] canonical-1779 Transportation: correct=True
+[92/93] canonical-1754 Transportation: correct=True
+[93/93] canonical-1747 Transportation: correct=False
+{
+  "run": "pipeline_bedrock-openai.gpt-oss-120b-1-0_para-bedrock-deepseek.v3.2_dev_93_r1_20261101-2321",
+  "resumes": 0,
+  "failed_problems": [],
+  "problems": 93,
+  "accuracy": 0.7849462365591398,
+  "solved_rate": 0.989247311827957,
+  "status_counts": {
+    "optimal": 92,
+    "timeout": 1
+  },
+  "mean_input_tokens": 8205.591397849463,
+  "mean_output_tokens": 10922.10752688172,
+  "mean_llm_calls": 8.204301075268818,
+  "mean_latency_s": 132.97706327956828,
+  "accuracy_by_class": {
+    "BinPacking": 1.0,
+    "Inventory": 0.4,
+    "JobShop": 1.0,
+    "Knapsack": 1.0,
+    "NetworkFlow": 1.0,
+    "Pollution": 0.0,
+    "Portfolio": 1.0,
+    "Production": 0.8,
+    "TSP": 0.9,
+    "Transportation": 0.9
+  },
+  "decision_counts": {
+    "abstain": 1,
+    "answer": 77,
+    "escalate": 15
+  },
+  "coverage": 0.8279569892473119,
+  "selective_accuracy": 0.8961038961038961,
+  "wrong_accept_rate": 0.1038961038961039
+}

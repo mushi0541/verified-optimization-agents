@@ -1,0 +1,163 @@
+{
+  "records": [
+    "results/pipeline_bedrock-openai.gpt-oss-120b-1-0_dev_93_r1_20261101-2255/records.jsonl"
+  ],
+  "settings": {
+    "threshold": 0.8,
+    "draws": 2000,
+    "seed": 0,
+    "target_gain": 0.1
+  },
+  "runs": [
+    {
+      "problems": 93,
+      "failed_problems": 0,
+      "correct": 71,
+      "auroc": {
+        "feasibility": 0.5681818181818182,
+        "number": 0.5134443021766966,
+        "requirement": 0.647887323943662,
+        "paraphrase": 0.8178617157490397,
+        "combined": 0.8655569782330346,
+        "combined_without_number": 0.8741997439180538,
+        "combined_without_requirement": 0.7986555697823303,
+        "combined_without_paraphrase": 0.6206786171574904
+      },
+      "intervals": {
+        "feasibility": [
+          0.5,
+          0.6538461538461539
+        ],
+        "number": [
+          0.4331228473019518,
+          0.6116642958748222
+        ],
+        "requirement": [
+          0.5207956600361664,
+          0.7732876712328767
+        ],
+        "paraphrase": [
+          0.7082191780821918,
+          0.9257246376811594
+        ],
+        "combined": [
+          0.7425925925925926,
+          0.9624223602484472
+        ],
+        "combined_without_number": [
+          0.7559259259259259,
+          0.9638336347197106
+        ],
+        "combined_without_requirement": [
+          0.6736024844720497,
+          0.9177777777777778
+        ],
+        "combined_without_paraphrase": [
+          0.482574679943101,
+          0.7564935064935064
+        ],
+        "gain": [
+          0.17049689440993787,
+          0.4062099871959026
+        ],
+        "drop_number": [
+          -0.021337126600284417,
+          0.0
+        ],
+        "drop_requirement": [
+          -0.01521739130434785,
+          0.1578767123287672
+        ],
+        "drop_paraphrase": [
+          0.11609589041095891,
+          0.38940256045519206
+        ]
+      },
+      "verdict": {
+        "testable": true,
+        "gain": 0.29737516005121634,
+        "gain_ok": true,
+        "drops_ok": {
+          "number": false,
+          "requirement": false,
+          "paraphrase": true
+        },
+        "supported": false
+      },
+      "at_threshold": {
+        "threshold": 0.8,
+        "problems": 93,
+        "accepted": 78,
+        "coverage": 0.8387096774193549,
+        "precision": 0.8846153846153846,
+        "recall": 0.971830985915493,
+        "wrong_accepted": 9
+      }
+    }
+  ],
+  "summary": {
+    "auroc": {
+      "feasibility": {
+        "mean": 0.5681818181818182,
+        "sd": null,
+        "repeats_with_value": 1
+      },
+      "number": {
+        "mean": 0.5134443021766966,
+        "sd": null,
+        "repeats_with_value": 1
+      },
+      "requirement": {
+        "mean": 0.647887323943662,
+        "sd": null,
+        "repeats_with_value": 1
+      },
+      "paraphrase": {
+        "mean": 0.8178617157490397,
+        "sd": null,
+        "repeats_with_value": 1
+      },
+      "combined": {
+        "mean": 0.8655569782330346,
+        "sd": null,
+        "repeats_with_value": 1
+      },
+      "combined_without_number": {
+        "mean": 0.8741997439180538,
+        "sd": null,
+        "repeats_with_value": 1
+      },
+      "combined_without_requirement": {
+        "mean": 0.7986555697823303,
+        "sd": null,
+        "repeats_with_value": 1
+      },
+      "combined_without_paraphrase": {
+        "mean": 0.6206786171574904,
+        "sd": null,
+        "repeats_with_value": 1
+      }
+    },
+    "gain": {
+      "mean": 0.29737516005121634,
+      "sd": null,
+      "repeats_with_value": 1
+    },
+    "precision": {
+      "mean": 0.8846153846153846,
+      "sd": null,
+      "repeats_with_value": 1
+    },
+    "recall": {
+      "mean": 0.971830985915493,
+      "sd": null,
+      "repeats_with_value": 1
+    },
+    "coverage": {
+      "mean": 0.8387096774193549,
+      "sd": null,
+      "repeats_with_value": 1
+    },
+    "h1": "partly supported (the gain holds, but not every signal is needed)"
+  }
+}
