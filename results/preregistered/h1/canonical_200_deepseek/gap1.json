@@ -1,0 +1,172 @@
+{
+  "records": [
+    "results/pipeline_bedrock-deepseek.v3.2_canonical_200_r1_20261102-1257/records.jsonl"
+  ],
+  "settings": {
+    "threshold": 0.8,
+    "draws": 2000,
+    "seed": 0,
+    "target_gain": 0.1,
+    "sample": null
+  },
+  "runs": [
+    {
+      "problems": 200,
+      "failed_problems": 0,
+      "correct": 158,
+      "auroc": {
+        "feasibility": 0.5833333333333334,
+        "number": 0.578887884267631,
+        "requirement": 0.632157926461724,
+        "paraphrase": 0.7891048824593129,
+        "combined": 0.7730560578661845,
+        "combined_without_number": 0.7635623869801085,
+        "combined_without_requirement": 0.8130650994575045,
+        "combined_without_paraphrase": 0.6294454490657022
+      },
+      "intervals": {
+        "feasibility": [
+          0.53125,
+          0.6451612903225806
+        ],
+        "number": [
+          0.5048085646888042,
+          0.6624788255223037
+        ],
+        "requirement": [
+          0.5406549971767363,
+          0.722755505364201
+        ],
+        "paraphrase": [
+          0.713359375,
+          0.8645497775732475
+        ],
+        "combined": [
+          0.6800474254742548,
+          0.8595670995670995
+        ],
+        "combined_without_number": [
+          0.6747889791368052,
+          0.8496588693957114
+        ],
+        "combined_without_requirement": [
+          0.7310447357751048,
+          0.8927450980392156
+        ],
+        "combined_without_paraphrase": [
+          0.5281838856400259,
+          0.7257502901674681
+        ],
+        "gain": [
+          0.10387529137529139,
+          0.2761174636174636
+        ],
+        "drop_number": [
+          -0.018593749999999964,
+          0.0414972899728997
+        ],
+        "drop_requirement": [
+          -0.073359375,
+          -0.003866666666666685
+        ],
+        "drop_paraphrase": [
+          0.07271107456140347,
+          0.22706098249576512
+        ]
+      },
+      "verdict": {
+        "testable": true,
+        "gain": 0.1897227245328511,
+        "gain_ok": true,
+        "drops_ok": {
+          "number": false,
+          "requirement": false,
+          "paraphrase": true
+        },
+        "supported": false
+      },
+      "at_threshold": {
+        "threshold": 0.8,
+        "problems": 200,
+        "accepted": 171,
+        "coverage": 0.855,
+        "precision": 0.8771929824561403,
+        "recall": 0.9493670886075949,
+        "wrong_accepted": 21
+      }
+    }
+  ],
+  "summary": {
+    "auroc": {
+      "feasibility": {
+        "mean": 0.5833333333333334,
+        "sd": null,
+        "repeats_with_value": 1
+      },
+      "number": {
+        "mean": 0.578887884267631,
+        "sd": null,
+        "repeats_with_value": 1
+      },
+      "requirement": {
+        "mean": 0.632157926461724,
+        "sd": null,
+        "repeats_with_value": 1
+      },
+      "paraphrase": {
+        "mean": 0.7891048824593129,
+        "sd": null,
+        "repeats_with_value": 1
+      },
+      "combined": {
+        "mean": 0.7730560578661845,
+        "sd": null,
+        "repeats_with_value": 1
+      },
+      "combined_without_number": {
+        "mean": 0.7635623869801085,
+        "sd": null,
+        "repeats_with_value": 1
+      },
+      "combined_without_requirement": {
+        "mean": 0.8130650994575045,
+        "sd": null,
+        "repeats_with_value": 1
+      },
+      "combined_without_paraphrase": {
+        "mean": 0.6294454490657022,
+        "sd": null,
+        "repeats_with_value": 1
+      }
+    },
+    "gain": {
+      "mean": 0.1897227245328511,
+      "sd": null,
+      "repeats_with_value": 1
+    },
+    "precision": {
+      "mean": 0.8771929824561403,
+      "sd": null,
+      "repeats_with_value": 1
+    },
+    "recall": {
+      "mean": 0.9493670886075949,
+      "sd": null,
+      "repeats_with_value": 1
+    },
+    "coverage": {
+      "mean": 0.855,
+      "sd": null,
+      "repeats_with_value": 1
+    },
+    "h1": "partly supported (the gain holds, but not every signal is needed)"
+  },
+  "b0": {
+    "problems": 200,
+    "accepted": 192,
+    "coverage": 0.96,
+    "precision": 0.828125,
+    "accuracy": 0.795,
+    "wrong_accepted": 33
+  }
+}
