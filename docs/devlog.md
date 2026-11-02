@@ -206,6 +206,10 @@ On `canonical_200` (#56's main run, `results/paraphraser/canonical_200/`, agains
   - DeepSeek alone breaks 3: canonical-1706 and canonical-1692 (two of the three Production cargo misreadings of the
     failure analysis) and canonical-1582 (Pollution);
   - the same model alone breaks 2: canonical-1627 (Pollution) and canonical-0704 (Inventory);
+  - against the text, the two Pollution cases are not catches: in both, the pipeline's answer equals the stated
+    model's optimum (#79), so the disagreeing rewording broke an answer that is right for the question. The
+    genuine catches are therefore **DeepSeek 2** (canonical-1706 and 1692, the Production misreadings) and **the same
+    model 1** (canonical-0704, Inventory, whose references are sound);
   - on the 148 correct answers, full agreement is 141 against 138.
 - **Cost:** 20,247 tokens per problem against 20,783, and US$0.0114 against US$0.0086 (33% more).
 - **Reading:** across both splits, a second paraphrase model does not improve the signal as a whole. It is slightly
