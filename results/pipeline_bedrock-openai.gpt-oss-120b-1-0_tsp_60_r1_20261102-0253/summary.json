@@ -1,0 +1,58 @@
+{
+  "run": "pipeline_bedrock-openai.gpt-oss-120b-1-0_tsp_60_r1_20261102-0253",
+  "config": {
+    "system": "pipeline",
+    "model": "bedrock:openai.gpt-oss-120b-1:0",
+    "split": "canonical",
+    "sample_file": "samples/tsp_60.json",
+    "per_class": null,
+    "seed": null,
+    "repairs": 1,
+    "paraphrases": 3,
+    "signals": [
+      "number",
+      "requirement",
+      "paraphrase"
+    ],
+    "no_parser": true,
+    "threshold": 0.8,
+    "calibration": null,
+    "budget_tokens": null,
+    "max_samples": 10,
+    "sample_temperature": 0.7,
+    "paraphrase_temperature": 0.7,
+    "paraphrase_model": null,
+    "workers": 3,
+    "env_file": ".env",
+    "trace": false,
+    "resume": null,
+    "alpha": null,
+    "endpoint": "bedrock us-east-1",
+    "paraphrase_endpoint": "bedrock us-east-1"
+  },
+  "resumes": 0,
+  "failed_problems": [],
+  "problems": 60,
+  "accuracy": 0.9333333333333333,
+  "solved_rate": 0.9666666666666667,
+  "status_counts": {
+    "infeasible": 1,
+    "no_code": 1,
+    "optimal": 58
+  },
+  "mean_input_tokens": 9108.1,
+  "mean_output_tokens": 14269.683333333332,
+  "mean_llm_calls": 7.716666666666667,
+  "mean_latency_s": 102.69054826000162,
+  "accuracy_by_class": {
+    "TSP": 0.9333333333333333
+  },
+  "decision_counts": {
+    "abstain": 2,
+    "answer": 56,
+    "escalate": 2
+  },
+  "coverage": 0.9333333333333333,
+  "selective_accuracy": 1.0,
+  "wrong_accept_rate": 0.0
+}

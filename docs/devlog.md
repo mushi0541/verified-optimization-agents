@@ -333,3 +333,62 @@ only 45 to 50% of the problems, below the 50% that H2 needs.
 - **Conclusion:** a threshold fitted on some problem classes does not carry over to a class with its own kind of
   error. A larger sample makes the bound tighter, not the shift smaller.
 
+
+## 14. The parser writes the TSP subtour constraint wrongly, and the formalizer copies it
+
+**Date.** 2026-11-02 (#41 failure analysis, with a diagnostic run). Found while comparing the pipeline with B1 (#33).
+
+**Failure.** On `canonical_200`, B1 solves all 20 TSP problems in repeat 1, but the pipeline solves 14, 16 and 18
+in its three repeats. The failure analysis (#80) traced the infeasible TSP models to a Miller-Tucker-Zemlin
+constraint that includes the start city. The saved specs show where that comes from:
+- the parser usually writes the textbook rule as a requirement, "for all i ≠ j, u_i - u_j + N x_ij ≤ N - 1",
+  which keeps the start city in;
+- the formalizer is told to implement every requirement as a named constraint, so it often copies the rule;
+- B1 formalizes from the question alone and leaves the start city out.
+
+`scripts/tsp_parser_rules.py` lists, for every TSP record, the parser's subtour requirements and labels the rule by
+the range of its MTZ formula (`results/failures/tsp_parser/parser_rules.csv`, with the requirement text kept so each
+label can be checked by hand). By final solver status:
+
+| Parser rule | E3 repeat 1 | `canonical_587` |
+|---|---|---|
+| Keeps the start city in | 6 correct, 5 infeasible, 1 no code | 24 correct, 6 infeasible, 2 wrong (optimal) |
+| Leaves the start city out | 8 correct | 19 correct, 2 wrong (optimal) |
+| States no formula | none | 2 correct, 1 infeasible, 2 no code, 2 wrong (optimal) |
+
+- **Infeasible models:** all 12 (5 and 7) come with a rule that keeps the start city in (11) or states no formula
+  (1). None comes with a rule that leaves it out.
+- **Leaving it out works:** when the rule leaves the start city out, 27 of 29 answers are correct, and the 2 wrong
+  ones are feasible models that are wrong for another reason.
+- **The formalizer sometimes fixes it:** when the rule keeps it in, 30 of 44 answers are still correct, so the
+  formalizer does not always copy it.
+- **No code:** these 3 cases have no model at all, so the rule cannot be checked against one.
+
+**Diagnostic run.** The same pipeline without the parser (`--no-parser`, k = 3, r = 1, threshold 0.8) on the 60 TSP
+problems of `canonical_587` (`samples/tsp_60.json`, written by `scripts/make_samples.py`). It is compared on the
+same 60 problems with the `canonical_587` run in `results/failures/tsp_parser/ablations.csv` (row iv, from
+`scripts/ablation_table.py`):
+
+| | With the parser | Without the parser |
+|---|---|---|
+| Correct | 45 of 60 (75.0%) | 56 of 60 (93.3%) |
+| Infeasible models | 7 | 1 |
+| No code (no model at all) | 2 | 1 |
+| Answered at 0.8 | 45 | 56 |
+| Wrong accepted | 1 | 0 |
+| Tokens per problem | 29,772 | 23,378 |
+
+- **Paired:** 12 problems are correct only without the parser, and 1 only with it. The exact McNemar p is 0.003,
+  counted from the two `records.jsonl` files.
+- **Repair:** on TSP, the repair round matters a lot. With the parser, r = 0 gives only 33% (row vii), because the
+  first model is often infeasible and the repair round fixes many of them.
+
+**Change.** None to the system: a prompt change found on test problems would be tuned on the test set. The finding
+goes into the failure analysis and future work. A parser that states *what* must hold ("no subtours") rather than
+a formula, or a repair prompt that names this common cause of infeasibility, are direct fixes to test on the
+development split.
+
+**Effect.** This is a diagnostic on one class, not ablation (iv) itself. Ablation (iv) runs on `ablation_50` (#38),
+which has only 5 TSP problems. It shows a cost of the parser that the Phase 1 design did not expect: an error in the
+parser's requirements reaches the model built from them. Here the models are mostly infeasible, so the checks refuse
+them: the cost falls on coverage, not on the wrong-accept rate.
