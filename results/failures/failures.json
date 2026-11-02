@@ -27,7 +27,7 @@
     },
     "wrong constraint": {
       "wrong accept": 3,
-      "correct refusal": 18
+      "correct refusal": 19
     },
     "wrong data value": {
       "wrong accept": 0,
@@ -51,7 +51,7 @@
     },
     "other": {
       "wrong accept": 2,
-      "correct refusal": 1
+      "correct refusal": 0
     },
     "pending": {
       "wrong accept": 18,
