@@ -1,5 +1,7 @@
 # Pipeline Execution Trajectories and Failure Analysis
 
+*Traces recorded on 2026-11-01 from development run `results/pipeline_bedrock-openai.gpt-oss-120b-1-0_dev_30_r1_20261101-1612/` using model `bedrock:openai.gpt-oss-120b-1:0`, prompt version v1, k=3 rewordings, r=1 repair round, and fixed threshold 0.80 on `samples/dev_30.json` via `python -m optverify.run pipeline --model bedrock:openai.gpt-oss-120b-1:0 --sample-file samples/dev_30.json --repairs 1 --paraphrases 3 --threshold 0.8 --workers 4 --trace`.*
+
 ## Summary Table
 
 | Problem ID | Steps | Attempts | Final Status | Objective | Agreement | Score | Action | Latency | Tokens |
