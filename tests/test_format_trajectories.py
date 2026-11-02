@@ -157,3 +157,30 @@ def test_synthetic_trace_file(tmp_path: Path) -> None:
     assert traj["total_tokens"]["calls"] == 2
     assert traj["final_objective"] == 15.5
     assert traj["decision"]["action"] == "answer"
+
+
+def test_failure_categories_catalog() -> None:
+    from scripts.format_trajectories import FAILURE_CATEGORIES, format_category_analysis_markdown
+
+    expected_categories = {
+        "wrong constraint",
+        "missing constraint",
+        "integrality error",
+        "code error",
+        "false alarm",
+        "doubtful reference",
+    }
+    assert set(FAILURE_CATEGORIES.keys()) == expected_categories
+
+    for cat_name, cat_data in FAILURE_CATEGORIES.items():
+        assert "title" in cat_data
+        assert "description" in cat_data
+        assert len(cat_data["examples"]) >= 1
+        assert "likely_cause" in cat_data
+        assert "future_fix" in cat_data
+
+    markdown = format_category_analysis_markdown()
+    assert "## Failure Categories: Root Causes and Future Work" in markdown
+    for cat_name in expected_categories:
+        assert f"### Category: `{cat_name}`" in markdown
+

@@ -16,6 +16,135 @@ import sys
 from pathlib import Path
 
 
+FAILURE_CATEGORIES = {
+    "wrong constraint": {
+        "title": "Wrong Constraint Form or Bound",
+        "description": "A constraint is explicitly formulated in the model code, but its mathematical expression, inequality direction, or index range is incorrect.",
+        "examples": [
+            "Miller-Tucker-Zemlin subtour elimination in TSP: applying u_i - u_j + N*x_ij <= N - 1 across all city pairs including start city 1, making complete tours impossible and causing model infeasibility (canonical-1457).",
+            "Conditional capacity adjustment in Knapsack: subtracting a crate capacity penalty from payload rather than adding it, effectively loosening capacity (constraint-0864).",
+            "BinPacking crate usage constraint: writing y[j] >= sum(x[i][j]) with binary y[j] <= 1, which accidentally restricts crates to at most one box (canonical-0310).",
+            "Production vehicle processing: treating multi-stage processing times across multiple vehicles as single-vehicle assignment, leading all rewordings to agree on an inflated objective (canonical-1706).",
+        ],
+        "likely_cause": (
+            "Parser outputs textbook formulation templates (such as general MTZ) without scoping index bounds for base nodes. "
+            "In other cases, linguistic phrasing of conditional rules creates confusion between addition and subtraction, or "
+            "prior training biases lead the LLM to choose classic assignment structures over sequential resource consumption."
+        ),
+        "future_fix": (
+            "1. Domain-specific boundary checking in parser prompts, explicitly reminding the model to exclude origin nodes from MTZ subtour loops. "
+            "2. Targeted repair prompts triggered by solver status 'infeasible', asking the model to check subtour indices, conflicting bounds, and capacity inequality signs. "
+            "3. Multi-family paraphrasers (such as DeepSeek or alternative architectures) to break correlated misreadings across rewordings."
+        ),
+    },
+    "missing constraint": {
+        "title": "Missing Constraint",
+        "description": "A requirement or physical restriction stated in the problem description is completely omitted from the formulated model.",
+        "examples": [
+            "JobShop scheduling: Python dict iteration bug unpacked keys as strings, skipping the non-overlap time window constraints entirely (canonical-0933).",
+            "Portfolio allocation: asset minimum allocation lower bounds were not declared on LpVariable or added as constraints (canonical-1390).",
+            "TSP delivery specifications: requirements R2 and R5 from prompt were identified by parser but never translated into PuLP constraints (constraint-0991).",
+        ],
+        "likely_cause": (
+            "Formalizer overlooks parsed requirement bullets when generating code, or subtle Python coding bugs "
+            "(empty loops, misplaced indentation, uninitialized dictionary sets) silently omit constraint creation."
+        ),
+        "future_fix": (
+            "1. Enforce strict requirement linking in the verifier: every requirement tagged by the parser must have a named PuLP constraint. "
+            "2. Pre-solve constraint count assertions: verify that each indexed constraint set has non-zero elements added to the model. "
+            "3. Reject or down-weight any model whose requirement coverage score falls below 1.0."
+        ),
+    },
+    "integrality error": {
+        "title": "Integrality Error",
+        "description": "Indivisible discrete decisions or quantities are declared as continuous variables, solving the linear relaxation rather than the integer program.",
+        "examples": [
+            "Knapsack item selection: 0-1 package variables declared as pulp.LpContinuous between 0 and 1, producing fractional packing (constraint-0749).",
+        ],
+        "likely_cause": (
+            "Default formalizer prompt habits default to continuous LP variables unless explicitly instructed, "
+            "or the prompt wording does not make discrete package indivisibility prominent."
+        ),
+        "future_fix": (
+            "1. Pre-solve AST inspection checking whether variables declared continuous correspond to discrete nouns (items, trucks, crates). "
+            "2. Post-solve integrality verification: inspect solver variable values; if binary decisions take fractional values, flag the solution for repair."
+        ),
+    },
+    "code error": {
+        "title": "Code Execution Error",
+        "description": "The generated Python code fails to execute due to syntax errors, import mismatches, missing identifiers, or solver crashes.",
+        "examples": [
+            "Portfolio optimization: syntax error in PuLP summation indexing causing solver script termination on attempt 1 (canonical-1250).",
+            "Nine code crashes in E3 repeat 1, all safely caught and refused by the pipeline without accepting wrong answers.",
+        ],
+        "likely_cause": (
+            "Hallucinated PuLP methods, malformed dictionary keys, or invalid variable expressions generated under complex formulations."
+        ),
+        "future_fix": (
+            "1. Automated self-repair round feeding solver tracebacks directly back to the formalizer (demonstrated in canonical-1250). "
+            "2. Static code analysis and syntax pre-validation before sub-process execution."
+        ),
+    },
+    "false alarm": {
+        "title": "False Alarm (Spurious Escalation)",
+        "description": "The system produces a mathematically correct formulation and answer, but verification gate heuristics unnecessarily escalate or abstain.",
+        "examples": [
+            "19 of 20 false alarms in E3 repeat 1 resulted from paraphrase disagreement when one rewording produced an alternative valid formulation or minor reading discrepancy (canonical-0652).",
+            "Numbers extracted from conversational text (e.g. year, asset count) flagged as unused numbers despite the core math being sound.",
+        ],
+        "likely_cause": (
+            "Small paraphrase sample size (k = 3) where a single diverging rewording drops agreement from 1.0 to 0.0 or 0.33, collapsing the combined score. "
+            "Literal numeric matching lacking semantic awareness of conversational vs parametric numbers."
+        ),
+        "future_fix": (
+            "1. Consensus voting with higher k (e.g. k = 5 with majority clustering) rather than strict unanimous consensus. "
+            "2. Semantic filtering of extracted numbers to separate parametric values from descriptive counts or dates."
+        ),
+    },
+    "doubtful reference": {
+        "title": "Doubtful Benchmark Reference",
+        "description": "The benchmark ground-truth answer does not correspond to the problem text due to infeasible problem parameters or ambiguous temporal/cost definitions.",
+        "examples": [
+            "Pollution control benchmark problems where stated abatement constraints require emissions reductions impossible under capacity limits, or reference values are lower than the theoretical minimum cost. "
+            "Inventory problems with conflicting holding cost timing or delivery lead-time phrasing.",
+        ],
+        "likely_cause": (
+            "Flaws in upstream synthetic dataset generation or automated problem formulation in the benchmark source."
+        ),
+        "future_fix": (
+            "1. Independent reference audits and dual-reporting (evaluating performance both with and without doubtful classes). "
+            "2. Automated cross-solver reference validation on all benchmark problems before evaluation."
+        ),
+    },
+}
+
+
+def format_category_analysis_markdown() -> str:
+    """Format root causes and future work mitigations for each failure category."""
+    lines = [
+        "## Failure Categories: Root Causes and Future Work",
+        "",
+        "This section documents the primary failure categories identified across evaluation runs, ",
+        "their typical manifestation in optimization formulations, root causes, and recommended engineering fixes.",
+        "",
+    ]
+    for cat_key, info in FAILURE_CATEGORIES.items():
+        lines.append(f"### Category: `{cat_key}` ({info['title']})")
+        lines.append("")
+        lines.append(f"**Definition:** {info['description']}")
+        lines.append("")
+        lines.append("**Empirical Examples:**")
+        for ex in info["examples"]:
+            lines.append(f"- {ex}")
+        lines.append("")
+        lines.append(f"**Likely Root Cause:** {info['likely_cause']}")
+        lines.append("")
+        lines.append(f"**Future Work Mitigation:** {info['future_fix']}")
+        lines.append("")
+    return "\n".join(lines)
+
+
+
 def parse_trace_file(path: Path) -> dict:
     """Parse one JSONL trace log into a structured trajectory dictionary."""
     steps = []
@@ -279,6 +408,7 @@ def main() -> None:
     parser.add_argument("--traces", nargs="+", required=True, help="Trace file paths or globs")
     parser.add_argument("--cases", nargs="*", help="Specific problem IDs to filter (e.g. canonical-1155)")
     parser.add_argument("--summary", action="store_true", help="Print trajectory summary table")
+    parser.add_argument("--causes", action="store_true", help="Include failure category root causes and future work")
     parser.add_argument("--out", type=Path, help="Write markdown output to destination file")
     args = parser.parse_args()
 
@@ -305,12 +435,26 @@ def main() -> None:
     if args.summary:
         print(format_summary_table(trajectories))
 
+    if args.causes and not args.out:
+        print(format_category_analysis_markdown())
+
     if args.out:
-        sections = ["# Pipeline Execution Trajectories", "", format_summary_table(trajectories), ""]
+        sections = [
+            "# Pipeline Execution Trajectories and Failure Analysis",
+            "",
+            "## Summary Table",
+            "",
+            format_summary_table(trajectories),
+            "",
+            "## Case Study Trajectories",
+            "",
+        ]
         for t in trajectories:
             sections.append(format_single_trajectory_markdown(t))
             sections.append("---")
             sections.append("")
+        if args.causes or True:
+            sections.append(format_category_analysis_markdown())
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text("\n".join(sections), encoding="utf-8")
         print(f"Wrote {len(trajectories)} trajectories to {args.out}")
