@@ -40,4 +40,4 @@ def test_v3_is_v2_with_the_v1_parser():
 
 def test_an_unknown_version_is_refused():
     with pytest.raises(ValueError, match="unknown prompt version"):
-        prompts.use_version("v3")
+        prompts.use_version("v9")
