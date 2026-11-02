@@ -579,3 +579,17 @@ post-hoc confirmation, not a pre-registered test. Paired comparisons are written
 **Decision.** v1 stays the default. v2 and v3 stay behind `--prompt-version` so these runs can be reproduced. None of
 the H1 to H3 results change. The one lead worth a new pre-registered test is the repair change on its own (B1, 156 to
 161), on a sample not used here.
+
+## 19. Hand check of doubtful reference answers (Inventory and Pollution Control)
+
+**Date.** 2026-11-02 (#40, #105).
+
+**Motivation.** Section 2.12 of the Phase 1 report noted that models frequently failed on Inventory and every model failed on Pollution Control. Before attributing failures to modeling systems, benchmark reference answers required hand verification.
+
+**Checks and Changes.**
+- **Inventory question parsing (#105):** Extended regex patterns in `scripts/check_references.py` to parse all 160 canonical Inventory questions (up from 125). All 35 previously unparsed questions reproduce their benchmark references under the stated model.
+- **Inventory hand labels:** 159 of 160 canonical Inventory references reproduce under the after-arrival capacity reading. Two questions (`canonical-0644` and `canonical-0667`) say "end of any day" but their reference matches the after-arrival reading; both are labeled `text_ambiguous`. One question (`canonical-0648`) cannot be reproduced by either reading (reference 1,818.0 vs hand optima 876.0 and 1,061.0) and is labeled `reference_wrong`. Five newly parsed questions were spot-checked by hand and matched (`reference_correct`).
+- **Pollution Control hand labels:** 73 parsed canonical problems are confirmed `reference_wrong` (none match the reference; 6 are mathematically infeasible as stated, 34 references are below the stated model's optimum, which no stricter reading can explain). Four cases were verified by hand (`canonical-1572`, `1575`, `1578`, `1601`). The 7 unparsed questions are recorded as `not_checked`.
+- **Labels committed:** Recorded in `results/reference_check/hand_labels.csv` with problem ID, class, reference, hand optimum, reading, label, and note.
+
+**Effect.** Sensitivity analysis policy pre-registered in #103 excludes all `reference_wrong` instances (Pollution and `canonical-0648`) and retains `text_ambiguous` instances in both main and sensitivity evaluations.
