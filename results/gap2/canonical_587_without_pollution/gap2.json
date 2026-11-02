@@ -15,6 +15,7 @@
     "excluded_classes": [
       "Pollution"
     ],
+    "sample": null,
     "shift": "results/pipeline_bedrock-openai.gpt-oss-120b-1-0_opsor_r1_20261101-2119/records.jsonl"
   },
   "runs": [

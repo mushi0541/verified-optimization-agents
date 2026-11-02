@@ -17,7 +17,7 @@ Alpha scan (an extra analysis, not H2 itself): the smallest alpha the data suppo
 |---|---|---|---|
 | 1 | 8.0% | 16.0% | 85.6% |
 
-Shift test, run 1: thresholds calibrated on every class of this run, applied to results/pipeline_bedrock-openai.gpt-oss-120b-1-0_opsor_r1_20261101-2119/records.jsonl (36 problems).
+Shift test, run 1: thresholds calibrated on every class of this run except Pollution, applied to results/pipeline_bedrock-openai.gpt-oss-120b-1-0_opsor_r1_20261101-2119/records.jsonl (36 problems).
 
 | Setting | Threshold | CrewRostering | EquipmentDispatch | GateAssignment | All |
 |---|---|---|---|---|---|

@@ -6,7 +6,8 @@
     "threshold": 0.8,
     "draws": 2000,
     "seed": 0,
-    "target_gain": 0.1
+    "target_gain": 0.1,
+    "sample": null
   },
   "runs": [
     {

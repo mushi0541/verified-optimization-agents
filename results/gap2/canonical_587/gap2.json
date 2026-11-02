@@ -13,6 +13,7 @@
     "h2_alpha": 0.1,
     "min_coverage": 0.5,
     "excluded_classes": [],
+    "sample": null,
     "shift": "results/pipeline_bedrock-openai.gpt-oss-120b-1-0_opsor_r1_20261101-2119/records.jsonl"
   },
   "runs": [

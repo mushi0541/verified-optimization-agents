@@ -294,8 +294,10 @@ only 45 to 50% of the problems, below the 50% that H2 needs.
   - with Pollution held out, the other classes allow 0.683, and all 38 Pollution answers it accepts are wrong;
   - with Production held out, the threshold 0.889 accepts 54 answers, 8 of them wrong.
 
-  Every fold that calibrates on Pollution finds no threshold, because its confident wrong answers keep the bound
-  above 10%. The smallest alpha the data supports is 21% (26% with the bound), against 18% (24%) on
+  So 8 of the 9 folds that calibrate on Pollution find no threshold, because its confident wrong answers keep their
+  bound above 10%. The Production fold is the exception. The 38 "wrong" answers of the Pollution fold are all on
+  Pollution references that the reference check could not reproduce from the text (#79), so most of the
+  all-class failure at 10% comes from that one class of doubtful references. The smallest alpha the data supports is 21% (26% with the bound), against 18% (24%) on
   `canonical_200`.
 - **Without Pollution** (its references do not follow from the text, #79): the held-out wrong-accept rate tracks the
   target, 7.5%, 9.1% and 10.7% at alpha 8%, 9% and 10%, with 86% to 94% answered.
