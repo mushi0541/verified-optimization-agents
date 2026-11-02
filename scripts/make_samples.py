@@ -90,6 +90,11 @@ def generate_samples(output_dir: Path = DEFAULT_OUTPUT_DIR, data_dir: Path = DAT
     paths["dev_93"] = save("dev_93.json", dev_93)
     # The TSP problems of canonical_587, for the diagnostic run without the parser (devlog entry 14).
     paths["tsp_60"] = save("tsp_60.json", [p for p in canonical_587 if p.problem_class == "TSP"])
+    # The part of canonical_587 outside canonical_200: problems no design choice has looked at, for the
+    # pre-registered test of the pipeline combined with B2 (#103).
+    canonical_200_ids = {p.problem_id for p in canonical_200}
+    paths["canonical_587_rest_387"] = save("canonical_587_rest_387.json",
+                                           [p for p in canonical_587 if p.problem_id not in canonical_200_ids])
     return paths
 
 
