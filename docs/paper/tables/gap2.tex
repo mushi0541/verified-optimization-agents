@@ -1,0 +1,17 @@
+% Written by scripts/make_paper_tables.py from results/gap2/canonical_200/gap2.json, results/gap2/canonical_200_without_pollution/gap2.json, results/gap2/canonical_587/gap2.json, results/gap2/canonical_587_without_pollution/gap2.json. Do not edit by hand.
+\begin{table*}[t]
+\centering
+\caption{Calibrated abstention tested leave-one-class-out: coverage and wrong-accept rate (WAR, \%) at the H2 alpha and at the fixed threshold 0.8, and the smallest alpha (\%) that meets H2's rule, without and with the one-sided bound; ``no Pollution'' is the sensitivity analysis, not the H2 result}
+\label{tab:gap2}
+\footnotesize
+\begin{tabular}{@{}llrrrrrrrl@{}}
+\toprule
+Sample & Classes & Rep. & Cov. ($\alpha$=10\%) & WAR & Cov. (0.8) & WAR & Min.\ $\alpha$ & + bound & H2 \\
+\midrule
+\texttt{canonical\_200} & all & 3 & 10.3 $\pm$ 15.4 & 37.5 $\pm$ 17.7 (2/3) & 83.2 $\pm$ 1.5 & 8.4 $\pm$ 0.5 & 12--18 & 21--26 & not supported \\
+\texttt{canonical\_200} & no Pollution & 3 & 47.4 $\pm$ 40.6 & 17.2 $\pm$ 8.8 & 89.1 $\pm$ 1.2 & 5.0 $\pm$ 0.6 & 9--13 & 13--16 & (sensitivity) \\
+\texttt{canonical\_587} & all & 1 & 15.7 & 50.0 & 81.8 & 10.4 & 21 & 26 & not supported \\
+\texttt{canonical\_587} & no Pollution & 1 & 93.9 & 10.7 & 86.3 & 5.5 & 8 & 16 & (sensitivity) \\
+\bottomrule
+\end{tabular}
+\end{table*}

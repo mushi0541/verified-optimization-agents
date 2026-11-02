@@ -1,0 +1,24 @@
+% Written by scripts/make_paper_tables.py from results/e1_e2/e1_e2.json. Do not edit by hand.
+\begin{table}[t]
+\centering
+\caption{Accuracy (\%, 0.2\% rule) of the baselines (openai.gpt-oss-120b-1:0) on \texttt{canonical\_200}, 1 repeat, mean $\pm$ sd where there are two or more}
+\label{tab:baselines}
+\footnotesize
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Class & B0 & B1 & B0, deepseek.v3.2 & SIR, reported \\
+\midrule
+BinPacking & 100.0 & 100.0 & 90.0 & -- \\
+Inventory & 35.0 & 35.0 & 50.0 & -- \\
+JobShop & 80.0 & 80.0 & 90.0 & -- \\
+Knapsack & 95.0 & 100.0 & 95.0 & 93.2 \\
+NetworkFlow & 95.0 & 100.0 & 100.0 & 100.0 \\
+Pollution & 0.0 & 0.0 & 0.0 & -- \\
+Portfolio & 85.0 & 85.0 & 85.0 & -- \\
+Production & 85.0 & 85.0 & 90.0 & -- \\
+TSP & 100.0 & 100.0 & 80.0 & 85.9 \\
+Transportation & 95.0 & 95.0 & 100.0 & -- \\
+All classes & 77.0 & 78.0 & 78.0 & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
