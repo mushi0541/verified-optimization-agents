@@ -343,12 +343,26 @@ in its three repeats. The failure analysis (#80) traced the infeasible TSP model
 constraint that includes the start city. The saved specs show where that comes from:
 - the parser usually writes the textbook rule as a requirement, "for all i ≠ j, u_i - u_j + N x_ij ≤ N - 1",
   which keeps the start city in;
-- the formalizer is told to implement every requirement as a named constraint, so it copies the rule exactly;
+- the formalizer is told to implement every requirement as a named constraint, so it often copies the rule;
 - B1 formalizes from the question alone and leaves the start city out.
 
-Every infeasible TSP model in E3 repeat 1 (6) and in `canonical_587` (9) has a parser rule that keeps the start city
-in, or names MTZ without saying how. When the parser's rule leaves the start city out, the model is right in 19 of
-the 20 cases over the two runs.
+`scripts/tsp_parser_rules.py` lists, for every TSP record, the parser's subtour requirements and labels the rule by
+the range of its MTZ formula (`results/failures/tsp_parser/parser_rules.csv`, with the requirement text kept so each
+label can be checked by hand). By final solver status:
+
+| Parser rule | E3 repeat 1 | `canonical_587` |
+|---|---|---|
+| Keeps the start city in | 6 correct, 5 infeasible, 1 no code | 24 correct, 6 infeasible, 2 wrong (optimal) |
+| Leaves the start city out | 8 correct | 19 correct, 2 wrong (optimal) |
+| States no formula | none | 2 correct, 1 infeasible, 2 no code, 2 wrong (optimal) |
+
+- **Infeasible models:** all 12 (5 and 7) come with a rule that keeps the start city in (11) or states no formula
+  (1). None comes with a rule that leaves it out.
+- **Leaving it out works:** when the rule leaves the start city out, 27 of 29 answers are correct, and the 2 wrong
+  ones are feasible models that are wrong for another reason.
+- **The formalizer sometimes fixes it:** when the rule keeps it in, 30 of 44 answers are still correct, so the
+  formalizer does not always copy it.
+- **No code:** these 3 cases have no model at all, so the rule cannot be checked against one.
 
 **Diagnostic run.** The same pipeline without the parser (`--no-parser`, k = 3, r = 1, threshold 0.8) on the 60 TSP
 problems of `canonical_587` (`samples/tsp_60.json`, written by `scripts/make_samples.py`). It is compared on the
@@ -358,7 +372,8 @@ same 60 problems with the `canonical_587` run in `results/failures/tsp_parser/ab
 | | With the parser | Without the parser |
 |---|---|---|
 | Correct | 45 of 60 (75.0%) | 56 of 60 (93.3%) |
-| Infeasible models | 9 | 2 |
+| Infeasible models | 7 | 1 |
+| No code (no model at all) | 2 | 1 |
 | Answered at 0.8 | 45 | 56 |
 | Wrong accepted | 1 | 0 |
 | Tokens per problem | 29,772 | 23,378 |
