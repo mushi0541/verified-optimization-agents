@@ -1,0 +1,68 @@
+{
+  "run": "pipeline_bedrock-openai.gpt-oss-120b-1-0_prompts-v3_canonical_200_r1_20261102-1109",
+  "config": {
+    "system": "pipeline",
+    "model": "bedrock:openai.gpt-oss-120b-1:0",
+    "split": "canonical",
+    "sample_file": "samples\\canonical_200.json",
+    "per_class": null,
+    "seed": null,
+    "repairs": 1,
+    "paraphrases": 3,
+    "signals": [
+      "number",
+      "requirement",
+      "paraphrase"
+    ],
+    "no_parser": false,
+    "threshold": 0.8,
+    "calibration": null,
+    "budget_tokens": null,
+    "max_samples": 10,
+    "sample_temperature": 0.7,
+    "paraphrase_temperature": 0.7,
+    "paraphrase_model": null,
+    "workers": 4,
+    "env_file": ".env",
+    "trace": false,
+    "prompt_version": "v3",
+    "resume": null,
+    "alpha": null,
+    "endpoint": "bedrock us-east-1",
+    "paraphrase_endpoint": "bedrock us-east-1"
+  },
+  "resumes": 0,
+  "failed_problems": [],
+  "problems": 200,
+  "accuracy": 0.795,
+  "solved_rate": 0.98,
+  "status_counts": {
+    "error": 1,
+    "infeasible": 3,
+    "optimal": 196
+  },
+  "mean_input_tokens": 9043.91,
+  "mean_output_tokens": 12506.725,
+  "mean_llm_calls": 8.36,
+  "mean_latency_s": 76.93491383500006,
+  "accuracy_by_class": {
+    "BinPacking": 1.0,
+    "Inventory": 0.4,
+    "JobShop": 1.0,
+    "Knapsack": 1.0,
+    "NetworkFlow": 1.0,
+    "Pollution": 0.0,
+    "Portfolio": 0.85,
+    "Production": 0.85,
+    "TSP": 0.85,
+    "Transportation": 1.0
+  },
+  "decision_counts": {
+    "abstain": 4,
+    "answer": 170,
+    "escalate": 26
+  },
+  "coverage": 0.85,
+  "selective_accuracy": 0.9235294117647059,
+  "wrong_accept_rate": 0.07647058823529412
+}

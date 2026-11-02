@@ -519,3 +519,62 @@ r = 2, both on `ablation_50`, with the #34 settings otherwise and the v1 prompts
 
 These are 50 problems, so differences of a few points are within the noise (the sd over repeats is about 2 to 3
 points for the wrong-accept rate). The two clear effects are (iii) and the token saving of (iv).
+
+## 18. New prompts (v2, v3): no gain on the test sample, so v1 stays the default
+
+**Date.** 2026-11-02 (#95, #97). Devlog 14 found that the parser writes the TSP subtour rule wrongly and the formalizer
+copies it. This entry tests whether better prompts fix that without hurting the rest.
+
+**Change.** `--prompt-version` picks the prompt set; the default `v1` is the unchanged prompts, so every earlier run
+and result stays the same, and run folders of other versions get `_prompts-<version>` in their name.
+- **v2:** the parser writes requirements in plain words (no formulas); the formalizer treats the requirements as a
+  checklist and follows the problem text when they disagree; the repair prompt, after an infeasible model, first looks
+  for a rule written too strictly. The repair change also reaches B1 and B2, which use the same repair prompt.
+- **v3:** v2 with the v1 parser.
+
+**Method.** Designed and chosen on dev data only: `dev_tsp_inventory_60` (30 TSP and 30 Inventory problems outside
+every other sample, seed 2) and then `dev_93`. Then v3 was frozen (9c666b4) and run once on `canonical_200`, with B1
+under v3 as well. v3 was designed after the test results of devlog 14 were seen, so the `canonical_200` run is a
+post-hoc confirmation, not a pre-registered test. Paired comparisons are written by `scripts/compare_runs.py` into
+`results/prompts_v2/` (threshold 0.8, exact McNemar test on correctness).
+
+**Effect on dev data.**
+
+| Sample | Version | Correct | Accepted | Wrong accepted | Tokens per problem |
+|---|---|---|---|---|---|
+| `dev_tsp_inventory_60` | v1 | 43 | 39 | 4 | 30,197 |
+| | v2 | 38 | 26 | 1 | 29,732 |
+| | v3 | 43 | 36 | 2 | 29,118 |
+| `dev_93` | v1 | 71 | 78 | 9 | 21,678 |
+| | v3 | 72 | 80 | 8 | 21,116 |
+
+- **v2 was rejected:** it loses 5 problems and answers 13 fewer. Its parser was the cause (v3 gets the TSP problems
+  back, 28 against 25).
+- **v3 passed the dev check** (no regression), but its lower wrong-accept count is not a real gain. On
+  `dev_tsp_inventory_60`, part of the drop from 4 to 2 is that v3 answers fewer Inventory problems (9 against 13). On
+  `dev_93`, the drop is all in Pollution, whose references cannot be reproduced (#79); without Pollution v3 has 5
+  wrong accepts against 4.
+
+**Effect on `canonical_200` (post-hoc).** Against the two v1 runs on the same 200 problems:
+
+| Run | Correct | Accepted | Wrong accepted (rate) | Tokens per problem |
+|---|---|---|---|---|
+| Pipeline v1, `..._20261101-1429` | 156 | 163 | 13 (8.0%) | 20,783 |
+| Pipeline v1, `..._20261102-0153` | 158 | 167 | 15 (9.0%) | 21,316 |
+| Pipeline v3 | 159 | 170 | 13 (7.6%) | 21,551 |
+| B1 v1 | 156 | -- | -- | 2,664 |
+| B1 v3 | 161 | -- | -- | 2,648 |
+
+- **The pipeline does not improve.** v3 is 1 and 3 problems above the two v1 runs (McNemar p = 1.0 and 0.58), and the
+  two v1 runs differ from each other by 2. The wrong-accept rate is within the same range.
+- **TSP:** v3 has 3 problems with no feasible model, against 2 and 6 in the v1 runs, so the subtour fault of devlog 14
+  is not fixed by the formalizer prompt alone; the parser has to be left out (devlog 14, ablation iv in devlog 17).
+- **Inventory gets worse:** 8 against 11 in both v1 runs. Three problems (canonical-0749, 0769, 0778) are right in
+  both v1 runs and wrong under v3, each with one attempt, so the cause is the formalizer change, not the repair change.
+  The verifier scores all three at 0.67, below the threshold, so none of them is a wrong accept.
+- **B1 gains 5 problems under v3** (161 against 156, p = 0.18), 4 of them JobShop. B1 only sees the repair change.
+  So the v3 repair prompt may help, but the gain would go to the baselines as much as to the pipeline.
+
+**Decision.** v1 stays the default. v2 and v3 stay behind `--prompt-version` so these runs can be reproduced. None of
+the H1 to H3 results change. The one lead worth a new pre-registered test is the repair change on its own (B1, 156 to
+161), on a sample not used here.
