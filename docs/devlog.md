@@ -287,9 +287,29 @@ only 45 to 50% of the problems, below the 50% that H2 needs.
   chosen from this power analysis, not from a test result on the new problems.
 - Pooling the three repeats would not help, because they hold the same problems and are not independent.
 
-**Effect.** Pending: the result is added when the run on `canonical_587` is in. What to expect: a fold then
-calibrates on about 530 problems, so about 430 answers are accepted at the 0.8 threshold's coverage. That is below
-the 593 needed at its 8% rate, so a threshold can only pass where the rate is nearer 5 to 6%, which on repeat 1 meant
-45 to 50% coverage, right at H2's 50% line. So the larger sample may still not be enough. Either way, it tells
-whether more data alone can reach 10%.
+**Effect.** More data alone does not reach 10%: the class shift, not the sample size, is what fails
+(`results/gap2/canonical_587*`). The run finished all 587 problems.
+- **All classes:** H2 is not supported. At alpha = 10% the test answers 92 of 587 (15.7%) and half of them are
+  wrong. Only two folds find a threshold:
+  - with Pollution held out, the other classes allow 0.683, and all 38 Pollution answers it accepts are wrong;
+  - with Production held out, the threshold 0.889 accepts 54 answers, 8 of them wrong.
+
+  So 8 of the 9 folds that calibrate on Pollution find no threshold, because its confident wrong answers keep their
+  bound above 10%. The Production fold is the exception. The 38 "wrong" answers of the Pollution fold are all on
+  Pollution references that the reference check could not reproduce from the text (#79), so most of the
+  all-class failure at 10% comes from that one class of doubtful references. The smallest alpha the data supports is 21% (26% with the bound), against 18% (24%) on
+  `canonical_200`.
+- **Without Pollution** (its references do not follow from the text, #79): the held-out wrong-accept rate tracks the
+  target, 7.5%, 9.1% and 10.7% at alpha 8%, 9% and 10%, with 86% to 94% answered.
+  - At 10% the rate is 0.7 points too high, and its one-sided bound is 13.3%, so H2 still fails.
+  - Most of the 53 wrong accepts come from one fold: with Inventory held out, the other classes allow a loose
+    threshold (0.533) that accepts 57 Inventory answers, 34 of them wrong. The Inventory references are sound, so
+    these are real model errors on a class the calibration did not see.
+- **The fixed 0.8 threshold** does better than the calibrated one:
+  - 10.4% wrong at 81.8% coverage on all classes;
+  - 5.5% [3.6%, 8.0%] at 86.3% without Pollution.
+- **Gap 1 agrees with `canonical_200`** (`results/gap1/canonical_587/`): the combined AUROC is 0.859, +0.321
+  [+0.28, +0.36] over feasibility, and only the paraphrase drop is significant.
+- **Conclusion:** a threshold fitted on some problem classes does not carry over to a class with its own kind of
+  error. A larger sample makes the bound tighter, not the shift smaller.
 
