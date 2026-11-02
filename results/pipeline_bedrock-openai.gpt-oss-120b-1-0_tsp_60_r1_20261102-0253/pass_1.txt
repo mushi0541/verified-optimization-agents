@@ -1,0 +1,88 @@
+[1/60] canonical-1418 TSP: correct=True
+[2/60] canonical-1457 TSP: correct=True
+[3/60] canonical-1566 TSP: correct=True
+[4/60] canonical-1476 TSP: correct=True
+[5/60] canonical-1432 TSP: correct=False
+[6/60] canonical-1427 TSP: correct=True
+[7/60] canonical-1531 TSP: correct=True
+[8/60] canonical-1443 TSP: correct=True
+[9/60] canonical-1448 TSP: correct=True
+[10/60] canonical-1419 TSP: correct=True
+[11/60] canonical-1420 TSP: correct=True
+[12/60] canonical-1464 TSP: correct=True
+[13/60] canonical-1484 TSP: correct=True
+[14/60] canonical-1430 TSP: correct=True
+[15/60] canonical-1436 TSP: correct=True
+[16/60] canonical-1540 TSP: correct=True
+[17/60] canonical-1454 TSP: correct=True
+[18/60] canonical-1449 TSP: correct=True
+[19/60] canonical-1434 TSP: correct=True
+[20/60] canonical-1421 TSP: correct=True
+[21/60] canonical-1537 TSP: correct=True
+[22/60] canonical-1410 TSP: correct=True
+[23/60] canonical-1413 TSP: correct=True
+[24/60] canonical-1482 TSP: correct=True
+[25/60] canonical-1510 TSP: correct=True
+[26/60] canonical-1447 TSP: correct=True
+[27/60] canonical-1455 TSP: correct=True
+[28/60] canonical-1475 TSP: correct=True
+[29/60] canonical-1567 TSP: correct=True
+[30/60] canonical-1478 TSP: correct=True
+[31/60] canonical-1465 TSP: correct=True
+[32/60] canonical-1461 TSP: correct=True
+[33/60] canonical-1543 TSP: correct=True
+[34/60] canonical-1444 TSP: correct=True
+[35/60] canonical-1428 TSP: correct=True
+[36/60] canonical-1489 TSP: correct=True
+[37/60] canonical-1518 TSP: correct=True
+[38/60] canonical-1541 TSP: correct=True
+[39/60] canonical-1568 TSP: correct=False
+[40/60] canonical-1425 TSP: correct=True
+[41/60] canonical-1550 TSP: correct=True
+[42/60] canonical-1556 TSP: correct=False
+[43/60] canonical-1559 TSP: correct=True
+[44/60] canonical-1412 TSP: correct=True
+[45/60] canonical-1486 TSP: correct=True
+[46/60] canonical-1533 TSP: correct=True
+[47/60] canonical-1431 TSP: correct=True
+[48/60] canonical-1532 TSP: correct=True
+[49/60] canonical-1437 TSP: correct=True
+[50/60] canonical-1458 TSP: correct=True
+[51/60] canonical-1513 TSP: correct=True
+[52/60] canonical-1495 TSP: correct=True
+[53/60] canonical-1535 TSP: correct=True
+[54/60] canonical-1569 TSP: correct=False
+[55/60] canonical-1512 TSP: correct=True
+[56/60] canonical-1471 TSP: correct=True
+[57/60] canonical-1439 TSP: correct=True
+[58/60] canonical-1546 TSP: correct=True
+[59/60] canonical-1545 TSP: correct=True
+[60/60] canonical-1551 TSP: correct=True
+{
+  "run": "pipeline_bedrock-openai.gpt-oss-120b-1-0_tsp_60_r1_20261102-0253",
+  "resumes": 0,
+  "failed_problems": [],
+  "problems": 60,
+  "accuracy": 0.9333333333333333,
+  "solved_rate": 0.9666666666666667,
+  "status_counts": {
+    "infeasible": 1,
+    "no_code": 1,
+    "optimal": 58
+  },
+  "mean_input_tokens": 9108.1,
+  "mean_output_tokens": 14269.683333333332,
+  "mean_llm_calls": 7.716666666666667,
+  "mean_latency_s": 102.69054826000162,
+  "accuracy_by_class": {
+    "TSP": 0.9333333333333333
+  },
+  "decision_counts": {
+    "abstain": 2,
+    "answer": 56,
+    "escalate": 2
+  },
+  "coverage": 0.9333333333333333,
+  "selective_accuracy": 1.0,
+  "wrong_accept_rate": 0.0
+}
