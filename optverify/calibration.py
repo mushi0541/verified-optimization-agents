@@ -83,6 +83,18 @@ def load_run(records_file: Path) -> list[dict]:
     return finished + [{"problem_id": i, "problem_class": classes[i], "failed": True} for i in sorted(failed)]
 
 
+def only_sample(records: list[dict], sample_file: Path) -> list[dict]:
+    """The records of the problems in a sample file, for example the canonical_200 part of a canonical_587 run.
+
+    Stops when a problem of the sample is missing, so a repeat is never analyzed on part of the sample.
+    """
+    sample = set(json.loads(Path(sample_file).read_text(encoding="utf-8")))
+    kept = [r for r in records if r["problem_id"] in sample]
+    if len(kept) != len(sample):
+        raise SystemExit(f"the records hold {len(kept)} of the {len(sample)} problems of {Path(sample_file).as_posix()}")
+    return kept
+
+
 def problem_classes(problem_ids: set[str]) -> dict[str, str]:
     """The class of each problem, from the benchmark split its ID names (for example canonical-0394)."""
     from .data import load_split  # here, so the decision layer itself never needs the data files

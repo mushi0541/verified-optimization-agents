@@ -177,3 +177,23 @@ def test_shift_test_applies_the_canonical_threshold_per_family():
     assert ten["families"]["Crews"]["coverage"] == 0.0 and ten["families"]["Crews"]["problems"] == 2
     fixed = result["by_alpha"]["fixed"]["families"]["all"]
     assert (fixed["answered"], fixed["wrong_accepted"], fixed["problems"]) == (3, 1, 5)
+
+
+def test_sample_keeps_only_its_problems_and_refuses_a_partial_one(tmp_path):
+    import subprocess
+    import sys
+
+    path = _folder(tmp_path, "run", _canonical(20))
+    sample = tmp_path / "sample.json"
+    sample.write_text(json.dumps([f"c{c}-{i}" for c in range(10) for i in range(10)]), encoding="utf-8")
+    out = tmp_path / "out"
+    subprocess.run([sys.executable, "scripts/analyze_gap2.py", "--records", path, "--sample", str(sample),
+                    "--out", str(out)], check=True, capture_output=True)
+    result = json.loads((out / "gap2.json").read_text(encoding="utf-8"))
+    assert result["runs"][0]["problems"] == 100 and result["settings"]["sample"].endswith("sample.json")
+
+    from optverify.calibration import only_sample
+
+    sample.write_text(json.dumps(["c0-0", "missing-1"]), encoding="utf-8")
+    with pytest.raises(SystemExit, match="1 of the 2 problems"):
+        only_sample(_canonical(20), sample)

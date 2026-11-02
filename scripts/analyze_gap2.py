@@ -47,6 +47,7 @@ from optverify.calibration import (  # noqa: E402
     fixed_threshold,
     leave_one_class_out,
     load_run,
+    only_sample,
     scored_answers,
     upper_bound,
 )
@@ -365,9 +366,12 @@ def main() -> None:
     parser.add_argument("--alpha-scan", action="store_true", help="also scan alpha from 5%% to 30%% (an extra analysis)")
     parser.add_argument("--exclude-classes", nargs="+", default=[], help="sensitivity analysis without these classes")
     parser.add_argument("--shift", help="records.jsonl of a run on another benchmark (OpsOR-Bench) for the shift test")
+    parser.add_argument("--sample", type=Path, help="analyze only the problems of this sample file, in every repeat")
     args = parser.parse_args()
 
     all_records = [load_repeat(spec) for spec in args.records]  # failed problems included, as unanswered
+    if args.sample:
+        all_records = [only_sample(records, args.sample) for records in all_records]
     if args.exclude_classes:
         all_records = [[r for r in records if r["problem_class"] not in args.exclude_classes] for records in all_records]
     subset = set(json.loads(args.subset.read_text(encoding="utf-8"))) if args.subset else None
@@ -376,7 +380,7 @@ def main() -> None:
         "records": [spec.replace("\\", "/") for spec in args.records],
         "settings": {"alphas": args.alphas, "fixed_threshold": args.fixed_threshold,
                      "subset": args.subset.as_posix() if args.subset else None, "h2_alpha": H2_ALPHA, "min_coverage": MIN_COVERAGE,
-                     "excluded_classes": args.exclude_classes,
+                     "excluded_classes": args.exclude_classes, "sample": args.sample.as_posix() if args.sample else None,
                      "shift": args.shift.replace("\\", "/") if args.shift else None},
         "runs": runs,
         "summary": summarize(runs, args.alphas),
