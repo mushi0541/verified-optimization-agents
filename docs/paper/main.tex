@@ -158,7 +158,7 @@ the closest systems with ours.
 \begin{table}[t]
 \centering
 \caption{Closest work compared with ours. ``Refuses'': the system can decline to answer with a target error rate.
-``Shift'': that error control is tested on problems unlike the calibration set.}
+``Shift'': that error control is tested on problems unlike the calibration set. ``Tokens'': the paper reports the LLM tokens its check costs (ReLoop only as about three times the base cost; the test battery only its solver time).}
 \label{tab:related}
 \footnotesize
 \setlength{\tabcolsep}{3pt}
@@ -168,8 +168,8 @@ the closest systems with ours.
 \midrule
 Opt-Verifier~\cite{liu2026optverifier} & LLM verdicts on structure & no & -- & yes \\
 VeriSimpl~\cite{abdulrahman2026verisimpl} & solver queries on simplified problems & no & -- & no \\
-ReLoop~\cite{lian2026reloop} & responses to changed data & no & -- & \plan{check} \\
-Test battery~\cite{li2026falsification} & sound test batteries & no & -- & \plan{check} \\
+ReLoop~\cite{lian2026reloop} & responses to changed data & no & -- & partly \\
+Test battery~\cite{li2026falsification} & sound test batteries & no & -- & no \\
 AdmitOR~\cite{lian2026admitor} & agreement of three model families & yes & yes & no \\
 \textbf{Ours} & number and requirement coverage, agreement of rewordings & yes & yes & yes \\
 \bottomrule
@@ -263,12 +263,103 @@ How the base-paper comparison is made (reported numbers and our reproduction).}
 \generated{tables/ablations.tex}{scripts/rescore.py}
 
 \section{Failure Analysis}
-\plan{Failure categories, how often each occurs, and representative cases taken from the trace logs.}
+\label{sec:failures}
+\plan{Counts below are from E3 repeat 1 (380 test problems); update them from \texttt{results/failures/} once every
+repeat is labelled, and add the trajectories of the four cases from the trace logs.}
+
+Every wrong final answer and every false alarm of the pipeline was labelled with the failure category of
+\#41, using \texttt{scripts/failure\_analysis.py}, which writes the evidence that needs no judgement (solver status,
+the gap to the reference and its direction, the objective sense) next to a hand-assigned label. Of the 380 problems,
+102 final answers were wrong. The pipeline refused 78 of them (escalated or abstained) and accepted 24. It also
+escalated 20 correct answers (false alarms); 19 of these came from disagreeing rewordings.
+
+\begin{table}[t]
+\centering
+\caption{Wrong final answers of E3 repeat 1 by category. ``Pending'' rows wait for the reference check of
+Section~\ref{sec:references}.}
+\label{tab:failures}
+\footnotesize
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Category} & \textbf{Accepted} & \textbf{Refused} & \textbf{Total} \\
+\midrule
+Pending (Inventory, Pollution) & 18 & 46 & 64 \\
+Wrong constraint & 3 & 18 & 21 \\
+Code error & 0 & 9 & 9 \\
+Missing constraint & 1 & 2 & 3 \\
+Other (near misses) & 2 & 1 & 3 \\
+Integrality error & 0 & 2 & 2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Wrong constraints, mostly in TSP.} All 16 infeasible models are TSP models with a wrongly written
+Miller-Tucker-Zemlin subtour constraint. Fourteen apply it to every pair of cities, the start city included, which
+rules out every complete tour; two apply it to undirected edges, which forces $u_i < u_j$ and $u_j < u_i$ at once.
+For 10 of the 14, leaving the start city out of that one constraint makes the same code return the reference value.
+The repair round sees an infeasible status but does not find the cause, so these problems are refused rather than
+answered. A repair prompt that names common causes of infeasibility is a direct fix.
+
+\textbf{A misreading that every rewording shares.} Three Production problems were answered with revenues 21 to 31
+times the reference. The question gives the handling time of each cargo type on each vehicle; the benchmark means
+that every ton uses time on all vehicles, while the model assigns cargo to vehicles. In two of the three cases all
+three rewordings repeat the reading, so paraphrase agreement is complete and the score is 1.0. This is the main limit
+of the agreement signal: it detects errors that depend on the wording, not errors that every reading of the question
+makes. In the third case one rewording found the reference with its sign flipped, but the score of 0.889 still passed
+the threshold.
+
+\textbf{Correct refusals.} The checks stop most wrong models. In constraint-0864, a knapsack with the rule ``if crate
+3 is loaded, the capacity drops by 10 kg'', the main model reached 4,181 while all three rewordings reached the
+reference 4,118, so the answer was escalated with that disagreement as the reason. The two Knapsack models with
+continuous items (integrality errors) were refused the same way.
+
+\textbf{False alarms.} Of the 20 correct answers that were escalated, 19 failed on paraphrase agreement: a rewording
+changed a detail and so reached a different optimum. This is the cost of the agreement signal, and it falls on
+coverage, not on the wrong-accept rate.
+
+\subsection{Reference answers}
+\label{sec:references}
+Pollution and Inventory account for 64 of the 102 wrong answers, and for 18 of the 24 wrong answers that were
+accepted, so we checked their references. \texttt{scripts/check\_references.py} reads each question's data from its text,
+solves the model the text states with HiGHS, and compares the optimum with the reference (no LLM is used).
+\begin{itemize}
+\item \textbf{Pollution:} none of the 73 readable references is reproduced by the stated model. Of the other
+readings of the text that we tried (scaling the cost or removal terms, no limit on each source's shares, binary
+choices, a transposed cost table), only binary choices with no share limit reproduce a reference, and only one:
+canonical-1623, within 0.1\%, which is very likely chance. Six problems are infeasible as stated, and 34 references are below the stated model's
+optimum, which no stricter reading can explain. In 7 of the pipeline's 21 Pollution answers, the answer equals the
+stated model's optimum to every digit. These references therefore follow a model the text does not state.
+\item \textbf{Inventory:} 122 of the 125 checked references are reproduced, all of them with the storage capacity
+applying also right after a delivery arrives, which matches the usual wording (``at any moment''). Those references
+are sound, and an answer that checks the capacity only at the end of the day is a real model error. Three questions
+say ``at the end of any day''; for two of them only the stricter rule gives the reference, which contradicts their
+text. The three references that match neither reading (canonical-0648, 0649 and 0650) need a hand check.
+\end{itemize}
+Following our protocol, every result is reported with all problems, and Gap~2 is also reported without Pollution,
+with this reason stated; no problem is dropped silently.
+\plan{Final labels of the 64 pending rows from \#40: Pollution as ``doubtful reference''; Inventory per the check.}
 
 \section{Limitations and Threats to Validity}
-\plan{Limits of the data (synthetic \cthree{} problems, excluded references), of the method (by default the paraphraser and
-formalizer share one model, and a second paraphrase model is optional; number coverage may not separate correct from wrong models), and of the evaluation
-(sample size, one main model, repeats); what may affect generalization.}
+\textbf{Data.} \cthree{} problems are generated from templates, so wording and structure repeat within a class, and
+results may not carry over to industrial models such as MIPLIB-NL. The reference check of
+Section~\ref{sec:references} shows that the benchmark's own answers are not always reproducible from the question:
+every Pollution reference and a few Inventory references follow a model the text does not state. Our tolerance-based
+grading therefore counts some correct models as wrong, which lowers the measured accuracy and raises the measured
+wrong-accept rate of every system alike.
+
+\textbf{Method.} Number coverage is saturated on this benchmark: pooled over five development runs, 134 of 147
+feasible models (91\%) use every number of the question, and so do all 30 wrong ones, because the generated questions never omit data. The signal
+is cheap and kept, but it cannot separate correct from wrong models here. Paraphrase agreement cannot detect a
+misreading that every rewording shares (the Production cases of Section~\ref{sec:failures}); by default the paraphraser
+and the formalizer share one model, and a second paraphrase model is available to test this.
+
+\textbf{Evaluation.} The exact bound behind the calibrated threshold needs many accepted calibration answers: at a
+true wrong-accept rate of 8\%, certifying 10\% needs 593 of them (\texttt{scripts/power\_h2.py}), about four times
+what one fold of \texttt{canonical\_200} provides. We therefore added \texttt{canonical\_587}; this is a deviation
+from the Phase~1 plan, made after H2 failed on \texttt{canonical\_200}, and both results are reported. One main model
+(gpt-oss-120b) is evaluated, so the findings may differ for other models. Repeats differ only in provider
+nondeterminism and the paraphraser's sampling temperature.
+\plan{Number of repeats completed, and the second paraphrase model's result on the development split.}
 
 \section{Conclusion}
 \plan{Main findings, one per gap, and future work.}
