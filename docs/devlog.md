@@ -188,6 +188,10 @@ a different model family.
   - Same-model rewordings all agree on 5 of the 7 wrong answers, and DeepSeek rewordings on 3.
   - DeepSeek catches canonical-1653 (the Production cargo misreading of the failure analysis) and canonical-1643,
     and misses none that the same model catches.
+  - Three of the 7 are Pollution, whose references are doubtful (#79). canonical-1571 equals the stated model's
+    optimum, so it is wrong only against the reference, and canonical-1609 is infeasible as stated. So at most 4 of
+    the 5 are clear errors. canonical-1643 is a real catch under either reading: two DeepSeek rewordings reach the
+    stated optimum 23,625.8, while the pipeline's 24,530.2 is neither that nor the reference.
   - On the 68 correct answers, full agreement is about the same: 64 against 65.
 - **Cost:** 19,128 tokens per problem against 21,678.
 - **Reading:** a second paraphrase model breaks some errors that every same-model rewording repeats, which supports
