@@ -75,34 +75,67 @@ def parse_inventory(question: str) -> dict | None:
     """Initial stock, order bounds, capacity, lead time, demand per period and the three costs (order, holding,
     shortage, in the order the text gives them)."""
     text = question.replace("\u2011", "-").replace("\u2013", "-")
-    initial = re.search(rf"(?:initial|starting|opening|beginning)[^.]*?(?:is|of|:|stands at|amounts to|totals)\s*{NUMBER}", text, re.I)
+    initial = (re.search(rf"(?:initial|starting|opening|beginning)[^.]*?(?:is|of|:|stands at|amounts to|totals)\s*(?:precisely\s*)?{NUMBER}", text, re.I)
+               or re.search(rf"(?:initial|starting|opening|beginning)[^.]*?(?:is|of|:|stands at|amounts to|totals)\s*(?:precisely\s*)?zero\b", text, re.I)
+               or re.search(rf"(?:initial|starting|opening|beginning)\s+stock[^.]*?\bzero\b", text, re.I)
+               or re.search(rf"(?:initial|starting)[^.]*?\bzero\b", text, re.I)
+               or re.search(rf"(?:initial|starting|opening|beginning)[^.]*?\b([0-9]+)\b[^.]*?(?:kiloliters|gallons|liters|barrels|units|doses|cases|boxes|vials|megaliters)", text, re.I))
     bounds = (re.search(rf"between {NUMBER} and {NUMBER}", text)
               or re.search(rf"(?:no less than|at least|minimum of) {NUMBER}[^.]*?(?:no more than|at most|maximum of) {NUMBER}", text)
-              or re.search(rf"from {NUMBER} to {NUMBER}", text))
+              or re.search(rf"from {NUMBER} to {NUMBER}", text)
+              or re.search(rf"(?:bounded between|fall between|constrained to be between|constrained to fall between|must fall between|size must be between|volume must be between|amount requested must be between|order must be between)\s+{NUMBER}\s+(?:and|to)\s+{NUMBER}", text, re.I)
+              or re.search(rf"(?:within a range of|within the range of|in the range of)\s+{NUMBER}\s+to\s+{NUMBER}", text, re.I)
+              or re.search(rf"(?:no less than|at least|minimum of|no fewer than)\s+{NUMBER}[^.]*?(?:no more than|at most|maximum of|no greater than)\s+{NUMBER}", text, re.I))
     capacity = (re.search(rf"capacity[^.0-9]{{0,40}}?{NUMBER}", text, re.I)
-                or re.search(rf"(?:must not exceed|cannot exceed|may not exceed|must not surpass|cannot surpass)[^.0-9]{{0,40}}?{NUMBER}", text))
+                or re.search(rf"(?:must not exceed|cannot exceed|may not exceed|must not surpass|cannot surpass)[^.0-9]{{0,40}}?{NUMBER}", text)
+                or re.search(rf"capacity[^.0-9]{{0,60}}?{NUMBER}", text, re.I)
+                or re.search(rf"(?:must not exceed|cannot exceed|may not exceed|must not surpass|cannot surpass|must remain within)[^.0-9]{{0,70}}?{NUMBER}", text, re.I)
+                or re.search(rf"(?:can hold at most|can accommodate at most|hold at most|accommodate at most)\s*{NUMBER}", text, re.I)
+                or re.search(rf"(?:storage limit|depot limit|facility limit|maximum storage|capacity limit)[^.0-9]{{0,60}}?{NUMBER}", text, re.I))
     units = r"(?:day|week|month|period|hour|leg|shift|quarter|port call|cycle)"
     lead = (re.search(rf"(?:lead time of|lag of|transit time of|delay of|requires(?: an?)?|require(?: an?)?|takes|needs) "
                       rf"{NUMBER}[- ]{units}", text, re.I)
             or re.search(rf"{NUMBER}[- ]{units}s?(?:\(s\))?(?:\s+\w+){{0,3}}?\s+(?:transit|lead|deliver|arriv|ship|delay|transmission)",
-                         text, re.I))
+                         text, re.I)
+            or re.search(rf"(?:lead time of|lag of|transit time of|delay of|requires(?: an?)?|require(?: an?)?|takes|needs?|fixed lead time of|delivery lag of|shipping delay of)\s*{NUMBER}\s*(?:full\s*)?{units}", text, re.I)
+            or re.search(rf"(?:transit period of|transit time of|transit delay of|transit duration of|conveyance delay of|pipeline transit period of)\s*{NUMBER}\s*(?:full\s*)?{units}", text, re.I)
+            or re.search(rf"{NUMBER}-(?:full\s*)?{units}\s*(?:lead time|lag|transit|delay|delivery|transit time|transit period|transit delay|conveyance delay|pipeline transit period)", text, re.I)
+            or re.search(rf"{NUMBER}\s*(?:full\s*)?{units}\s*(?:lead time|lag|transit|delay|delivery|transit time|transit period|of lead time|transit delay|conveyance delay|pipeline transit period)", text, re.I)
+            or re.search(rf"requires\s+{NUMBER}\s+{units}\s+to\s+be\s+delivered", text, re.I))
     next_period = re.search(rf"(?:available|arriv\w*|deliver\w*)[^.]*\b(?:subsequent|following|next) {units}\b", text, re.I)
     if lead:
         lead_time = int(float(lead.group(1)))
     elif next_period:
         lead_time = 1  # "available in the subsequent week"
-    elif re.search(r"instant|immediately|same (?:day|period)|without delay|no delay", text, re.I):
+    elif re.search(r"instant|immediately|same (?:day|period)|without delay|no delay|no lead time|no lag", text, re.I):
         lead_time = 0
     elif re.search(r"transit|arriv|lead time|delay|shipping time|deliver(?:ed|y)? after", text, re.I):
         return None  # the text names a delay that could not be read: not checked, never guessed as 0
     else:
         lead_time = 0
-    demand = [float(n) for n in re.findall(rf"^\s*\* [A-Za-z]+ \d+:[^0-9]*{NUMBER}", text, re.M)]
+    demand = [float(n) for n in re.findall(rf"^\s*[-*] [A-Za-z]+ \d+:[^0-9]*{NUMBER}", text, re.M)]
+    if not demand:
+        bracket = re.search(rf"demand[^.]*?:?\s*\[([0-9, ]+)\]", text, re.I)
+        if bracket:
+            demand = [float(x.strip()) for x in bracket.group(1).split(",") if x.strip()]
+        else:
+            day_items = re.findall(rf"^\s*[-*]? *(?:Day|Week|Interval|Period|Shift|Port Call)\s*\d+\s*:[^0-9\n]*{NUMBER}", text, re.M | re.I)
+            if day_items and len(day_items) >= 2:
+                demand = [float(x) for x in day_items]
     cost_text = text[text.lower().find("three"):] if "three" in text.lower() else text
     costs = [float(n) for n in re.findall(rf"{NUMBER}\s*(?:[A-Za-z$]+\s+){{0,2}}per", cost_text)][:3]
+    if len(costs) < 3:
+        cost_matches = re.findall(rf"(?:cost|expense|penalty|levied|assessed|calculated|charged|set|imposed|amounting to)[^.,;\n]{{0,50}}?(?:at|of|to|is)\s*(\$?\s*{NUMBER})\s*(?:monetary units\s*)?(?:per|\/|for each\b)", text, re.I)
+        if len(cost_matches) < 3:
+            cost_matches = re.findall(rf"(?:at|of|to)\s*(\$?\s*{NUMBER})\s*(?:monetary units\s*)?(?:per|\/|for each\b)", text, re.I)
+        if len(cost_matches) < 3:
+            cost_matches = re.findall(rf"(\$?\s*{NUMBER})\s*(?:monetary units\s*)?(?:per|\/|for each\b)\s*([A-Za-z]+)", text, re.I)
+        if len(cost_matches) >= 3:
+            costs = [float(re.search(NUMBER, c[0] if isinstance(c, tuple) else c).group(1)) for c in cost_matches[:3]]
     if not (initial and bounds and capacity and demand and len(costs) == 3):
         return None
-    return {"initial": float(initial.group(1)), "low": float(bounds.group(1)), "high": float(bounds.group(2)),
+    initial_stock = float(initial.group(1)) if initial.lastindex else 0.0  # the "zero" patterns capture no number
+    return {"initial": initial_stock, "low": float(bounds.group(1)), "high": float(bounds.group(2)),
             "capacity": float(capacity.group(1)), "lead": lead_time, "demand": demand,
             "order_cost": costs[0], "hold_cost": costs[1], "short_cost": costs[2]}
 
