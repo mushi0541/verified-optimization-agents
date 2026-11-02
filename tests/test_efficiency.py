@@ -78,8 +78,19 @@ def test_cost_uses_the_price_of_the_run_model():
     assert run_metrics(_run("r", [_baseline("a", ["optimal"])]))["mean_cost_usd"] == pytest.approx(100 * 0.15 / 1e6)
 
 
+def test_the_second_paraphrase_model_has_its_own_price():
+    deepseek = PRICES["deepseek.v3.2"]
+    assert cost_usd(1_000_000, 1_000_000, deepseek) == pytest.approx(0.62 + 1.85)
+    record = _baseline("a", ["optimal"])
+    record["usage_by_model"] = {
+        "openai.gpt-oss-120b-1:0": {"input_tokens": 1_000_000, "output_tokens": 0, "calls": 1},
+        "deepseek.v3.2": {"input_tokens": 0, "output_tokens": 1_000_000, "calls": 1},
+    }
+    assert record_cost(record, "openai.gpt-oss-120b-1:0") == pytest.approx(0.15 + 1.85)
+
+
 def test_a_model_without_a_price_gets_no_cost(tmp_path):
-    run = _run("ds", [_baseline("a", ["optimal"], model="deepseek.v3.2")])
+    run = _run("un", [_baseline("a", ["optimal"], model="unpriced.model")])
     assert run_metrics(run)["mean_cost_usd"] is None  # never another model's price
     result = efficiency([run])
     assert result["configurations"][0]["price"] is None

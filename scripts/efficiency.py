@@ -41,6 +41,7 @@ RESULTS_DIR = Path(__file__).resolve().parent.parent / "results"
 # US$ per million tokens, with the date the price was read. Amazon Bedrock on-demand prices in us-east-1 (PR #14).
 PRICES = {
     "openai.gpt-oss-120b-1:0": {"input": 0.15, "output": 0.60, "date": "2026-10-20"},
+    "deepseek.v3.2": {"input": 0.62, "output": 1.85, "date": "2026-11-02"},  # the second paraphrase model (#56)
 }
 FAILED_RUN_TARGET = 0.05  # report objective D1
 DEFAULT_SIGNALS = ("number", "requirement", "paraphrase")  # every Gap 1 signal on, the main configuration
