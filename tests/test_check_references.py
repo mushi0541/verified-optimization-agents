@@ -79,3 +79,54 @@ def test_check_marks_reproduced_references_and_pipeline_answers():
     # A reference the stated model cannot give, and a pipeline answer that equals the stated model instead.
     assert rows["canonical-9002"]["reproduced_by"] == "none" and rows["canonical-9002"]["pipeline_equals"] == "stated model"
     assert rows["canonical-9003"]["checked"] is False  # an unreadable question is not checked, never guessed
+
+def test_extended_inventory_patterns():
+    # Phrasing variations: zero stock, range bounds, storage facility capacity, transit period with full day, dash bullets, monetary unit costs
+    text_dash = """A regional facility manages stock over 3 days.
+The initial stockpile at the outset is precisely 0 units.
+On each day the shipment must fall within the range of 5 to 25 units.
+The storage facility capacity of 40 units must not be surpassed.
+Every shipment will require a transit period of 1 full day before delivery.
+Daily requirements are:
+- Day 1: 10 units
+- Day 2: 15 units
+- Day 3: 20 units
+Unmet demand is lost.
+Costs comprise: procurement cost of 2 monetary units per unit ordered, storage cost of 1 monetary unit per unit held overnight, and a stockout penalty assessed at 50 monetary units per unit of unmet requirement."""
+    data = parse_inventory(text_dash)
+    assert data == {
+        "initial": 0.0, "low": 5.0, "high": 25.0, "capacity": 40.0, "lead": 1,
+        "demand": [10.0, 15.0, 20.0], "order_cost": 2.0, "hold_cost": 1.0, "short_cost": 50.0,
+    }
+    assert solve_inventory(data, False) == pytest.approx(580.0)
+    assert solve_inventory(data, True) == pytest.approx(580.0)
+
+    # Bracketed demand and zero lead time
+    text_bracket = """A depot manages inventory.
+The starting stock is zero units.
+Each order size must be between 0 and 50.
+Storage limit of 100 units.
+Shipments arrive with no lead time.
+The projected demand is [10, 20, 30].
+Unmet demand is lost.
+The costs are 3 per unit ordered, 2 per unit held, and 20 per unit short."""
+    data_b = parse_inventory(text_bracket)
+    assert data_b["initial"] == 0.0
+    assert data_b["demand"] == [10.0, 20.0, 30.0]
+    assert data_b["lead"] == 0
+
+    # Lead time with full days phrasing
+    text_full = """A plant plans storage.
+The beginning stock stands at 15 kiloliters.
+Orders from 10 to 30 kiloliters.
+The tank can hold at most 50 kiloliters.
+Each order will require 2 full days to reach the reservoir.
+* Period 1: 15 kiloliters
+* Period 2: 25 kiloliters
+Unmet demand is lost.
+Procurement cost of 2 per kiloliter, holding cost of 1 per kiloliter, shortage penalty of 10 per kiloliter."""
+    data_f = parse_inventory(text_full)
+    assert data_f["lead"] == 2
+    assert data_f["initial"] == 15.0
+    assert data_f["capacity"] == 50.0
+
