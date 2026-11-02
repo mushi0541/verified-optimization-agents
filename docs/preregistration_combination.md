@@ -43,3 +43,21 @@ at most 24 samples (more than the budget below, so the analysis can hold B2 to t
 
 Nothing in this file changes after the B2 run starts. A failed or stopped B2 problem is resumed with `--resume`. If
 some problems still fail, they are left out and listed, and the test runs on the rest.
+
+## Addendum 1: every unused canonical problem (written before any run on them)
+
+`samples/canonical_unused.json`: the 1,070 canonical problems in no other sample, test or development (BinPacking
+550, Knapsack 190, JobShop 90, Portfolio 90, Inventory 60, TSP 60, Pollution 10, Production 10, Transportation 10;
+NetworkFlow has none left). No run of any system has seen them.
+
+New runs, gpt-oss-120b, the #34 settings and v1 prompts: the pipeline (k = 3, r = 1), B1 (r = 1), and B2 (r = 1,
+budget 26,000 tokens, at most 24 samples).
+
+Tests, with the same rules as above and as on `canonical_587`:
+- **H3c** and **H3** exactly as above, on the 1,070 problems, and on all 1,457 held-out problems (the 387 and the
+  1,070 together).
+- **H1** (`scripts/analyze_gap1.py`) and **H2** (`scripts/analyze_gap2.py`, leave-one-class-out, alpha 10%), with the
+  same settings as on `canonical_587`.
+
+Reported in any case, not tests: per class, and with every class weighted equally, because BinPacking is half of
+this sample.
