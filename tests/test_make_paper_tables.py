@@ -89,3 +89,35 @@ def test_the_scripts_run_on_the_committed_results(tmp_path):
 
 def test_text_is_escaped_for_latex():
     assert tex("canonical_200 & 10%") == "canonical\\_200 \\& 10\\%"
+
+
+def test_the_gap3_table_has_each_level_and_the_reference_points(tmp_path):
+    results = tmp_path / "results"
+    level = {"k": 3, "pipeline": {"mean_tokens": 20783.2, "accuracy": 0.78, "wrong_accept_rate": 0.06},
+             "b2": {"mean_tokens": 20881.48, "accuracy": 0.805, "wrong_accept_rate": 0.06398},
+             "paired": {"mcnemar_p": 0.3017, "wrong_accept_difference_ci": [-0.0502, 0.0430]}}
+    _write(results / "gap3" / "canonical_200" / "e3.json", {
+        "problems": 200, "settings": {"coverage": 0.5}, "levels": [level],
+        "h3": {"k": 3, "supported": False},
+        "reference_points": {"B0": {"mean_tokens": 2555.13, "accuracy": 0.77}}})
+    make_tables(results, tmp_path / "tables")
+    text = (tmp_path / "tables" / "gap3.tex").read_text(encoding="utf-8")
+    assert "$k=3$ & 20,783 / 20,881 & 78.0 / 80.5 & 0.30 & 6.0 / 6.4 & [-5.0, +4.3] \\\\" in text
+    assert "B0 & 2,555 & 77.0 & -- & -- & -- \\\\" in text
+    assert "H3 at $k=3$: not supported" in text
+
+
+def test_an_ablation_rate_from_fewer_than_two_repeats_is_marked(tmp_path):
+    path = tmp_path / "results" / "ablations" / "ablations.csv"
+    path.parent.mkdir(parents=True)
+    columns = ["accuracy", "coverage", "wrong_accept_rate", "auroc", "mean_tokens", "mean_calls"]
+    header = ["ablation", *columns, "repeats", *(f"{c}_std" for c in columns)]
+    rows = [["(vi) Calibrated", "0.82", "0.0333", "0.2", "0.9126", "21381.4", "8.2", "3",
+             "0.02", "0.0577", "", "0.07", "593.7", "0.15"],
+            ["(iv) Without the parser", "0.82", "0.84", "0.0476", "0.9336", "16594.1", "7.5", "1", "", "", "", "", "", ""]]
+    path.write_text("\n".join(",".join(row) for row in [header, *rows]) + "\n", encoding="utf-8")
+    make_tables(tmp_path / "results", tmp_path / "tables")
+    text = (tmp_path / "tables" / "ablations.tex").read_text(encoding="utf-8")
+    assert r"(vi) Calibrated & 3 & 82.0 $\pm$ 2.0 & 3.3 $\pm$ 5.8 & 20.0$^\dagger$ & 0.91 $\pm$ 0.07" in text
+    assert "(iv) Without the parser & 1 & 82.0 & 84.0 & 4.8 & 0.93 & 16,594 \\\\" in text  # one repeat: no sd, no mark
+    assert r"$^\dagger$ from fewer than two of the repeats" in text

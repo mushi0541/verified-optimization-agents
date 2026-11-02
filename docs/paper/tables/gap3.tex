@@ -1,0 +1,18 @@
+% Written by scripts/make_paper_tables.py from results/gap3/canonical_200/e3.json. Do not edit by hand.
+\begin{table*}[t]
+\centering
+\caption{The pipeline against B2 at an equal token budget on \texttt{canonical\_200} (200 problems): accuracy, and wrong-accept rate (WAR, \%) when each answers 50\% of the problems, with the paired interval of pipeline minus B2 (points); B0 and B1 are reference points. H3 at $k=3$: not supported}
+\label{tab:gap3}
+\footnotesize
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+ & Tokens, pipeline / B2 & Accuracy & McNemar $p$ & WAR at 50\% cov. & WAR difference, 95\% CI \\
+\midrule
+$k=1$ & 12,418 / 12,344 & 78.0 / 80.0 & 0.42 & 9.0 / 10.1 & [-6.7, +4.8] \\
+$k=2$ & 16,642 / 16,721 & 78.0 / 79.5 & 0.61 & 7.0 / 8.1 & [-6.6, +3.7] \\
+$k=3$ & 20,783 / 20,881 & 78.0 / 80.5 & 0.30 & 6.0 / 6.4 & [-5.0, +4.3] \\
+B0 & 2,555 & 77.0 & -- & -- & -- \\
+B1 & 2,664 & 78.0 & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table*}
