@@ -180,13 +180,15 @@ a different model family.
 **Effect.** On the development split `dev_93` (`results/paraphraser/dev_93/`, `scripts/compare_paraphrasers.py`):
 - **AUROC:** no gain. Paraphrase agreement scores 0.804 with DeepSeek against 0.818 with the same model, and the
   combined score 0.815 against 0.866. The intervals overlap widely (`results/gap1/dev_93*`).
-- **False alarms:** 4 correct answers fall below the 0.8 threshold with DeepSeek, against 2.
+- **False alarms:** 4 correct answers fall below the 0.8 threshold with DeepSeek, against 2, all from disagreeing
+  rewordings. Of the 2 extra ones, canonical-0652 has a wrong main answer in the gpt-oss run, and canonical-0623 has
+  the same correct answer in both runs, but DeepSeek's rewordings reach 1,020 twice instead of once.
 - **Shared misreadings:** the main model's answer is sampled again in each run, so the fair comparison uses the 75
   problems where both runs gave the same feasible answer (7 wrong).
   - Same-model rewordings all agree on 5 of the 7 wrong answers, and DeepSeek rewordings on 3.
   - DeepSeek catches canonical-1653 (the Production cargo misreading of the failure analysis) and canonical-1643,
     and misses none that the same model catches.
-  - On the 68 correct answers, full agreement is 64 against 65, so there are no extra false alarms.
+  - On the 68 correct answers, full agreement is about the same: 64 against 65.
 - **Cost:** 19,128 tokens per problem against 21,678.
 - **Reading:** a second paraphrase model breaks some errors that every same-model rewording repeats, which supports
   the supervisor's point, but 2 cases are too few to show a gain. The run on `canonical_200` is in progress and
