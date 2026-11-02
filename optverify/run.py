@@ -147,7 +147,9 @@ def main() -> None:
     else:
         split_tag = args.sample_file.stem if args.sample_file else args.split
         paraphraser_tag = f"_para-{_slug(args.paraphrase_model)}" if args.system == "pipeline" and args.paraphrase_model else ""
-        run_name = f"{args.system}_{_slug(args.model)}{paraphraser_tag}_{split_tag}_r{args.repairs}_{datetime.now():%Y%m%d-%H%M}"
+        no_parser_tag = "_noparser" if args.system == "pipeline" and args.no_parser else ""  # ablation (iv) apart
+        run_name = (f"{args.system}_{_slug(args.model)}{paraphraser_tag}{no_parser_tag}_{split_tag}_r{args.repairs}"
+                    f"_{datetime.now():%Y%m%d-%H%M}")
         out_dir = RESULTS_DIR / run_name
         out_dir.mkdir(parents=True, exist_ok=True)
     log_dir = LOGS_DIR / out_dir.name if args.trace else None  # a resumed run keeps its log folder
