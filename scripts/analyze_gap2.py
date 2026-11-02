@@ -220,7 +220,9 @@ def summarize(runs: list[dict], alphas: list[float]) -> dict:
 def markdown(result: dict) -> str:
     runs, alphas = result["runs"], result["settings"]["alphas"]
     excluded = result["settings"].get("excluded_classes")
+    sample = result["settings"].get("sample")
     lines = [f"# Gap 2 (H2): {', '.join(result['records'])}", "",
+             *([f"**Only the problems of `{sample}`** (`--sample`), in every repeat.", ""] if sample else []),
              *([f"**Sensitivity analysis without {', '.join(excluded)}.** Not the H2 result itself; report it next to the full one.", ""]
                if excluded else []), f"H2 (alpha = {H2_ALPHA:.0%}, at least "
              f"{MIN_COVERAGE:.0%} answered): **{result['summary']['h2']}**", "",
@@ -257,7 +259,8 @@ def markdown(result: dict) -> str:
                 lines.append(f"| {i} | {_pct(rule) if rule is not None else 'none up to 30%'} | "
                              f"{_pct(bound) if bound is not None else 'none up to 30%'} | {_pct(coverage)} |")
     for i, shift in enumerate(result.get("shift", []), start=1):
-        lines += ["", f"Shift test, run {i}: thresholds calibrated on every class of this run, applied to "
+        classes = f"every class of this run except {', '.join(excluded)}" if excluded else "every class of this run"
+        lines += ["", f"Shift test, run {i}: thresholds calibrated on {classes}, applied to "
                       f"{result['settings']['shift']} ({shift['problems']} problems).", "",
                   "| Setting | Threshold | " + " | ".join(shift["families"]) + " | All |",
                   "|---|---|" + "---|" * (len(shift["families"]) + 1)]
@@ -390,7 +393,8 @@ def main() -> None:
         result["shift"] = [shift_test(records, shift_records, args.alphas, args.fixed_threshold) for records in all_records]
     if args.baseline:
         problem_ids = {r["problem_id"] for records in all_records for r in records}
-        result["b0"] = b0_reference(load_run(args.baseline), problem_ids)
+        baseline = load_run(args.baseline)
+        result["b0"] = b0_reference(only_sample(baseline, args.sample) if args.sample else baseline, problem_ids)
     text = markdown(result)
     print(text)
     if args.out:

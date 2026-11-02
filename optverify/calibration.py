@@ -90,8 +90,10 @@ def only_sample(records: list[dict], sample_file: Path) -> list[dict]:
     """
     sample = set(json.loads(Path(sample_file).read_text(encoding="utf-8")))
     kept = [r for r in records if r["problem_id"] in sample]
-    if len(kept) != len(sample):
-        raise SystemExit(f"the records hold {len(kept)} of the {len(sample)} problems of {Path(sample_file).as_posix()}")
+    missing = sample - {r["problem_id"] for r in kept}
+    if missing:
+        raise SystemExit(f"the records hold {len(sample) - len(missing)} of the {len(sample)} problems of "
+                         f"{Path(sample_file).as_posix()}; missing: {', '.join(sorted(missing)[:5])}")
     return kept
 
 

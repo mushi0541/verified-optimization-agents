@@ -227,7 +227,10 @@ def summarize(runs: list[dict]) -> dict:
 
 def markdown(result: dict) -> str:
     runs, summary = result["runs"], result["summary"]
-    lines = [f"# Gap 1 (H1): {', '.join(result['records'])}", "", f"H1: **{summary['h1']}**", ""]
+    sample = result["settings"].get("sample")
+    lines = [f"# Gap 1 (H1): {', '.join(result['records'])}", "",
+             *([f"**Only the problems of `{sample}`** (`--sample`), in every run.", ""] if sample else []),
+             f"H1: **{summary['h1']}**", ""]
     header = "| Score | " + " | ".join(f"Run {i + 1}" for i in range(len(runs))) + " | Mean (sd) |"
     lines += [header, "|---|" + "---|" * (len(runs) + 1)]
     for name in score_sets():
@@ -326,7 +329,8 @@ def main() -> None:
         "summary": summarize(runs),
     }
     if args.baseline:
-        result["b0"] = b0_reference(load_run(args.baseline), problem_ids)
+        baseline = load_run(args.baseline)
+        result["b0"] = b0_reference(only_sample(baseline, args.sample) if args.sample else baseline, problem_ids)
     text = markdown(result)
     print(text)
     if args.out:
