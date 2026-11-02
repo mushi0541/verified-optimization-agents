@@ -1,0 +1,11 @@
+ablation,accuracy,coverage,wrong_accept_rate,auroc,mean_tokens,mean_calls,repeats
+"Reference (main pipeline: k=3, r=1, all signals)",0.7500,0.7500,0.0222,0.9985,29771.7000,8.4833,1
+(i) Without number coverage,0.7500,0.7333,0.0000,0.9985,29771.7000,8.4833,1
+(ii) Without requirement coverage,0.7500,0.7667,0.0217,0.9993,29771.7000,8.4833,1
+(iii) Without paraphrase agreement,0.7500,0.8333,0.1000,0.8378,12327.8500,2.6167,1
+(iv) Without the parser,0.9333,0.9333,0.0000,1.0000,23377.7833,7.7167,1
+(v) k = 1 paraphrase,0.7500,0.7667,0.0217,0.9741,17779.0833,4.4833,1
+(v) k = 2 paraphrases,0.7500,0.7500,0.0000,1.0000,23403.7500,6.3833,1
+"(vi) Calibrated threshold (alpha = 0.10, thresholds from the whole run)",0.7500,0.0000,,0.9985,29771.7000,8.4833,1
+(vii) r = 0 repairs,0.3333,0.3333,0.0500,0.9988,18584.3000,4.9333,1
+(vii) r = 2 repairs,not run,,,,,,0
