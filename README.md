@@ -439,6 +439,18 @@ Pass `--trace` to write per-step JSON lines to `logs/<run_name>/<problem_id>.jso
 
 Sensitive environment variable values and keys are automatically redacted.
 
+Trajectories and failure analysis (#41):
+
+```bash
+# Print summary table of trace runs
+python scripts/format_trajectories.py --traces "logs/sample/*.jsonl" --summary
+
+# Render markdown report with step trajectories, signal breakdowns, and root causes
+python scripts/format_trajectories.py --traces "logs/sample/*.jsonl" --cases canonical-1155 canonical-1250 canonical-1601 canonical-0890 --causes --out docs/failures/trajectories.md
+```
+
+See `docs/failures/trajectories.md` for full case study trajectories (two successes and two failures) and detailed root cause mitigations for each failure category.
+
 ## Repository layout
 
 ```
