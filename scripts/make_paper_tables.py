@@ -8,7 +8,10 @@ Each table is built only from files that the analysis scripts wrote, so no numbe
 - gap1.tex from results/gap1/<sample>/gap1.json (scripts/analyze_gap1.py): AUROC of each signal and of the combined
   score, the gain over feasibility and the H1 verdict, per sample;
 - gap2.tex from results/gap2/<sample>/gap2.json (scripts/analyze_gap2.py): coverage and wrong-accept rate at the H2
-  alpha and at the fixed threshold, the smallest alpha the data supports and the H2 verdict, per sample.
+  alpha and at the fixed threshold, the smallest alpha the data supports and the H2 verdict, per sample;
+- gap3.tex from results/gap3/canonical_200/e3.json (scripts/analyze_e3.py): the pipeline against B2 at an equal
+  token budget for each k, with the paired interval and the H3 verdict, and B0 and B1 as reference points;
+- ablations.tex from results/ablations/ablations.csv (scripts/ablation_table.py): each ablation on ablation_50.
 
 A table whose input files are missing is not written, so main.tex shows its \\generated note instead; the script says
 which tables it wrote and which it skipped. Rows follow fixed lists of samples, so the output does not depend on the
@@ -16,6 +19,7 @@ order of files on disk.
 """
 
 import argparse
+import csv
 import json
 import sys
 from pathlib import Path
@@ -192,7 +196,69 @@ def gap2(results: Path) -> tuple[str, list[str]] | None:
     return table(caption, "tab:gap2", "llr" + "r" * 6 + "l", header, rows, sources, wide=True), sources
 
 
-BUILDERS = {"baselines.tex": baselines, "gap1.tex": gap1, "gap2.tex": gap2}
+def gap3(results: Path) -> tuple[str, list[str]] | None:
+    """The pipeline against B2 at each paraphrase level k (B2 held to the pipeline's tokens at that k), with B0 and
+    B1 as cheap reference points."""
+    source = "results/gap3/canonical_200/e3.json"
+    data = read(results / "gap3" / "canonical_200" / "e3.json")
+    if data is None:
+        return None
+    coverage = f"{100 * data['settings']['coverage']:g}"
+    rows = []
+    for level in data["levels"]:
+        pipe, single, paired = level["pipeline"], level["b2"], level["paired"]
+        low, high = paired["wrong_accept_difference_ci"]
+        rows.append([f"$k={level['k']}$", f"{pipe['mean_tokens']:,.0f} / {single['mean_tokens']:,.0f}",
+                     f"{percent(pipe['accuracy'])} / {percent(single['accuracy'])}", f"{paired['mcnemar_p']:.2f}",
+                     f"{percent(pipe['wrong_accept_rate'])} / {percent(single['wrong_accept_rate'])}",
+                     f"[{100 * low:+.1f}, {100 * high:+.1f}]"])
+    for name, point in data["reference_points"].items():
+        rows.append([name, f"{point['mean_tokens']:,.0f}", percent(point["accuracy"]), DASH, DASH, DASH])
+    h3 = data["h3"]
+    header = ["", "Tokens, pipeline / B2", "Accuracy", "McNemar $p$", f"WAR at {coverage}\\% cov.",
+              "WAR difference, 95\\% CI"]
+    caption = (f"The pipeline against B2 at an equal token budget on \\texttt{{canonical\\_200}} ({data['problems']} "
+               f"problems): accuracy, and wrong-accept rate (WAR, \\%) when each answers {coverage}\\% of the problems, "
+               f"with the paired interval of pipeline minus B2 (points); B0 and B1 are reference points. "
+               f"H3 at $k={h3['k']}$: {'supported' if h3['supported'] else 'not supported'}")
+    return table(caption, "tab:gap3", "lrrrrr", header, rows, [source], wide=True), [source]
+
+
+def ablations(results: Path) -> tuple[str, list[str]] | None:
+    """Each ablation on ablation_50 at the fixed threshold. A rate with no sd although there are several repeats had a
+    value in fewer than two of them, and is marked with a dagger."""
+    source = "results/ablations/ablations.csv"
+    path = results / "ablations" / "ablations.csv"
+    if not path.exists():
+        return None
+    with path.open(encoding="utf-8", newline="") as handle:
+        entries = list(csv.DictReader(handle))
+    marked = False
+
+    def cell(entry: dict, key: str, show) -> str:
+        nonlocal marked
+        if entry[key] == "":
+            return DASH
+        repeats, sd = int(entry["repeats"]), entry[f"{key}_std"]
+        text = show(float(entry[key]), float(sd) if sd and repeats > 1 else None)
+        if repeats > 1 and not sd:
+            marked = True
+            text += "$^\\dagger$"
+        return text
+
+    rows = [[tex(entry["ablation"]), entry["repeats"], cell(entry, "accuracy", percent),
+             cell(entry, "coverage", percent), cell(entry, "wrong_accept_rate", percent),
+             cell(entry, "auroc", lambda v, sd: number(v, sd, 2)),  # two digits, as in gap1.tex
+             cell(entry, "mean_tokens", lambda v, sd: f"{v:,.0f}" + (f" $\\pm$ {sd:,.0f}" if sd is not None else ""))]
+            for entry in entries]
+    header = ["Ablation", "Rep.", "Accuracy", "Coverage", "WAR", "AUROC", "Tokens"]
+    caption = ("Ablations on \\texttt{ablation\\_50} at the fixed threshold (\\%, mean $\\pm$ sd over the repeats)"
+               + ("; $^\\dagger$ from fewer than two of the repeats" if marked else ""))
+    return table(caption, "tab:ablations", "p{5.2cm}rrrrrr", header, rows, [source], wide=True), [source]
+
+
+BUILDERS = {"baselines.tex": baselines, "gap1.tex": gap1, "gap2.tex": gap2, "gap3.tex": gap3,
+            "ablations.tex": ablations}
 
 
 def make_tables(results: Path, out: Path) -> dict[str, list[str] | None]:
