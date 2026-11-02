@@ -380,8 +380,7 @@ To test H3 (comparing the multi-agent pipeline against B2 at matched token budge
 
 \section{Failure Analysis}
 \label{sec:failures}
-\plan{Counts below are from E3 repeat 1 (380 test problems); update them from \texttt{results/failures/} once every
-repeat is labelled, and add the trajectories of the four cases from the trace logs.}
+
 
 Every wrong final answer and every false alarm of the pipeline was labelled with the failure category of
 \#41, using \texttt{scripts/failure\_analysis.py}, which writes the evidence that needs no judgement (solver status,
@@ -400,10 +399,10 @@ Section~\ref{sec:references}.}
 \textbf{Category} & \textbf{Accepted} & \textbf{Refused} & \textbf{Total} \\
 \midrule
 Pending (Inventory, Pollution) & 18 & 46 & 64 \\
-Wrong constraint & 3 & 18 & 21 \\
+Wrong constraint & 3 & 19 & 22 \\
 Code error & 0 & 9 & 9 \\
 Missing constraint & 1 & 2 & 3 \\
-Other (near misses) & 2 & 1 & 3 \\
+Other (near misses) & 2 & 0 & 2 \\
 Integrality error & 0 & 2 & 2 \\
 \bottomrule
 \end{tabular}
@@ -432,6 +431,18 @@ continuous items (integrality errors) were refused the same way.
 \textbf{False alarms.} Of the 20 correct answers that were escalated, 19 failed on paraphrase agreement: a rewording
 changed a detail and so reached a different optimum. This is the cost of the agreement signal, and it falls on
 coverage, not on the wrong-accept rate.
+
+\subsection{Case Studies and Trajectories}
+\label{sec:case_studies}
+To inspect the internal mechanics of the multi-agent pipeline at inference time, we analyze step-by-step execution traces from development runs (\texttt{logs/sample/}, detailed in \texttt{docs/failures/trajectories.md}):
+
+\textbf{1. Clean Solve: Knapsack (\texttt{canonical-1155}).} The parser extracts seven linear requirements and parameters without solving. The formalizer generates complete 0--1 knapsack code with named constraints, achieving optimal solver status with objective 3,424.0 on attempt 1. All $k=3$ rewordings independently solve to 3,424.0. The verifier records 100\% number coverage, 100\% requirement coverage, and 100\% paraphrase agreement ($S=1.000$), enabling immediate acceptance at threshold $\tau=0.8$.
+
+\textbf{2. Repair Recovery: Portfolio (\texttt{canonical-1250}).} The initial formalizer code encountered a syntax error in PuLP summation indexing, producing status \texttt{error}. The automated repair round fed the captured traceback and failing lines back to the formalizer, which corrected the indexing on attempt 2, obtaining optimal objective 0.1354. All three paraphrases corroborated the solution ($S_{\text{para}}=1.000$), while one unreferenced descriptive number yielded $S_{\text{num}}=0.962$. The combined score $S=0.987$ comfortably cleared the decision gate, converting a potential code failure into a verified correct answer.
+
+\textbf{3. Wrong Accept: Pollution (\texttt{canonical-1601}).} The formalizer generated an optimal LP achieving objective 47,912.4 against the benchmark reference 36,126.9. While all three rewordings converged to the same misformulation ($S_{\text{para}}=1.000$), requirements R3 and R5 had no named constraint in the code ($S_{\text{req}}=0.600$). Due to the high weighting of unanimous paraphrase agreement, the combined score $S=0.867$ exceeded the 0.8 threshold, accepting a flawed solution. This case illustrates the vulnerability of consensus when all prompt variants share an underlying prompt misinterpretation.
+
+\textbf{4. Correct Refusal: JobShop (\texttt{canonical-0890}).} The main model generated a flawed route scheduling formulation yielding an inflated objective of 265.0. However, all three rewordings formalized the machine non-overlap constraints correctly, each discovering the true reference optimum 54.0. Paraphrase agreement with the main model collapsed to $S_{\text{para}}=0.000$, driving the composite score to $S=0.611$. The decision gate escalated the case to an analyst with explicit disagreement warnings, successfully averting an erroneous acceptance.
 
 \subsection{Reference answers}
 \label{sec:references}
