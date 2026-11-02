@@ -74,8 +74,8 @@ FAILURE_CATEGORIES = {
         "title": "Code Execution Error",
         "description": "The generated Python code fails to execute due to syntax errors, import mismatches, missing identifiers, or solver crashes.",
         "examples": [
-            "Portfolio optimization: syntax error in PuLP summation indexing causing solver script termination on attempt 1 (canonical-1250).",
-            "Nine code crashes in E3 repeat 1, all safely caught and refused by the pipeline without accepting wrong answers.",
+            "Portfolio optimization: on attempt 1 the code looked up a constraint name that does not exist (`model.constraints['R4_complexity']`), so the script stopped with a KeyError; the repair round fixed it (canonical-1250).",
+            "Nine code errors in the repeat-1 runs (2 on canonical_200, 5 on constraint_pairs_60, 2 on linguistic_60), all refused by the pipeline, so none became a wrong accept.",
         ],
         "likely_cause": (
             "Hallucinated PuLP methods, malformed dictionary keys, or invalid variable expressions generated under complex formulations."
@@ -89,7 +89,7 @@ FAILURE_CATEGORIES = {
         "title": "False Alarm (Spurious Escalation)",
         "description": "The system produces a mathematically correct formulation and answer, but verification gate heuristics unnecessarily escalate or abstain.",
         "examples": [
-            "19 of 20 false alarms in E3 repeat 1 resulted from paraphrase disagreement when one rewording produced an alternative valid formulation or minor reading discrepancy (canonical-0652).",
+            "19 of the 20 false alarms in the repeat-1 runs on canonical_200, constraint_pairs_60 and linguistic_60 come from paraphrase disagreement, and all 19 are Inventory problems (for example canonical-0675).",
             "Numbers extracted from conversational text (e.g. year, asset count) flagged as unused numbers despite the core math being sound.",
         ],
         "likely_cause": (
@@ -106,7 +106,7 @@ FAILURE_CATEGORIES = {
         "description": "The benchmark ground-truth answer does not correspond to the problem text due to infeasible problem parameters or ambiguous temporal/cost definitions.",
         "examples": [
             "Pollution control benchmark problems where stated abatement constraints require emissions reductions impossible under capacity limits, or reference values are lower than the theoretical minimum cost. "
-            "Inventory problems with conflicting holding cost timing or delivery lead-time phrasing.",
+            "Inventory problems whose text says the capacity holds at the end of each day while the reference uses the stricter after-arrival rule (canonical-0644, canonical-0667), and one reference that no reading reproduces (canonical-0648) (#40).",
         ],
         "likely_cause": (
             "Flaws in upstream synthetic dataset generation or automated problem formulation in the benchmark source."
@@ -377,7 +377,7 @@ def format_single_trajectory_markdown(traj: dict) -> str:
         agr_str = f"{agr:.2%}" if isinstance(agr, float) else str(agr)
         objs = str(v.get("paraphrase_objectives", []))
         lines.append(f"| Paraphrase Agreement | `{agr_str}` | Rewording values: {objs} |")
-        lines.append(f"| Combined Verification Score | `{score_display}` | Calibrated threshold: `0.800` |")
+        lines.append(f"| Combined Verification Score | `{score_display}` | Threshold (fixed): `0.800` |")
         lines.append("")
 
     # Decision & Explainer
