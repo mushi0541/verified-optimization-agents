@@ -90,6 +90,11 @@ def generate_samples(output_dir: Path = DEFAULT_OUTPUT_DIR, data_dir: Path = DAT
     paths["dev_93"] = save("dev_93.json", dev_93)
     # The TSP problems of canonical_587, for the diagnostic run without the parser (devlog entry 14).
     paths["tsp_60"] = save("tsp_60.json", [p for p in canonical_587 if p.problem_class == "TSP"])
+    # Development problems for the v2 prompts (#95): 30 TSP and 30 Inventory problems in no sample above, test or
+    # development, so the prompt change is designed without touching the test set.
+    used_ids = test_ids | {p.problem_id for p in dev_93}
+    v2_pool = [p for p in canonical_problems if p.problem_id not in used_ids and p.problem_class in ("Inventory", "TSP")]
+    paths["dev_tsp_inventory_60"] = save("dev_tsp_inventory_60.json", sample_per_class(v2_pool, per_class=30, seed=2))
     return paths
 
 

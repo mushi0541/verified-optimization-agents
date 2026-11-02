@@ -1,0 +1,247 @@
+{
+  "shared_problems": 200,
+  "only_in_first": [],
+  "only_in_second": [],
+  "groups": {
+    "BinPacking": {
+      "first": {
+        "problems": 20,
+        "correct": 20,
+        "no_feasible_model": null,
+        "accepted": null,
+        "wrong_accepted": null,
+        "mean_tokens": 1688.8
+      },
+      "second": {
+        "problems": 20,
+        "correct": 20,
+        "no_feasible_model": null,
+        "accepted": null,
+        "wrong_accepted": null,
+        "mean_tokens": 1749.95
+      },
+      "only_first_correct": 0,
+      "only_second_correct": 0,
+      "mcnemar_p": 1.0
+    },
+    "Inventory": {
+      "first": {
+        "problems": 20,
+        "correct": 7,
+        "no_feasible_model": null,
+        "accepted": null,
+        "wrong_accepted": null,
+        "mean_tokens": 3255.95
+      },
+      "second": {
+        "problems": 20,
+        "correct": 8,
+        "no_feasible_model": null,
+        "accepted": null,
+        "wrong_accepted": null,
+        "mean_tokens": 3231.15
+      },
+      "only_first_correct": 2,
+      "only_second_correct": 3,
+      "mcnemar_p": 1.0
+    },
+    "JobShop": {
+      "first": {
+        "problems": 20,
+        "correct": 16,
+        "no_feasible_model": null,
+        "accepted": null,
+        "wrong_accepted": null,
+        "mean_tokens": 2839.2
+      },
+      "second": {
+        "problems": 20,
+        "correct": 20,
+        "no_feasible_model": null,
+        "accepted": null,
+        "wrong_accepted": null,
+        "mean_tokens": 2928.75
+      },
+      "only_first_correct": 0,
+      "only_second_correct": 4,
+      "mcnemar_p": 0.125
+    },
+    "Knapsack": {
+      "first": {
+        "problems": 20,
+        "correct": 20,
+        "no_feasible_model": null,
+        "accepted": null,
+        "wrong_accepted": null,
+        "mean_tokens": 1575.0
+      },
+      "second": {
+        "problems": 20,
+        "correct": 20,
+        "no_feasible_model": null,
+        "accepted": null,
+        "wrong_accepted": null,
+        "mean_tokens": 1521.4
+      },
+      "only_first_correct": 0,
+      "only_second_correct": 0,
+      "mcnemar_p": 1.0
+    },
+    "NetworkFlow": {
+      "first": {
+        "problems": 20,
+        "correct": 20,
+        "no_feasible_model": null,
+        "accepted": null,
+        "wrong_accepted": null,
+        "mean_tokens": 3742.15
+      },
+      "second": {
+        "problems": 20,
+        "correct": 20,
+        "no_feasible_model": null,
+        "accepted": null,
+        "wrong_accepted": null,
+        "mean_tokens": 3479.95
+      },
+      "only_first_correct": 0,
+      "only_second_correct": 0,
+      "mcnemar_p": 1.0
+    },
+    "Pollution": {
+      "first": {
+        "problems": 20,
+        "correct": 0,
+        "no_feasible_model": null,
+        "accepted": null,
+        "wrong_accepted": null,
+        "mean_tokens": 3101.5
+      },
+      "second": {
+        "problems": 20,
+        "correct": 0,
+        "no_feasible_model": null,
+        "accepted": null,
+        "wrong_accepted": null,
+        "mean_tokens": 3146.0
+      },
+      "only_first_correct": 0,
+      "only_second_correct": 0,
+      "mcnemar_p": 1.0
+    },
+    "Portfolio": {
+      "first": {
+        "problems": 20,
+        "correct": 17,
+        "no_feasible_model": null,
+        "accepted": null,
+        "wrong_accepted": null,
+        "mean_tokens": 2840.85
+      },
+      "second": {
+        "problems": 20,
+        "correct": 17,
+        "no_feasible_model": null,
+        "accepted": null,
+        "wrong_accepted": null,
+        "mean_tokens": 2740.5
+      },
+      "only_first_correct": 0,
+      "only_second_correct": 0,
+      "mcnemar_p": 1.0
+    },
+    "Production": {
+      "first": {
+        "problems": 20,
+        "correct": 17,
+        "no_feasible_model": null,
+        "accepted": null,
+        "wrong_accepted": null,
+        "mean_tokens": 2528.35
+      },
+      "second": {
+        "problems": 20,
+        "correct": 17,
+        "no_feasible_model": null,
+        "accepted": null,
+        "wrong_accepted": null,
+        "mean_tokens": 2576.25
+      },
+      "only_first_correct": 0,
+      "only_second_correct": 0,
+      "mcnemar_p": 1.0
+    },
+    "TSP": {
+      "first": {
+        "problems": 20,
+        "correct": 20,
+        "no_feasible_model": null,
+        "accepted": null,
+        "wrong_accepted": null,
+        "mean_tokens": 2737.05
+      },
+      "second": {
+        "problems": 20,
+        "correct": 20,
+        "no_feasible_model": null,
+        "accepted": null,
+        "wrong_accepted": null,
+        "mean_tokens": 2755.1
+      },
+      "only_first_correct": 0,
+      "only_second_correct": 0,
+      "mcnemar_p": 1.0
+    },
+    "Transportation": {
+      "first": {
+        "problems": 20,
+        "correct": 19,
+        "no_feasible_model": null,
+        "accepted": null,
+        "wrong_accepted": null,
+        "mean_tokens": 2335.8
+      },
+      "second": {
+        "problems": 20,
+        "correct": 19,
+        "no_feasible_model": null,
+        "accepted": null,
+        "wrong_accepted": null,
+        "mean_tokens": 2352.6
+      },
+      "only_first_correct": 0,
+      "only_second_correct": 0,
+      "mcnemar_p": 1.0
+    },
+    "all": {
+      "first": {
+        "problems": 200,
+        "correct": 156,
+        "no_feasible_model": null,
+        "accepted": null,
+        "wrong_accepted": null,
+        "mean_tokens": 2664.465
+      },
+      "second": {
+        "problems": 200,
+        "correct": 161,
+        "no_feasible_model": null,
+        "accepted": null,
+        "wrong_accepted": null,
+        "mean_tokens": 2648.165
+      },
+      "only_first_correct": 2,
+      "only_second_correct": 7,
+      "mcnemar_p": 0.1796875
+    }
+  },
+  "labels": [
+    "B1-v1",
+    "B1-v3"
+  ],
+  "threshold": 0.8,
+  "records": [
+    "results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261102-0223/records.jsonl",
+    "results/baseline_bedrock-openai.gpt-oss-120b-1-0_prompts-v3_canonical_200_r1_20261102-1109/records.jsonl"
+  ]
+}
