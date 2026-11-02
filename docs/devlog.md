@@ -193,10 +193,30 @@ a different model family.
     the 5 are clear errors. canonical-1643 is a real catch under either reading: two DeepSeek rewordings reach the
     stated optimum 23,625.8, while the pipeline's 24,530.2 is neither that nor the reference.
   - On the 68 correct answers, full agreement is about the same: 64 against 65.
-- **Cost:** 19,128 tokens per problem against 21,678.
-- **Reading:** a second paraphrase model breaks some errors that every same-model rewording repeats, which supports
-  the supervisor's point, but 2 cases are too few to show a gain. The run on `canonical_200` is in progress and
-  this entry is updated with its result.
+- **Cost:** 19,128 tokens per problem against 21,678, but US$0.0109 against US$0.0090, because DeepSeek's tokens cost
+  more (#87).
+
+On `canonical_200` (#56's main run, `results/paraphraser/canonical_200/`, against E3 repeat 1 with the same settings):
+- **AUROC:** no gain. Paraphrase agreement 0.864 [0.80, 0.93] against 0.878 [0.81, 0.94], and the combined score
+  0.876 against 0.883 (`results/gap1/canonical_200_deepseek_paraphraser/`). H1 is "partly supported" in both, with
+  a gain over feasibility of +0.321 against +0.303.
+- **False alarms:** 8 against 6. **Accuracy:** 155 against 156 of 200.
+- **Shared misreadings,** on the 173 problems with the same feasible answer in both runs (25 wrong):
+  - same-model rewordings all agree on 8 wrong answers, and DeepSeek's on 7;
+  - DeepSeek alone breaks 3: canonical-1706 and canonical-1692 (two of the three Production cargo misreadings of the
+    failure analysis) and canonical-1582 (Pollution);
+  - the same model alone breaks 2: canonical-1627 (Pollution) and canonical-0704 (Inventory);
+  - against the text, the two Pollution cases are not catches: in both, the pipeline's answer equals the stated
+    model's optimum (#79), so the disagreeing rewording broke an answer that is right for the question. The
+    genuine catches are therefore **DeepSeek 2** (canonical-1706 and 1692, the Production misreadings) and **the same
+    model 1** (canonical-0704, Inventory, whose references are sound);
+  - on the 148 correct answers, full agreement is 141 against 138.
+- **Cost:** 20,247 tokens per problem against 20,783, and US$0.0114 against US$0.0086 (33% more).
+- **Reading:** across both splits, a second paraphrase model does not improve the signal as a whole. It is slightly
+  lower on AUROC, with slightly more false alarms, at a higher cost, so the default stays the main model. What it
+  does change is *which* errors are caught: DeepSeek broke three Production misreadings (1653 on dev, 1706 and 1692
+  here) that every same-model rewording repeated. That is the correlated-error effect the supervisor pointed out. It
+  is real but small, and it is stated as a limitation in the paper.
 
 ## 10. Requirement coverage: cut-off parser output, variable types, lost constraint names
 
