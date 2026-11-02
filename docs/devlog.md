@@ -402,8 +402,9 @@ the E3 repeat 1 mean, 20,783 tokens per problem. With `max_samples` 10, all 10 s
 19,500 tokens, so the cap stopped B2 first, at a mean near 17,600. That is outside the 10% band of objective D3
 (18,705 to 22,861) and would compare B2 at a smaller budget than the pipeline, which is unfair to B2.
 
-**Change.** `--max-samples 20`, so the budget is what stops B2; it is charged only for the samples within the budget
-(`samples_within_budget`). The 4-problem partial run was stopped and is not in `results/`, and the run started again
+**Change.** `--max-samples 20`, so the budget is what stops B2 on 199 of the 200 problems. The cap still stopped one:
+canonical-0947, a Knapsack problem with short samples, at 20,401 tokens. B2 is charged only for the samples within
+the budget (`samples_within_budget`). The 4-problem partial run was stopped and is not in `results/`, and the run started again
 from the beginning. `experiments/configs/G3.json` now says 20. A network outage stopped 88 problems of the new run;
 they were run again with `--resume` (`pass_2.txt`), so 200 of 200 finished with 0 failed.
 
