@@ -77,3 +77,13 @@ Tests per model, with the rules above: **H1** (`analyze_gap1.py`), **H3** (`anal
 (`explore_combination.py`, the k = 1 combination against B2 at 50% coverage). For gpt-oss-120b, `canonical_200` was
 used to explore the combination, so H3c there is not a test; for the other models it is new data. Reported in any
 case: every model's numbers, including a model on which nothing works.
+
+## Addendum 3: problems with doubtful references (written before the hand-check labels of #40 exist)
+
+Rauf is hand-checking the Inventory and Pollution references (#40). Each checked problem gets one label:
+`reference_correct`, `reference_wrong` or `text_ambiguous`. The rule, fixed now:
+- **Main analysis:** every problem, as above.
+- **Sensitivity analysis:** without every Pollution problem (#79) and without every problem labelled
+  `reference_wrong`. The same tests and rules are applied, and both sets of results are reported.
+- **`text_ambiguous`:** kept in both analyses, and also reported on its own.
+- **The paper lists every excluded problem by ID,** with the reason.
