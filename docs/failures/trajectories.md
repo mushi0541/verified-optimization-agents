@@ -330,7 +330,7 @@ for i in range(cnt):
 | Number Coverage | `100.00%` | Missing: None |
 | Requirement Coverage | `83.33%` | Missing: R6 |
 | Paraphrase Agreement | `0.00%` | Rewording values: [53.99999999999943, 53.99999999999747, 53.99999999999999] |
-| Combined Verification Score | `0.611` | Calibrated threshold: `0.800` |
+| Combined Verification Score | `0.611` | Threshold (fixed): `0.800` |
 
 #### 6. Decision Gate & Explainer
 
@@ -566,7 +566,7 @@ print("Total weight used:", sum(weights[i-1] * pulp.value(x[i]) for i in range(1
 | Number Coverage | `100.00%` | Missing: None |
 | Requirement Coverage | `100.00%` | Missing: None |
 | Paraphrase Agreement | `100.00%` | Rewording values: [3424.0, 3424.0, 3424.0] |
-| Combined Verification Score | `1.000` | Calibrated threshold: `0.800` |
+| Combined Verification Score | `1.000` | Threshold (fixed): `0.800` |
 
 #### 6. Decision Gate & Explainer
 
@@ -954,7 +954,7 @@ for var in [x1, x2, x3, x4, x5]:
 | Number Coverage | `96.15%` | Missing: 5 |
 | Requirement Coverage | `100.00%` | Missing: None |
 | Paraphrase Agreement | `100.00%` | Rewording values: [0.13536, 0.13536, 0.13536] |
-| Combined Verification Score | `0.987` | Calibrated threshold: `0.800` |
+| Combined Verification Score | `0.987` | Threshold (fixed): `0.800` |
 
 #### 7. Decision Gate & Explainer
 
@@ -976,6 +976,7 @@ x5: 0.098
 ### Problem: `canonical-1601` (Decision: `ANSWER`, Score: `0.867`)
 
 - **Trace Log:** `logs\sample\canonical-1601.jsonl`
+- **Note:** a Pollution problem. Its stated model is infeasible (`results/reference_check/`, #79), so the reference 36,126.941 cannot be reproduced from the text either. The pipeline's model also leaves out R3 and R5 (requirement coverage 60%), so this is a modelling deviation on a doubtful reference, not a clean wrong accept.
 - **Execution Latency:** 86.82s
 - **Token Usage:** 10,918 input, 15,886 output (10 LLM calls)
 
@@ -1258,7 +1259,7 @@ print("Achieved reduction =", pulp.value(reduction))
 | Number Coverage | `100.00%` | Missing: None |
 | Requirement Coverage | `60.00%` | Missing: R3, R5 |
 | Paraphrase Agreement | `100.00%` | Rewording values: [47912.402891000005, 47912.402891000005, 47912.402891000005] |
-| Combined Verification Score | `0.867` | Calibrated threshold: `0.800` |
+| Combined Verification Score | `0.867` | Threshold (fixed): `0.800` |
 
 #### 6. Decision Gate & Explainer
 
@@ -1332,8 +1333,8 @@ their typical manifestation in optimization formulations, root causes, and recom
 **Definition:** The generated Python code fails to execute due to syntax errors, import mismatches, missing identifiers, or solver crashes.
 
 **Empirical Examples:**
-- Portfolio optimization: syntax error in PuLP summation indexing causing solver script termination on attempt 1 (canonical-1250).
-- Nine code crashes in E3 repeat 1, all safely caught and refused by the pipeline without accepting wrong answers.
+- Portfolio optimization: on attempt 1 the code looked up a constraint name that does not exist (`model.constraints['R4_complexity']`), so the script stopped with a KeyError; the repair round fixed it (canonical-1250).
+- Nine code errors in the repeat-1 runs (2 on canonical_200, 5 on constraint_pairs_60, 2 on linguistic_60), all refused by the pipeline, so none became a wrong accept.
 
 **Likely Root Cause:** Hallucinated PuLP methods, malformed dictionary keys, or invalid variable expressions generated under complex formulations.
 
@@ -1344,7 +1345,7 @@ their typical manifestation in optimization formulations, root causes, and recom
 **Definition:** The system produces a mathematically correct formulation and answer, but verification gate heuristics unnecessarily escalate or abstain.
 
 **Empirical Examples:**
-- 19 of 20 false alarms in E3 repeat 1 resulted from paraphrase disagreement when one rewording produced an alternative valid formulation or minor reading discrepancy (canonical-0652).
+- 19 of the 20 false alarms in the repeat-1 runs on canonical_200, constraint_pairs_60 and linguistic_60 come from paraphrase disagreement, and all 19 are Inventory problems (for example canonical-0675).
 - Numbers extracted from conversational text (e.g. year, asset count) flagged as unused numbers despite the core math being sound.
 
 **Likely Root Cause:** Small paraphrase sample size (k = 3) where a single diverging rewording drops agreement from 1.0 to 0.0 or 0.33, collapsing the combined score. Literal numeric matching lacking semantic awareness of conversational vs parametric numbers.
@@ -1356,7 +1357,7 @@ their typical manifestation in optimization formulations, root causes, and recom
 **Definition:** The benchmark ground-truth answer does not correspond to the problem text due to infeasible problem parameters or ambiguous temporal/cost definitions.
 
 **Empirical Examples:**
-- Pollution control benchmark problems where stated abatement constraints require emissions reductions impossible under capacity limits, or reference values are lower than the theoretical minimum cost. Inventory problems with conflicting holding cost timing or delivery lead-time phrasing.
+- Pollution control benchmark problems where stated abatement constraints require emissions reductions impossible under capacity limits, or reference values are lower than the theoretical minimum cost. Inventory problems whose text says the capacity holds at the end of each day while the reference uses the stricter after-arrival rule (canonical-0644, canonical-0667), and one reference that no reading reproduces (canonical-0648) (#40).
 
 **Likely Root Cause:** Flaws in upstream synthetic dataset generation or automated problem formulation in the benchmark source.
 
