@@ -86,7 +86,7 @@ def test_configs_load_and_have_required_keys():
     assert g3["system"] == "b2"
     assert g3["repairs"] == 1
     assert g3["repeats"] == 3
-    assert g3["max_samples"] == 10
+    assert g3["max_samples"] == 20
     assert g3["sample_temperature"] == 0.7
     assert g3["budget_from"] == "E3 mean tokens per problem"
     assert g3["models"] == ["bedrock:openai.gpt-oss-120b-1:0"]

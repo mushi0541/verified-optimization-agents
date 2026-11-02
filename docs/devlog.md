@@ -392,3 +392,33 @@ development split.
 which has only 5 TSP problems. It shows a cost of the parser that the Phase 1 design did not expect: an error in the
 parser's requirements reaches the model built from them. Here the models are mostly infeasible, so the checks refuse
 them: the cost falls on coverage, not on the wrong-accept rate.
+
+## 15. B2 stopped at its sample cap, below the pipeline's token budget
+
+**Date.** 2026-11-02 (#37, Gap 3). Found in the first 4 problems of B2 repeat 1 on `canonical_200`.
+
+**Failure.** B2 draws samples until its tokens reach the budget, or until it has `max_samples` samples. The budget is
+the E3 repeat 1 mean, 20,783 tokens per problem. With `max_samples` 10, all 10 samples were used at 15,196 to
+19,500 tokens, so the cap stopped B2 first, at a mean near 17,600. That is outside the 10% band of objective D3
+(18,705 to 22,861) and would compare B2 at a smaller budget than the pipeline, which is unfair to B2.
+
+**Change.** `--max-samples 20`, so the budget is what stops B2; it is charged only for the samples within the budget
+(`samples_within_budget`). The 4-problem partial run was stopped and is not in `results/`, and the run started again
+from the beginning. `experiments/configs/G3.json` now says 20. A network outage stopped 88 problems of the new run;
+they were run again with `--resume` (`pass_2.txt`), so 200 of 200 finished with 0 failed.
+
+**Effect** (`results/gap3/canonical_200/`, `scripts/analyze_e3.py` against E3 repeat 1, B0 and B1 from #90):
+
+| Paraphrases k | Tokens per problem, pipeline / B2 | Wrong-accept rate at 50% coverage, pipeline / B2 | Paired 95% interval (pipeline minus B2) |
+|---|---|---|---|
+| 1 | 12,418 / 12,344 | 9.0% / 10.1% | [-6.7, +4.8] points |
+| 2 | 16,642 / 16,721 | 7.0% / 8.1% | [-6.6, +3.7] points |
+| 3 | 20,783 / 20,881 | 6.0% / 6.4% | [-5.0, +4.3] points |
+
+- **Budget match:** B2 is within 0.6% of the pipeline at every level, so D3 holds.
+- **H3: not supported.** At equal tokens, the pipeline's wrong-accept rate is lower at every level, but every interval
+  contains 0. Accuracy is 78.0% against 80.5% (exact McNemar p = 0.30), so B2 is not significantly better either.
+- **Reading:** at the same cost, the pipeline's verification signals and majority-vote sampling refuse wrong answers
+  about equally well on this benchmark. The pipeline gives reasons for each refusal (missing requirements,
+  disagreeing rewordings) where B2 only gives a vote share; that is a difference in what the user learns, not in the
+  error rate. This is one repeat; repeats 2 and 3 of B2 (#37) would narrow the intervals.
