@@ -572,7 +572,8 @@ post-hoc confirmation, not a pre-registered test. Paired comparisons are written
 - **Inventory gets worse:** 8 against 11 in both v1 runs. Three problems (canonical-0749, 0769, 0778) are right in
   both v1 runs and wrong under v3, each with one attempt, so the cause is the formalizer change, not the repair change.
   The verifier scores all three at 0.67, below the threshold, so none of them is a wrong accept.
-- **B1 gains 5 problems under v3** (161 against 156, p = 0.18), 4 of them JobShop. B1 only sees the repair change.
+- **B1 gains 5 problems under v3** (161 against 156, p = 0.18): 7 are right only under v3, 4 of them JobShop, and 2
+  only under v1. B1 only sees the repair change.
   So the v3 repair prompt may help, but the gain would go to the baselines as much as to the pipeline.
 
 **Decision.** v1 stays the default. v2 and v3 stay behind `--prompt-version` so these runs can be reproduced. None of
