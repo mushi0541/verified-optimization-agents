@@ -1,0 +1,128 @@
+{
+  "records": "results/pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_587_r1_20261101-2254/records.jsonl",
+  "excluded_classes": [
+    "Pollution"
+  ],
+  "rows": [
+    {
+      "rule": "R0 pooled bound",
+      "alpha": 0.08,
+      "problems": 527,
+      "answered": 451,
+      "wrong": 34,
+      "coverage": 0.855787476280835,
+      "wrong_accept_rate": 0.07538802660753881,
+      "one_sided_bound": 0.09910130464558414
+    },
+    {
+      "rule": "R0 pooled bound",
+      "alpha": 0.1,
+      "problems": 527,
+      "answered": 495,
+      "wrong": 53,
+      "coverage": 0.9392789373814042,
+      "wrong_accept_rate": 0.10707070707070707,
+      "one_sided_bound": 0.1327178364226683
+    },
+    {
+      "rule": "R0 pooled bound",
+      "alpha": 0.12,
+      "problems": 527,
+      "answered": 498,
+      "wrong": 55,
+      "coverage": 0.9449715370018975,
+      "wrong_accept_rate": 0.11044176706827309,
+      "one_sided_bound": 0.13629700816668308
+    },
+    {
+      "rule": "R1 nested strictest",
+      "alpha": 0.08,
+      "problems": 527,
+      "answered": 122,
+      "wrong": 18,
+      "coverage": 0.2314990512333966,
+      "wrong_accept_rate": 0.14754098360655737,
+      "one_sided_bound": 0.21089919595275183
+    },
+    {
+      "rule": "R1 nested strictest",
+      "alpha": 0.1,
+      "problems": 527,
+      "answered": 454,
+      "wrong": 34,
+      "coverage": 0.8614800759013282,
+      "wrong_accept_rate": 0.07488986784140969,
+      "one_sided_bound": 0.09845484446547287
+    },
+    {
+      "rule": "R1 nested strictest",
+      "alpha": 0.12,
+      "problems": 527,
+      "answered": 496,
+      "wrong": 54,
+      "coverage": 0.9411764705882353,
+      "wrong_accept_rate": 0.10887096774193548,
+      "one_sided_bound": 0.13464753563131165
+    },
+    {
+      "rule": "R2 worst class",
+      "alpha": 0.08,
+      "problems": 527,
+      "answered": 0,
+      "wrong": 0,
+      "coverage": 0.0,
+      "wrong_accept_rate": null,
+      "one_sided_bound": null
+    },
+    {
+      "rule": "R2 worst class",
+      "alpha": 0.1,
+      "problems": 527,
+      "answered": 0,
+      "wrong": 0,
+      "coverage": 0.0,
+      "wrong_accept_rate": null,
+      "one_sided_bound": null
+    },
+    {
+      "rule": "R2 worst class",
+      "alpha": 0.12,
+      "problems": 527,
+      "answered": 0,
+      "wrong": 0,
+      "coverage": 0.0,
+      "wrong_accept_rate": null,
+      "one_sided_bound": null
+    },
+    {
+      "rule": "R3 pooled rate",
+      "alpha": 0.08,
+      "problems": 527,
+      "answered": 496,
+      "wrong": 54,
+      "coverage": 0.9411764705882353,
+      "wrong_accept_rate": 0.10887096774193548,
+      "one_sided_bound": 0.13464753563131165
+    },
+    {
+      "rule": "R3 pooled rate",
+      "alpha": 0.1,
+      "problems": 527,
+      "answered": 498,
+      "wrong": 55,
+      "coverage": 0.9449715370018975,
+      "wrong_accept_rate": 0.11044176706827309,
+      "one_sided_bound": 0.13629700816668308
+    },
+    {
+      "rule": "R3 pooled rate",
+      "alpha": 0.12,
+      "problems": 527,
+      "answered": 508,
+      "wrong": 64,
+      "coverage": 0.9639468690702088,
+      "wrong_accept_rate": 0.12598425196850394,
+      "one_sided_bound": 0.1528179232470531
+    }
+  ]
+}

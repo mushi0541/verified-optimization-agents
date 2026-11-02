@@ -423,3 +423,59 @@ they were run again with `--resume` (`pass_2.txt`), so 200 of 200 finished with 
   about equally well on this benchmark. The pipeline gives reasons for each refusal (missing requirements,
   disagreeing rewordings) where B2 only gives a vote share; that is a difference in what the user learns, not in the
   error rate. This is one repeat; repeats 2 and 3 of B2 (#37) would narrow the intervals.
+
+## 16. Why no threshold meets alpha = 10% under leave-one-class-out
+
+**Date.** 2026-11-02 (#36, exploratory). A follow-up to devlog 13: is the calibration rule the problem, or the
+score?
+
+**Failure.** H2 fails at alpha = 10% on every canonical run. Devlog 13 showed that most of the failure comes from
+held-out classes with their own kind of error. This entry asks whether another rule for picking the threshold would
+avoid it.
+
+**The floor of the score** (`scripts/score_floor.py`, `results/gap2/score_floor/`). No threshold accepts fewer wrong
+answers than the strictest one, which keeps only the answers at the top score (1.0). On `canonical_587`:
+- 280 answers have score 1.0, and 21 of them (7.5%) are wrong. Without Pollution it is 11 of 270 (4.1%).
+- **Pollution:** 10 of 10 answers at score 1.0 are wrong. Their references do not follow from the text (#79).
+- **Production:** 8 of 54 answers at score 1.0 are wrong (14.8%). This is the cargo misreading that every rewording
+  repeats (devlog 9, #41).
+- **Two smaller classes** are also above 10% at score 1.0: Inventory (1 of 4) and Portfolio (1 of 6).
+
+So when one of these classes is held out, no threshold can bring *that fold* below 10%. But H2 is judged on the
+held-out answers pooled over all ten folds, and the pooled floor is below 10% (4% to 8% in every `canonical_200`
+repeat).
+
+**One threshold could meet H2 on all classes.** Over all 587 problems of `canonical_587`, the thresholds from 0.99145
+to 0.99187 answer 54.7% to 55.2% with 23 wrong (7.1% to 7.2%), and their one-sided bound is at most 10.0%. That meets
+every part of H2. These thresholds are picked in hindsight, and the window is only three thresholds wide, so this is
+not a result. It shows that the score separates well enough. What fails is the rule: from nine classes, no rule finds
+such a threshold, because R0's threshold swings with whether Pollution is in the calibration set (devlog 13).
+
+**Other rules** (`scripts/threshold_rules.py`, `results/gap2/threshold_rules/`, each tested leave-one-class-out as in
+H2):
+- R0, the H2 rule (pooled one-sided bound);
+- R1, nested strictest: hold out each calibration class in turn, and take the strictest of those thresholds;
+- R2, worst class: every calibration class must be at most alpha;
+- R3, pooled observed rate with no bound.
+
+On E3 repeat 1 of `canonical_200`, no rule set to alpha = 10% meets it with at least 50% answered. (R2 set to 12%
+answers 54.5% with 6.4% wrong, but reaching 10% by setting the rule to 12% would be tuning it on the result.) On
+`canonical_587`:
+- **All classes:** none meets it either. R2 answers nothing, because three classes with 5 or more answers at score
+  1.0 are above alpha there (Pollution, Production and Portfolio; Inventory has only 4). R3 answers 80.2%, with
+  13.2% wrong.
+- **Without Pollution:** R1 at alpha 10% answers 86.1% with 7.5% wrong, and a one-sided bound of 9.8%. That meets both
+  the H2 rule and the bound. R0 gives 10.7% there (devlog 13). But R0 at alpha 8% answers 451 of 527 with the same
+  34 wrong, so R1 at 10% picks almost the threshold R0 picks one step stricter. Its gain is close to "use a lower
+  alpha", which the alpha scan already shows (the smallest alpha meeting H2's rule without Pollution is 8%).
+
+**Change.** None to H2. R1 was not chosen in advance, and on `canonical_200` it answers almost nothing, because its
+inner folds are too small. Reporting it as the H2 result would be choosing the rule after seeing the results.
+
+**Effect.** Two findings for the paper:
+1. The per-class floor explains why the Pollution and Production folds fail: errors that every signal agrees with
+   (Pollution's doubtful references, Production's shared misreading). The pooled failure is the rule's sensitivity to
+   which classes are in the calibration set. A threshold that meets H2 on all classes exists, but no rule finds it
+   from nine classes.
+2. The nested rule R1 is close to R0 with a lower alpha, so it is not a new idea in itself. A rule that is robust to
+   which classes are calibrated on remains the open problem, and needs a test set up in advance, on new problems.
