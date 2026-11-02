@@ -74,6 +74,7 @@ Supervisor feedback on Phase 1 and where each point is handled: issue #23.
 | Switches for each signal and the parser, and rescoring of saved records for ablations (i) to (vii) | Gap 1 | `--signals`, `--no-parser` in `run.py`; `optverify/rescore.py`, `scripts/rescore.py` | Done |
 | E4 Gap 1 analysis: AUROC of each signal and of the combined score, bootstrap intervals, the H1 verdict | Gap 1 | `scripts/analyze_gap1.py` | Done; results after the E3 runs (#34) |
 | Calibrated threshold for a target wrong-accept rate alpha, with the leave-one-class-out test | Gap 2 | `optverify/calibration.py`, `scripts/calibrate.py`, `--calibration` in `run.py` and `web.py` | Done; runs in #36 |
+| E4 Gap 2 analysis over the repeats: alphas, fixed threshold, B0, 10 against 20 per class, risk-coverage curve, the H2 verdict | Gap 2 | `scripts/analyze_gap2.py` | Done; results after the E3 runs (#34) |
 
 ## Setup
 
@@ -208,6 +209,20 @@ B2 is calibrated the same way on its own records, with its sample agreement rate
 from: the system name (for example `pipeline_p3` or `b2_r1`), the enabled signals and the parser switch. `run.py`
 refuses a file made for another configuration, because the scores differ (B2's agreement rate is not a verifier
 score, and k or a switched-off signal changes the verifier score). `web.py` accepts only a pipeline file.
+
+### Gap 2 analysis over the repeats (E4, H2)
+
+```bash
+python scripts/analyze_gap2.py --records results/<pipeline repeat 1>/records.jsonl results/<repeat 2>/records.jsonl \
+    --baseline results/<B1 run>/records.jsonl --subset samples/canonical_100.json --out results/gap2/canonical_200
+```
+
+For each repeat and each alpha (5%, 10% and 20% by default) it runs the leave-one-class-out test above and the fixed
+0.8 threshold (ablation vi), with B0 as the reference (it never abstains). `--subset samples/canonical_100.json`
+repeats the test on the first 10 problems per class, which shows how much 20 per class narrows the interval. H2 is
+supported when, at alpha = 10%, the pooled held-out wrong-accept rate is at most alpha and at least 50% of the
+problems are answered in every repeat; the exact upper bound is reported next to it. The output folder gets
+`gap2.json`, `gap2.md` and the risk-coverage curve (`risk_coverage.csv`, `.pdf`, `.png`).
 
 ## Requirement coverage (Gap 1)
 
@@ -456,6 +471,7 @@ scripts/make_opsor.py        regenerates the OpsOR-Bench file with fixed seeds
 scripts/make_samples.py      regenerates the sample files with seed 0
 scripts/analyze_e3.py        E3 equal-budget analysis from saved records
 scripts/calibrate.py         Gap 2 calibration and leave-one-class-out test from saved records
+scripts/analyze_gap2.py      E4 Gap 2 over the repeats: alphas, fixed threshold, B0, risk-coverage curve, H2 verdict
 scripts/rescore.py           ablations (i) to (vii) from saved records, no API calls
 scripts/analyze_gap1.py      E4 Gap 1: AUROC of each signal and of the combined score, and the H1 verdict
 scripts/compare_baselines.py B0 and B1 per class and the base-paper comparison
