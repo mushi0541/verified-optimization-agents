@@ -75,7 +75,7 @@ Supervisor feedback on Phase 1 and where each point is handled: issue #23.
 | E4 Gap 1 analysis: AUROC of each signal and of the combined score, bootstrap intervals, the H1 verdict | Gap 1 | `scripts/analyze_gap1.py` | Done; results after the E3 runs (#34) |
 | Calibrated threshold for a target wrong-accept rate alpha, with the leave-one-class-out test | Gap 2 | `optverify/calibration.py`, `scripts/calibrate.py`, `--calibration` in `run.py` and `web.py` | Done; runs in #36 |
 | E4 Gap 2 analysis over the repeats: alphas, fixed threshold, B0, 10 against 20 per class, risk-coverage curve, the H2 verdict | Gap 2 | `scripts/analyze_gap2.py` | Done; results after the E3 runs (#34) |
-| Comparison of two paraphrase models: AUROC, false alarms, and the misreadings each one catches on problems with the same answer | Gap 1 | `scripts/compare_paraphrasers.py`, `results/paraphraser/` | Done on `dev_93`; `canonical_200` in progress (#56) |
+| Comparison of two paraphrase models: AUROC, false alarms, and the misreadings each one catches on problems with the same answer | Gap 1 | `scripts/compare_paraphrasers.py`, `results/paraphraser/` | Done on `dev_93` and `canonical_200`: no gain overall, the default stays the main model (devlog 9, #56) |
 
 ## Setup
 

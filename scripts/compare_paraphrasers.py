@@ -33,6 +33,11 @@ def run_summary(records: list[dict], threshold: float) -> dict:
             "mean_tokens": sum(tokens) / len(tokens) if tokens else 0.0}
 
 
+def _agreement(value: float | None) -> str:
+    """No agreement when every reworded run failed: the record then has none to show."""
+    return "n/a" if value is None else f"{value:.3f}"
+
+
 def full_agreement(record: dict) -> bool:
     return record["verifier"].get("paraphrase_agreement") == 1
 
@@ -82,8 +87,8 @@ def markdown(result: dict) -> str:
               f"- Correct answers all rewordings agree on: {shared['correct_full_agreement_same']} with the same "
               f"model, {shared['correct_full_agreement_other']} with the other model.", "",
               "| Problem | Class | Agreement, same model | Agreement, other model |", "|---|---|---|---|"]
-    lines += [f"| {c['problem_id']} | {c['problem_class']} | {c['agreement_same']:.3f} | {c['agreement_other']:.3f} |"
-              for c in shared["wrong_cases"]]
+    lines += [f"| {c['problem_id']} | {c['problem_class']} | {_agreement(c['agreement_same'])} | "
+              f"{_agreement(c['agreement_other'])} |" for c in shared["wrong_cases"]]
     return "\n".join(lines) + "\n"
 
 
