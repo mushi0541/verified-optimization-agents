@@ -113,3 +113,67 @@ def test_failed_problems_in_the_summary_lower_coverage(tmp_path, monkeypatch):
 def test_subset_must_be_in_the_records():
     with pytest.raises(SystemExit, match="0 of the 2 --subset problems"):
         analyze_run(_canonical(20), [0.10], 0.8, {"other-1", "other-2"})
+
+
+def _folder(tmp_path, name, records):
+    folder = tmp_path / name
+    folder.mkdir()
+    (folder / "records.jsonl").write_text("".join(json.dumps(r) + "\n" for r in records), encoding="utf-8")
+    (folder / "summary.json").write_text(json.dumps({"failed_problems": []}), encoding="utf-8")
+    return str(folder / "records.jsonl")
+
+
+def test_runs_joined_with_plus_form_one_repeat(tmp_path):
+    from scripts.analyze_gap2 import load_repeat
+
+    first = _folder(tmp_path, "a", _canonical(10))
+    second = _folder(tmp_path, "b", [dict(r, problem_id="x" + r["problem_id"]) for r in _canonical(10)])
+    assert len(load_repeat(f"{first}+{second}")) == 200
+    with pytest.raises(SystemExit, match="more than one"):
+        load_repeat(f"{first}+{first}")
+
+
+def test_alpha_scan_finds_the_smallest_supported_alpha():
+    from scripts.analyze_gap2 import alpha_scan
+
+    scan = alpha_scan(_canonical(20))
+    # Each fold calibrates on 171 answers with 9 wrong, a bound of 9.004%: below 10% no threshold passes, so nothing
+    # is answered. At 10% the held-out pool has 10 wrong of 190 (5.3%), with a one-sided bound of 8.8%.
+    assert scan["smallest_alpha_meeting_h2_rule"] == 0.10
+    assert scan["smallest_alpha_meeting_the_bound_too"] == 0.10
+    nine = next(p for p in scan["points"] if p["alpha"] == 0.09)
+    assert nine["coverage"] == 0.0 and not nine["supported"]
+
+
+def test_command_line_sensitivity_without_classes(tmp_path):
+    import subprocess
+    import sys
+
+    path = _folder(tmp_path, "run", _canonical(20))
+    out = tmp_path / "out"
+    subprocess.run([sys.executable, "scripts/analyze_gap2.py", "--records", path, "--exclude-classes", "Class0", "Class1",
+                    "--alpha-scan", "--out", str(out)], check=True, capture_output=True)
+    result = json.loads((out / "gap2.json").read_text(encoding="utf-8"))
+    assert result["settings"]["excluded_classes"] == ["Class0", "Class1"]
+    assert result["runs"][0]["problems"] == 160 and "alpha_scan" in result["runs"][0]
+    assert "Sensitivity analysis without Class0, Class1" in (out / "gap2.md").read_text(encoding="utf-8")
+    assert (out / "alpha_scan.csv").exists() and (out / "alpha_scan.png").exists()
+
+
+def test_shift_test_applies_the_canonical_threshold_per_family():
+    from scripts.analyze_gap2 import shift_test
+
+    shift = [_record("s1", "Gates", 1.0, True), _record("s2", "Gates", 1.0, False), _record("s3", "Gates", 0.5, True),
+             _record("s4", "Crews", 0.9, True), {"problem_id": "s5", "problem_class": "Crews", "failed": True}]
+    result = shift_test(_canonical(20), shift, [0.05, 0.10], fixed=0.8)
+    assert result["families"] == ["Crews", "Gates"]
+    # At 5% no canonical threshold passes, so nothing is answered.
+    assert result["by_alpha"]["0.05"]["threshold"] is None
+    assert result["by_alpha"]["0.05"]["families"]["all"]["answered"] == 0
+    # At 10% the canonical threshold is 1.0: Gates answers s1 and s2 (one wrong), Crews answers nothing.
+    ten = result["by_alpha"]["0.1"]
+    assert ten["threshold"] == 1.0
+    assert ten["families"]["Gates"]["answered"] == 2 and ten["families"]["Gates"]["wrong_accept_rate"] == 0.5
+    assert ten["families"]["Crews"]["coverage"] == 0.0 and ten["families"]["Crews"]["problems"] == 2
+    fixed = result["by_alpha"]["fixed"]["families"]["all"]
+    assert (fixed["answered"], fixed["wrong_accepted"], fixed["problems"]) == (3, 1, 5)
