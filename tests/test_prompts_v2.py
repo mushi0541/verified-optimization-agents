@@ -29,6 +29,15 @@ def test_v2_templates_format_like_v1():
     prompts.REPAIR.format(question="Q", code="c", error="infeasible", note="")
 
 
+def test_v3_is_v2_with_the_v1_parser():
+    v1_parse = prompts.PARSE
+    prompts.use_version("v2")
+    v2 = {name: getattr(prompts, name) for name in ("FORMALIZE_FROM_SPEC", "REPAIR")}
+    prompts.use_version("v3")
+    assert prompts.PARSE == v1_parse
+    assert {name: getattr(prompts, name) for name in v2} == v2
+
+
 def test_an_unknown_version_is_refused():
     with pytest.raises(ValueError, match="unknown prompt version"):
         prompts.use_version("v3")

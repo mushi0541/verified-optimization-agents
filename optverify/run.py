@@ -74,7 +74,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--prompt-version", choices=prompts.VERSIONS, default="v1",
         help="v1: the Phase 1 prompts (default); v2 (#95): requirements in plain words (pipeline) and an "
-             "infeasibility-aware repair prompt, which B1 and B2 use too",
+             "infeasibility-aware repair prompt, which B1 and B2 use too; v3: v2 with the v1 parser",
     )
     parser.add_argument(
         "--resume",

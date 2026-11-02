@@ -114,11 +114,16 @@ _V2 = {
     ),
 }
 _V1 = {name: globals()[name] for name in _V2}
-VERSIONS = ("v1", "v2")
+# Version 3 (#95, second dev iteration): v2 lost accuracy on the dev sample because the parser, told not to write
+# standard constructs, left subtour elimination out of TSP models. v3 keeps the v1 parser and keeps v2's formalizer
+# and repair changes, which fixed models that v1 left infeasible.
+_V3 = {**_V2, "PARSE": _V1["PARSE"]}
+_TEMPLATES = {"v1": _V1, "v2": _V2, "v3": _V3}
+VERSIONS = tuple(_TEMPLATES)
 
 
 def use_version(version: str) -> None:
     """Make the templates of a prompt version the active ones (v1, the Phase 1 prompts, is the default)."""
-    if version not in VERSIONS:
+    if version not in _TEMPLATES:
         raise ValueError(f"unknown prompt version {version!r}; known: {', '.join(VERSIONS)}")
-    globals().update(_V1 if version == "v1" else _V2)
+    globals().update(_TEMPLATES[version])
