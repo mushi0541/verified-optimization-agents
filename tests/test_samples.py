@@ -17,7 +17,8 @@ SAMPLES_DIR = Path(__file__).resolve().parent.parent / "samples"
 SAMPLE_FILES = [
     "canonical_100.json", "canonical_200.json", "ablation_30.json", "ablation_50.json", "linguistic_30.json",
     "linguistic_60.json", "constraint_pairs_30.json", "constraint_pairs_60.json", "dev_30.json",
-    "canonical_587.json", "dev_93.json", "tsp_60.json", "canonical_587_rest_387.json",
+    "canonical_587.json", "dev_93.json", "tsp_60.json", "canonical_587_rest_387.json", "dev_tsp_inventory_60.json",
+    "canonical_unused.json",
 ]
 
 
@@ -193,6 +194,20 @@ def test_dev_sample_integrity():
             assert dev_set.isdisjoint(_pair_ids(name)), name
         elif name not in ("dev_30.json", "dev_93.json"):
             assert dev_set.isdisjoint(_ids(name)), name
+
+
+def test_v2_dev_sample_is_outside_every_other_sample():
+    # The v2 prompts (#95) are designed on these 60 problems, so none may be in a test or another dev sample.
+    ids = _ids("dev_tsp_inventory_60.json")
+    problems = load_sample_file(SAMPLES_DIR / "dev_tsp_inventory_60.json")
+    assert len(ids) == 60 and len(set(ids)) == 60
+    assert sorted({p.problem_class for p in problems}) == ["Inventory", "TSP"]
+    assert sum(p.problem_class == "TSP" for p in problems) == 30
+    for name in SAMPLE_FILES:
+        if name == "dev_tsp_inventory_60.json":
+            continue
+        other = _pair_ids(name) if name.startswith("constraint_pairs") else _ids(name)
+        assert set(ids).isdisjoint(other), name
 
 
 def test_dev_sample_regeneration_is_identical(tmp_path):

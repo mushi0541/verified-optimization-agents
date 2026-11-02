@@ -1,0 +1,79 @@
+{
+  "shared_problems": 60,
+  "only_in_first": [],
+  "only_in_second": [],
+  "groups": {
+    "Inventory": {
+      "first": {
+        "problems": 30,
+        "correct": 13,
+        "no_feasible_model": 2,
+        "accepted": 5,
+        "wrong_accepted": 1,
+        "mean_tokens": 20476.4
+      },
+      "second": {
+        "problems": 30,
+        "correct": 15,
+        "no_feasible_model": 2,
+        "accepted": 9,
+        "wrong_accepted": 2,
+        "mean_tokens": 20945.066666666666
+      },
+      "only_first_correct": 1,
+      "only_second_correct": 3,
+      "mcnemar_p": 0.625
+    },
+    "TSP": {
+      "first": {
+        "problems": 30,
+        "correct": 25,
+        "no_feasible_model": 2,
+        "accepted": 21,
+        "wrong_accepted": 0,
+        "mean_tokens": 38986.6
+      },
+      "second": {
+        "problems": 30,
+        "correct": 28,
+        "no_feasible_model": 2,
+        "accepted": 27,
+        "wrong_accepted": 0,
+        "mean_tokens": 37290.7
+      },
+      "only_first_correct": 2,
+      "only_second_correct": 5,
+      "mcnemar_p": 0.453125
+    },
+    "all": {
+      "first": {
+        "problems": 60,
+        "correct": 38,
+        "no_feasible_model": 4,
+        "accepted": 26,
+        "wrong_accepted": 1,
+        "mean_tokens": 29731.5
+      },
+      "second": {
+        "problems": 60,
+        "correct": 43,
+        "no_feasible_model": 4,
+        "accepted": 36,
+        "wrong_accepted": 2,
+        "mean_tokens": 29117.883333333335
+      },
+      "only_first_correct": 3,
+      "only_second_correct": 8,
+      "mcnemar_p": 0.2265625
+    }
+  },
+  "labels": [
+    "v2",
+    "v3"
+  ],
+  "threshold": 0.8,
+  "records": [
+    "results/pipeline_bedrock-openai.gpt-oss-120b-1-0_prompts-v2_dev_tsp_inventory_60_r1_20261102-0924/records.jsonl",
+    "results/pipeline_bedrock-openai.gpt-oss-120b-1-0_prompts-v3_dev_tsp_inventory_60_r1_20261102-1010/records.jsonl"
+  ]
+}

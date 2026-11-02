@@ -16,6 +16,15 @@ def _run(monkeypatch, tmp_path, *extra):
     run_module.main()
 
 
+@pytest.fixture(autouse=True)
+def v1_prompts_after_each_test():
+    """run.py switches the prompt version for the whole process, so every test here ends with v1, even a failing one."""
+    yield
+    from optverify import prompts
+
+    prompts.use_version("v1")
+
+
 @pytest.fixture
 def offline(monkeypatch, tmp_path):
     """A fake model, results in tmp_path, and a baseline that fails once for the first problem it is given."""
@@ -100,6 +109,25 @@ def test_resume_refuses_other_settings_or_an_unfinished_folder(monkeypatch, tmp_
     (out_dir / "summary.json").unlink()
     with pytest.raises(SystemExit, match="summary.json"):
         _run(monkeypatch, tmp_path, "--resume", str(out_dir))
+
+
+def test_prompt_version_v2_has_its_own_folder_and_v1_runs_still_resume(monkeypatch, tmp_path, offline):
+    _run(monkeypatch, tmp_path, "--prompt-version", "v2")
+    (v2_dir,) = (tmp_path / "results").iterdir()
+    assert "_prompts-v2_" in v2_dir.name  # the two prompt versions never share a folder name
+    assert json.loads((v2_dir / "summary.json").read_text(encoding="utf-8"))["config"]["prompt_version"] == "v2"
+    with pytest.raises(SystemExit, match="prompt_version"):
+        _run(monkeypatch, tmp_path, "--resume", str(v2_dir))  # a v2 run cannot be resumed with v1
+
+    # A run from before #95 has no prompt_version in its config; it used the v1 prompts and still resumes with them.
+    offline["failed"] = None
+    _run(monkeypatch, tmp_path)
+    (v1_dir,) = [d for d in (tmp_path / "results").iterdir() if d != v2_dir]
+    summary = json.loads((v1_dir / "summary.json").read_text(encoding="utf-8"))
+    del summary["config"]["prompt_version"]
+    (v1_dir / "summary.json").write_text(json.dumps(summary), encoding="utf-8")
+    _run(monkeypatch, tmp_path, "--resume", str(v1_dir))
+    assert json.loads((v1_dir / "summary.json").read_text(encoding="utf-8"))["failed_problems"] == []
 
 
 def test_a_no_parser_run_has_its_own_folder_name(monkeypatch, tmp_path):

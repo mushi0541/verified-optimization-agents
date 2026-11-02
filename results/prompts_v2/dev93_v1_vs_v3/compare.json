@@ -1,0 +1,247 @@
+{
+  "shared_problems": 93,
+  "only_in_first": [],
+  "only_in_second": [],
+  "groups": {
+    "BinPacking": {
+      "first": {
+        "problems": 10,
+        "correct": 9,
+        "no_feasible_model": 1,
+        "accepted": 9,
+        "wrong_accepted": 0,
+        "mean_tokens": 12852.8
+      },
+      "second": {
+        "problems": 10,
+        "correct": 10,
+        "no_feasible_model": 0,
+        "accepted": 10,
+        "wrong_accepted": 0,
+        "mean_tokens": 12770.0
+      },
+      "only_first_correct": 0,
+      "only_second_correct": 1,
+      "mcnemar_p": 1.0
+    },
+    "Inventory": {
+      "first": {
+        "problems": 10,
+        "correct": 3,
+        "no_feasible_model": 1,
+        "accepted": 4,
+        "wrong_accepted": 2,
+        "mean_tokens": 19494.6
+      },
+      "second": {
+        "problems": 10,
+        "correct": 3,
+        "no_feasible_model": 1,
+        "accepted": 6,
+        "wrong_accepted": 3,
+        "mean_tokens": 18202.2
+      },
+      "only_first_correct": 2,
+      "only_second_correct": 2,
+      "mcnemar_p": 1.0
+    },
+    "JobShop": {
+      "first": {
+        "problems": 10,
+        "correct": 9,
+        "no_feasible_model": 1,
+        "accepted": 8,
+        "wrong_accepted": 0,
+        "mean_tokens": 22183.2
+      },
+      "second": {
+        "problems": 10,
+        "correct": 10,
+        "no_feasible_model": 0,
+        "accepted": 10,
+        "wrong_accepted": 0,
+        "mean_tokens": 22178.3
+      },
+      "only_first_correct": 0,
+      "only_second_correct": 1,
+      "mcnemar_p": 1.0
+    },
+    "Knapsack": {
+      "first": {
+        "problems": 10,
+        "correct": 10,
+        "no_feasible_model": 0,
+        "accepted": 10,
+        "wrong_accepted": 0,
+        "mean_tokens": 10132.8
+      },
+      "second": {
+        "problems": 10,
+        "correct": 10,
+        "no_feasible_model": 0,
+        "accepted": 10,
+        "wrong_accepted": 0,
+        "mean_tokens": 10804.9
+      },
+      "only_first_correct": 0,
+      "only_second_correct": 0,
+      "mcnemar_p": 1.0
+    },
+    "NetworkFlow": {
+      "first": {
+        "problems": 3,
+        "correct": 3,
+        "no_feasible_model": 0,
+        "accepted": 3,
+        "wrong_accepted": 0,
+        "mean_tokens": 30370.666666666668
+      },
+      "second": {
+        "problems": 3,
+        "correct": 3,
+        "no_feasible_model": 0,
+        "accepted": 3,
+        "wrong_accepted": 0,
+        "mean_tokens": 32539.666666666668
+      },
+      "only_first_correct": 0,
+      "only_second_correct": 0,
+      "mcnemar_p": 1.0
+    },
+    "Pollution": {
+      "first": {
+        "problems": 10,
+        "correct": 0,
+        "no_feasible_model": 0,
+        "accepted": 5,
+        "wrong_accepted": 5,
+        "mean_tokens": 27680.4
+      },
+      "second": {
+        "problems": 10,
+        "correct": 0,
+        "no_feasible_model": 0,
+        "accepted": 3,
+        "wrong_accepted": 3,
+        "mean_tokens": 28917.8
+      },
+      "only_first_correct": 0,
+      "only_second_correct": 0,
+      "mcnemar_p": 1.0
+    },
+    "Portfolio": {
+      "first": {
+        "problems": 10,
+        "correct": 10,
+        "no_feasible_model": 0,
+        "accepted": 10,
+        "wrong_accepted": 0,
+        "mean_tokens": 20390.0
+      },
+      "second": {
+        "problems": 10,
+        "correct": 10,
+        "no_feasible_model": 0,
+        "accepted": 10,
+        "wrong_accepted": 0,
+        "mean_tokens": 20129.1
+      },
+      "only_first_correct": 0,
+      "only_second_correct": 0,
+      "mcnemar_p": 1.0
+    },
+    "Production": {
+      "first": {
+        "problems": 10,
+        "correct": 7,
+        "no_feasible_model": 0,
+        "accepted": 9,
+        "wrong_accepted": 2,
+        "mean_tokens": 23657.8
+      },
+      "second": {
+        "problems": 10,
+        "correct": 7,
+        "no_feasible_model": 0,
+        "accepted": 9,
+        "wrong_accepted": 2,
+        "mean_tokens": 21500.8
+      },
+      "only_first_correct": 0,
+      "only_second_correct": 0,
+      "mcnemar_p": 1.0
+    },
+    "TSP": {
+      "first": {
+        "problems": 10,
+        "correct": 10,
+        "no_feasible_model": 0,
+        "accepted": 10,
+        "wrong_accepted": 0,
+        "mean_tokens": 38660.2
+      },
+      "second": {
+        "problems": 10,
+        "correct": 9,
+        "no_feasible_model": 1,
+        "accepted": 9,
+        "wrong_accepted": 0,
+        "mean_tokens": 34602.6
+      },
+      "only_first_correct": 1,
+      "only_second_correct": 0,
+      "mcnemar_p": 1.0
+    },
+    "Transportation": {
+      "first": {
+        "problems": 10,
+        "correct": 10,
+        "no_feasible_model": 0,
+        "accepted": 10,
+        "wrong_accepted": 0,
+        "mean_tokens": 17445.7
+      },
+      "second": {
+        "problems": 10,
+        "correct": 10,
+        "no_feasible_model": 0,
+        "accepted": 10,
+        "wrong_accepted": 0,
+        "mean_tokens": 17510.1
+      },
+      "only_first_correct": 0,
+      "only_second_correct": 0,
+      "mcnemar_p": 1.0
+    },
+    "all": {
+      "first": {
+        "problems": 93,
+        "correct": 71,
+        "no_feasible_model": 3,
+        "accepted": 78,
+        "wrong_accepted": 9,
+        "mean_tokens": 21678.354838709678
+      },
+      "second": {
+        "problems": 93,
+        "correct": 72,
+        "no_feasible_model": 2,
+        "accepted": 80,
+        "wrong_accepted": 8,
+        "mean_tokens": 21115.88172043011
+      },
+      "only_first_correct": 3,
+      "only_second_correct": 4,
+      "mcnemar_p": 1.0
+    }
+  },
+  "labels": [
+    "v1",
+    "v3"
+  ],
+  "threshold": 0.8,
+  "records": [
+    "results/pipeline_bedrock-openai.gpt-oss-120b-1-0_dev_93_r1_20261101-2255/records.jsonl",
+    "results/pipeline_bedrock-openai.gpt-oss-120b-1-0_prompts-v3_dev_93_r1_20261102-1034/records.jsonl"
+  ]
+}
