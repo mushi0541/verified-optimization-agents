@@ -1,12 +1,15 @@
 """Tests for the Gap 2 (H2) analysis on small hand-made records."""
 
 import json
+from pathlib import Path
 
 import pytest
 
 import optverify.calibration
 from optverify.calibration import load_run
 from scripts.analyze_gap2 import analyze_run, b0_reference, h2_check, risk_coverage, summarize
+
+SCRIPT = Path(__file__).resolve().parent.parent / "scripts" / "analyze_gap2.py"  # runs from any folder
 
 
 def _record(pid: str, problem_class: str, score: float, correct: bool, feasible: bool = True) -> dict:
@@ -151,7 +154,7 @@ def test_command_line_sensitivity_without_classes(tmp_path):
 
     path = _folder(tmp_path, "run", _canonical(20))
     out = tmp_path / "out"
-    subprocess.run([sys.executable, "scripts/analyze_gap2.py", "--records", path, "--exclude-classes", "Class0", "Class1",
+    subprocess.run([sys.executable, str(SCRIPT), "--records", path, "--exclude-classes", "Class0", "Class1",
                     "--alpha-scan", "--out", str(out)], check=True, capture_output=True)
     result = json.loads((out / "gap2.json").read_text(encoding="utf-8"))
     assert result["settings"]["excluded_classes"] == ["Class0", "Class1"]
@@ -177,3 +180,28 @@ def test_shift_test_applies_the_canonical_threshold_per_family():
     assert ten["families"]["Crews"]["coverage"] == 0.0 and ten["families"]["Crews"]["problems"] == 2
     fixed = result["by_alpha"]["fixed"]["families"]["all"]
     assert (fixed["answered"], fixed["wrong_accepted"], fixed["problems"]) == (3, 1, 5)
+
+
+def test_sample_keeps_only_its_problems_and_refuses_a_partial_one(tmp_path):
+    import subprocess
+    import sys
+
+    path = _folder(tmp_path, "run", _canonical(20))
+    sample = tmp_path / "sample.json"
+    sample.write_text(json.dumps([f"c{c}-{i}" for c in range(10) for i in range(10)]), encoding="utf-8")
+    out = tmp_path / "out"
+    subprocess.run([sys.executable, str(SCRIPT), "--records", path, "--sample", str(sample),
+                    "--out", str(out)], check=True, capture_output=True)
+    result = json.loads((out / "gap2.json").read_text(encoding="utf-8"))
+    assert result["runs"][0]["problems"] == 100 and result["settings"]["sample"].endswith("sample.json")
+
+    from optverify.calibration import only_sample
+
+    sample.write_text(json.dumps(["c0-0", "missing-1"]), encoding="utf-8")
+    with pytest.raises(SystemExit, match="1 of the 2 problems.*missing: missing-1"):
+        only_sample(_canonical(20), sample)
+    # One problem missing and another twice: the count matches, but the IDs do not.
+    sample.write_text(json.dumps(["c0-0", "c0-1"]), encoding="utf-8")
+    with pytest.raises(SystemExit, match="missing: c0-1"):
+        only_sample([_canonical(20)[0], _canonical(20)[0]], sample)
+    assert "**Only the problems of" in (out / "gap2.md").read_text(encoding="utf-8")

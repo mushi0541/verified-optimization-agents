@@ -165,3 +165,21 @@ def test_calibration_file_must_fit_the_runs(tmp_path):
         calibrated_threshold(fitting | {"system": "pipeline_p3"}, [path], [records])
     with pytest.raises(SystemExit, match="signals"):
         calibrated_threshold(fitting | {"signals": ["number"]}, [path], [records])
+
+
+def test_sample_keeps_its_problems_in_every_run_and_names_it(tmp_path):
+    import subprocess
+    import sys
+
+    finished = [_record(f"c{i}", True, 1.0, 1.0, [100.0, 100.0]) | {"system": "pipeline_p2"} for i in range(6)]
+    finished += [_record(f"w{i}", False, 1.0, 0.5, [90.0, 100.0]) | {"system": "pipeline_p2"} for i in range(4)]
+    path = _run_folder(tmp_path, finished, [])
+    sample = tmp_path / "sample.json"
+    sample.write_text(json.dumps(["c0", "c1", "c2", "w0", "w1"]), encoding="utf-8")
+    out = tmp_path / "out"
+    script = Path(__file__).resolve().parent.parent / "scripts" / "analyze_gap1.py"
+    subprocess.run([sys.executable, str(script), "--records", str(path), "--sample", str(sample), "--draws", "50",
+                    "--out", str(out)], check=True, capture_output=True)
+    result = json.loads((out / "gap1.json").read_text(encoding="utf-8"))
+    assert result["runs"][0]["problems"] == 5 and result["settings"]["sample"].endswith("sample.json")
+    assert "**Only the problems of" in (out / "gap1.md").read_text(encoding="utf-8")

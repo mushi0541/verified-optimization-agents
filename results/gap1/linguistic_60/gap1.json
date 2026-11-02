@@ -1,0 +1,697 @@
+{
+  "records": [
+    "results/pipeline_bedrock-openai.gpt-oss-120b-1-0_linguistic_60_r1_20261101-1431/records.jsonl",
+    "results/pipeline_bedrock-openai.gpt-oss-120b-1-0_linguistic_60_r1_20261102-0045/records.jsonl"
+  ],
+  "settings": {
+    "threshold": 0.8,
+    "draws": 2000,
+    "seed": 0,
+    "target_gain": 0.1
+  },
+  "runs": [
+    {
+      "problems": 60,
+      "failed_problems": 0,
+      "correct": 48,
+      "auroc": {
+        "feasibility": 0.5833333333333334,
+        "number": 0.5399305555555556,
+        "requirement": 0.7300347222222222,
+        "paraphrase": 0.8020833333333334,
+        "combined": 0.8342013888888888,
+        "combined_without_number": 0.8359375,
+        "combined_without_requirement": 0.7960069444444444,
+        "combined_without_paraphrase": 0.7265625
+      },
+      "intervals": {
+        "feasibility": [
+          0.5,
+          0.7142857142857143
+        ],
+        "number": [
+          0.425531914893617,
+          0.6873315363881402
+        ],
+        "requirement": [
+          0.5667989417989417,
+          0.882
+        ],
+        "paraphrase": [
+          0.6482479784366577,
+          0.936988543371522
+        ],
+        "combined": [
+          0.676759410801964,
+          0.956
+        ],
+        "combined_without_number": [
+          0.6808905380333952,
+          0.956
+        ],
+        "combined_without_requirement": [
+          0.6274038461538461,
+          0.943
+        ],
+        "combined_without_paraphrase": [
+          0.561,
+          0.882
+        ],
+        "gain": [
+          0.09041394335511987,
+          0.40017361111111116
+        ],
+        "drop_number": [
+          -0.008522727272727293,
+          0.0
+        ],
+        "drop_requirement": [
+          -0.03385416666666663,
+          0.12379807692307687
+        ],
+        "drop_paraphrase": [
+          -0.03819444444444442,
+          0.27256944444444453
+        ]
+      },
+      "verdict": {
+        "testable": true,
+        "gain": 0.25086805555555547,
+        "gain_ok": true,
+        "drops_ok": {
+          "number": false,
+          "requirement": false,
+          "paraphrase": false
+        },
+        "supported": false
+      },
+      "at_threshold": {
+        "threshold": 0.8,
+        "problems": 60,
+        "accepted": 46,
+        "coverage": 0.7666666666666667,
+        "precision": 0.9130434782608695,
+        "recall": 0.875,
+        "wrong_accepted": 4
+      },
+      "groups": {
+        "easy": {
+          "problems": 23,
+          "failed_problems": 0,
+          "correct": 20,
+          "auroc": {
+            "feasibility": 0.6666666666666666,
+            "number": 0.6333333333333333,
+            "requirement": 0.825,
+            "paraphrase": 0.7583333333333333,
+            "combined": 0.8416666666666667,
+            "combined_without_number": 0.8416666666666667,
+            "combined_without_requirement": 0.7583333333333333,
+            "combined_without_paraphrase": 0.825
+          },
+          "intervals": {
+            "feasibility": [
+              0.5,
+              1.0
+            ],
+            "number": [
+              0.4,
+              1.0
+            ],
+            "requirement": [
+              0.575,
+              1.0
+            ],
+            "paraphrase": [
+              0.35,
+              1.0
+            ],
+            "combined": [
+              0.5,
+              1.0
+            ],
+            "combined_without_number": [
+              0.5,
+              1.0
+            ],
+            "combined_without_requirement": [
+              0.29545454545454547,
+              1.0
+            ],
+            "combined_without_paraphrase": [
+              0.575,
+              1.0
+            ],
+            "gain": [
+              -0.06666666666666665,
+              0.5
+            ],
+            "drop_number": [
+              0.0,
+              0.0
+            ],
+            "drop_requirement": [
+              0.0,
+              0.2619047619047619
+            ],
+            "drop_paraphrase": [
+              -0.31111111111111117,
+              0.375
+            ]
+          },
+          "at_threshold": {
+            "threshold": 0.8,
+            "problems": 23,
+            "accepted": 18,
+            "coverage": 0.782608695652174,
+            "precision": 0.9444444444444444,
+            "recall": 0.85,
+            "wrong_accepted": 1
+          }
+        },
+        "hard": {
+          "problems": 20,
+          "failed_problems": 0,
+          "correct": 13,
+          "auroc": {
+            "feasibility": 0.5714285714285714,
+            "number": 0.5714285714285714,
+            "requirement": 0.8241758241758241,
+            "paraphrase": 0.8571428571428571,
+            "combined": 0.8736263736263736,
+            "combined_without_number": 0.8736263736263736,
+            "combined_without_requirement": 0.8626373626373627,
+            "combined_without_paraphrase": 0.8241758241758241
+          },
+          "intervals": {
+            "feasibility": [
+              0.5,
+              0.75
+            ],
+            "number": [
+              0.5,
+              0.75
+            ],
+            "requirement": [
+              0.5980392156862745,
+              0.98
+            ],
+            "paraphrase": [
+              0.640625,
+              1.0
+            ],
+            "combined": [
+              0.6274509803921569,
+              1.0
+            ],
+            "combined_without_number": [
+              0.6274509803921569,
+              1.0
+            ],
+            "combined_without_requirement": [
+              0.6533333333333333,
+              1.0
+            ],
+            "combined_without_paraphrase": [
+              0.5980392156862745,
+              0.98
+            ],
+            "gain": [
+              0.059523809523809534,
+              0.5
+            ],
+            "drop_number": [
+              0.0,
+              0.0
+            ],
+            "drop_requirement": [
+              -0.059523809523809534,
+              0.08666666666666667
+            ],
+            "drop_paraphrase": [
+              -0.078125,
+              0.22023809523809534
+            ]
+          },
+          "at_threshold": {
+            "threshold": 0.8,
+            "problems": 20,
+            "accepted": 13,
+            "coverage": 0.65,
+            "precision": 0.8461538461538461,
+            "recall": 0.8461538461538461,
+            "wrong_accepted": 2
+          }
+        },
+        "moderate": {
+          "problems": 17,
+          "failed_problems": 0,
+          "correct": 15,
+          "auroc": {
+            "feasibility": 0.5,
+            "number": 0.4,
+            "requirement": 0.55,
+            "paraphrase": 0.6833333333333333,
+            "combined": 0.7666666666666667,
+            "combined_without_number": 0.7666666666666667,
+            "combined_without_requirement": 0.6333333333333333,
+            "combined_without_paraphrase": 0.5333333333333333
+          },
+          "intervals": {
+            "feasibility": [
+              0.5,
+              0.5
+            ],
+            "number": [
+              0.28125,
+              0.5
+            ],
+            "requirement": [
+              0.21875,
+              0.9333333333333333
+            ],
+            "paraphrase": [
+              0.3333333333333333,
+              1.0
+            ],
+            "combined": [
+              0.4375,
+              1.0
+            ],
+            "combined_without_number": [
+              0.4375,
+              1.0
+            ],
+            "combined_without_requirement": [
+              0.21428571428571427,
+              1.0
+            ],
+            "combined_without_paraphrase": [
+              0.1875,
+              0.9333333333333333
+            ],
+            "gain": [
+              -0.0625,
+              0.5
+            ],
+            "drop_number": [
+              0.0,
+              0.0
+            ],
+            "drop_requirement": [
+              -0.07142857142857151,
+              0.4285714285714286
+            ],
+            "drop_paraphrase": [
+              -0.33333333333333337,
+              0.7666666666666666
+            ]
+          },
+          "at_threshold": {
+            "threshold": 0.8,
+            "problems": 17,
+            "accepted": 15,
+            "coverage": 0.8823529411764706,
+            "precision": 0.9333333333333333,
+            "recall": 0.9333333333333333,
+            "wrong_accepted": 1
+          }
+        }
+      }
+    },
+    {
+      "problems": 60,
+      "failed_problems": 0,
+      "correct": 41,
+      "auroc": {
+        "feasibility": 0.5526315789473685,
+        "number": 0.5417201540436457,
+        "requirement": 0.6745827984595636,
+        "paraphrase": 0.9460847240051348,
+        "combined": 0.9563543003851092,
+        "combined_without_number": 0.9563543003851092,
+        "combined_without_requirement": 0.9467265725288831,
+        "combined_without_paraphrase": 0.6707317073170732
+      },
+      "intervals": {
+        "feasibility": [
+          0.5,
+          0.6363636363636364
+        ],
+        "number": [
+          0.47560975609756095,
+          0.6251851851851852
+        ],
+        "requirement": [
+          0.5364583333333334,
+          0.8055555555555556
+        ],
+        "paraphrase": [
+          0.8732057416267942,
+          0.9971064814814815
+        ],
+        "combined": [
+          0.8984375,
+          0.9945054945054945
+        ],
+        "combined_without_number": [
+          0.8984375,
+          0.9945054945054945
+        ],
+        "combined_without_requirement": [
+          0.8719851576994434,
+          0.9971064814814815
+        ],
+        "combined_without_paraphrase": [
+          0.5311111111111111,
+          0.8034188034188035
+        ],
+        "gain": [
+          0.3148148148148149,
+          0.4731379731379731
+        ],
+        "drop_number": [
+          0.0,
+          0.0
+        ],
+        "drop_requirement": [
+          -0.01925925925925931,
+          0.04418985270049103
+        ],
+        "drop_paraphrase": [
+          0.155625,
+          0.42682926829268286
+        ]
+      },
+      "verdict": {
+        "testable": true,
+        "gain": 0.4037227214377407,
+        "gain_ok": true,
+        "drops_ok": {
+          "number": false,
+          "requirement": false,
+          "paraphrase": true
+        },
+        "supported": false
+      },
+      "at_threshold": {
+        "threshold": 0.8,
+        "problems": 60,
+        "accepted": 43,
+        "coverage": 0.7166666666666667,
+        "precision": 0.9069767441860465,
+        "recall": 0.9512195121951219,
+        "wrong_accepted": 4
+      },
+      "groups": {
+        "easy": {
+          "problems": 23,
+          "failed_problems": 0,
+          "correct": 17,
+          "auroc": {
+            "feasibility": 0.5,
+            "number": 0.47058823529411764,
+            "requirement": 0.5049019607843137,
+            "paraphrase": 1.0,
+            "combined": 1.0,
+            "combined_without_number": 1.0,
+            "combined_without_requirement": 1.0,
+            "combined_without_paraphrase": 0.4950980392156863
+          },
+          "intervals": {
+            "feasibility": [
+              0.5,
+              0.5
+            ],
+            "number": [
+              0.40625,
+              0.5
+            ],
+            "requirement": [
+              0.2722222222222222,
+              0.7549019607843137
+            ],
+            "paraphrase": [
+              1.0,
+              1.0
+            ],
+            "combined": [
+              1.0,
+              1.0
+            ],
+            "combined_without_number": [
+              1.0,
+              1.0
+            ],
+            "combined_without_requirement": [
+              1.0,
+              1.0
+            ],
+            "combined_without_paraphrase": [
+              0.2619047619047619,
+              0.75
+            ],
+            "gain": [
+              0.5,
+              0.5
+            ],
+            "drop_number": [
+              0.0,
+              0.0
+            ],
+            "drop_requirement": [
+              0.0,
+              0.0
+            ],
+            "drop_paraphrase": [
+              0.25,
+              0.7380952380952381
+            ]
+          },
+          "at_threshold": {
+            "threshold": 0.8,
+            "problems": 23,
+            "accepted": 17,
+            "coverage": 0.7391304347826086,
+            "precision": 1.0,
+            "recall": 1.0,
+            "wrong_accepted": 0
+          }
+        },
+        "hard": {
+          "problems": 20,
+          "failed_problems": 0,
+          "correct": 13,
+          "auroc": {
+            "feasibility": 0.5714285714285714,
+            "number": 0.5714285714285714,
+            "requirement": 0.7252747252747253,
+            "paraphrase": 0.9065934065934066,
+            "combined": 0.9285714285714286,
+            "combined_without_number": 0.9285714285714286,
+            "combined_without_requirement": 0.9120879120879121,
+            "combined_without_paraphrase": 0.7252747252747253
+          },
+          "intervals": {
+            "feasibility": [
+              0.5,
+              0.7272727272727273
+            ],
+            "number": [
+              0.5,
+              0.7272727272727273
+            ],
+            "requirement": [
+              0.5,
+              0.95
+            ],
+            "paraphrase": [
+              0.7604166666666666,
+              1.0
+            ],
+            "combined": [
+              0.8076923076923077,
+              1.0
+            ],
+            "combined_without_number": [
+              0.8076923076923077,
+              1.0
+            ],
+            "combined_without_requirement": [
+              0.7733333333333333,
+              1.0
+            ],
+            "combined_without_paraphrase": [
+              0.5,
+              0.95
+            ],
+            "gain": [
+              0.19333333333333336,
+              0.5
+            ],
+            "drop_number": [
+              0.0,
+              0.0
+            ],
+            "drop_requirement": [
+              0.0,
+              0.06043956043956045
+            ],
+            "drop_paraphrase": [
+              0.0,
+              0.4444444444444444
+            ]
+          },
+          "at_threshold": {
+            "threshold": 0.8,
+            "problems": 20,
+            "accepted": 13,
+            "coverage": 0.65,
+            "precision": 0.8461538461538461,
+            "recall": 0.8461538461538461,
+            "wrong_accepted": 2
+          }
+        },
+        "moderate": {
+          "problems": 17,
+          "failed_problems": 0,
+          "correct": 11,
+          "auroc": {
+            "feasibility": 0.5833333333333334,
+            "number": 0.5833333333333334,
+            "requirement": 0.8181818181818182,
+            "paraphrase": 0.9166666666666666,
+            "combined": 0.9696969696969697,
+            "combined_without_number": 0.9696969696969697,
+            "combined_without_requirement": 0.9166666666666666,
+            "combined_without_paraphrase": 0.8181818181818182
+          },
+          "intervals": {
+            "feasibility": [
+              0.5,
+              0.75
+            ],
+            "number": [
+              0.5,
+              0.75
+            ],
+            "requirement": [
+              0.5714285714285714,
+              1.0
+            ],
+            "paraphrase": [
+              0.7142857142857143,
+              1.0
+            ],
+            "combined": [
+              0.85,
+              1.0
+            ],
+            "combined_without_number": [
+              0.85,
+              1.0
+            ],
+            "combined_without_requirement": [
+              0.7142857142857143,
+              1.0
+            ],
+            "combined_without_paraphrase": [
+              0.5714285714285714,
+              1.0
+            ],
+            "gain": [
+              0.18939393939393945,
+              0.5
+            ],
+            "drop_number": [
+              0.0,
+              0.0
+            ],
+            "drop_requirement": [
+              0.0,
+              0.19999999999999996
+            ],
+            "drop_paraphrase": [
+              0.0,
+              0.3819444444444444
+            ]
+          },
+          "at_threshold": {
+            "threshold": 0.8,
+            "problems": 17,
+            "accepted": 13,
+            "coverage": 0.7647058823529411,
+            "precision": 0.8461538461538461,
+            "recall": 1.0,
+            "wrong_accepted": 2
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "auroc": {
+      "feasibility": {
+        "mean": 0.5679824561403509,
+        "sd": 0.021709418720639605,
+        "repeats_with_value": 2
+      },
+      "number": {
+        "mean": 0.5408253547996007,
+        "sd": 0.001265437226529722,
+        "repeats_with_value": 2
+      },
+      "requirement": {
+        "mean": 0.7023087603408928,
+        "sd": 0.03921043132241536,
+        "repeats_with_value": 2
+      },
+      "paraphrase": {
+        "mean": 0.8740840286692341,
+        "sd": 0.10182435984432402,
+        "repeats_with_value": 2
+      },
+      "combined": {
+        "mean": 0.895277844636999,
+        "sd": 0.08637515206065756,
+        "repeats_with_value": 2
+      },
+      "combined_without_number": {
+        "mean": 0.8961459001925546,
+        "sd": 0.08514753612109756,
+        "repeats_with_value": 2
+      },
+      "combined_without_requirement": {
+        "mean": 0.8713667584866638,
+        "sd": 0.10657487107642104,
+        "repeats_with_value": 2
+      },
+      "combined_without_paraphrase": {
+        "mean": 0.6986471036585367,
+        "sd": 0.03947833210511781,
+        "repeats_with_value": 2
+      }
+    },
+    "gain": {
+      "mean": 0.3272953884966481,
+      "sd": 0.10808457078129717,
+      "repeats_with_value": 2
+    },
+    "precision": {
+      "mean": 0.910010111223458,
+      "sd": 0.004289828803962878,
+      "repeats_with_value": 2
+    },
+    "recall": {
+      "mean": 0.913109756097561,
+      "sd": 0.053895333931901455,
+      "repeats_with_value": 2
+    },
+    "coverage": {
+      "mean": 0.7416666666666667,
+      "sd": 0.03535533905932741,
+      "repeats_with_value": 2
+    },
+    "h1": "partly supported (the gain holds, but not every signal is needed)"
+  }
+}
