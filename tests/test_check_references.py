@@ -79,3 +79,93 @@ def test_check_marks_reproduced_references_and_pipeline_answers():
     # A reference the stated model cannot give, and a pipeline answer that equals the stated model instead.
     assert rows["canonical-9002"]["reproduced_by"] == "none" and rows["canonical-9002"]["pipeline_equals"] == "stated model"
     assert rows["canonical-9003"]["checked"] is False  # an unreadable question is not checked, never guessed
+
+def test_extended_inventory_patterns():
+    # Phrasing variations: zero stock, range bounds, storage facility capacity, transit period with full day, dash bullets, monetary unit costs
+    text_dash = """A regional facility manages stock over 3 days.
+The initial stockpile at the outset is precisely 0 units.
+On each day the shipment must fall within the range of 5 to 25 units.
+The storage facility capacity of 40 units must not be surpassed.
+Every shipment will require a transit period of 1 full day before delivery.
+Daily requirements are:
+- Day 1: 10 units
+- Day 2: 15 units
+- Day 3: 20 units
+Unmet demand is lost.
+Costs comprise: procurement cost of 2 monetary units per unit ordered, storage cost of 1 monetary unit per unit held overnight, and a stockout penalty assessed at 50 monetary units per unit of unmet requirement."""
+    data = parse_inventory(text_dash)
+    assert data == {
+        "initial": 0.0, "low": 5.0, "high": 25.0, "capacity": 40.0, "lead": 1,
+        "demand": [10.0, 15.0, 20.0], "order_cost": 2.0, "hold_cost": 1.0, "short_cost": 50.0,
+    }
+    assert solve_inventory(data, False) == pytest.approx(580.0)
+    assert solve_inventory(data, True) == pytest.approx(580.0)
+
+    # Bracketed demand and zero lead time
+    text_bracket = """A depot manages inventory.
+The starting stock is zero units.
+Each order size must be between 0 and 50.
+Storage limit of 100 units.
+Shipments arrive with no lead time.
+The projected demand is [10, 20, 30].
+Unmet demand is lost.
+The costs are 3 per unit ordered, 2 per unit held, and 20 per unit short."""
+    data_b = parse_inventory(text_bracket)
+    assert data_b["initial"] == 0.0
+    assert data_b["demand"] == [10.0, 20.0, 30.0]
+    assert data_b["lead"] == 0
+
+    # Lead time with full days phrasing
+    text_full = """A plant plans storage.
+The beginning stock stands at 15 kiloliters.
+Orders from 10 to 30 kiloliters.
+The tank can hold at most 50 kiloliters.
+Each order will require 2 full days to reach the reservoir.
+* Period 1: 15 kiloliters
+* Period 2: 25 kiloliters
+Unmet demand is lost.
+Procurement cost of 2 per kiloliter, holding cost of 1 per kiloliter, shortage penalty of 10 per kiloliter."""
+    data_f = parse_inventory(text_full)
+    assert data_f["lead"] == 2
+    assert data_f["initial"] == 15.0
+    assert data_f["capacity"] == 50.0
+
+
+
+def test_the_initial_stock_is_the_number_the_pattern_captures():
+    # Another number before it in the same sentence (here the horizon) must not be read as the initial stock.
+    text = ("A depot manages stock. The initial stock for the 3-day horizon is 20 units. Each order must be between 0 "
+            "and 50 units. Storage capacity is 100 units. Orders arrive with no delay.\n* Day 1: 10 units\n"
+            "* Day 2: 20 units\n* Day 3: 30 units\nThe three costs are 3 per unit ordered, 2 per unit held and 20 per "
+            "unit short.")
+    assert parse_inventory(text)["initial"] == 20.0
+
+
+def test_hand_labels_schema_and_values():
+    import csv
+    from pathlib import Path
+    from optverify.data import load_split
+
+    path = Path(__file__).resolve().parent.parent / 'results' / 'reference_check' / 'hand_labels.csv'
+    assert path.exists(), 'hand_labels.csv must exist'
+    rows = list(csv.DictReader(path.open(encoding='utf-8')))
+    assert len(rows) >= 10, 'hand_labels.csv must contain hand check rows'
+
+    expected_fields = {'problem_id', 'problem_class', 'reference', 'hand_optimum', 'reading', 'label', 'note'}
+    assert set(rows[0].keys()) == expected_fields
+
+    canonical_problems = {p.problem_id: p for p in load_split('canonical')}
+    valid_labels = {'reference_correct', 'reference_wrong', 'text_ambiguous', 'not_checked'}
+
+    for r in rows:
+        pid = r['problem_id']
+        assert pid in canonical_problems, f'Unknown problem_id: {pid}'
+        assert r['problem_class'] in {'Inventory', 'Pollution'}
+        assert r['label'] in valid_labels
+        assert float(r['reference']) == pytest.approx(canonical_problems[pid].answer, rel=1e-3)
+
+    by_id = {r['problem_id']: r for r in rows}
+    assert by_id['canonical-0648']['label'] == 'reference_wrong'
+    assert by_id['canonical-0644']['label'] == 'text_ambiguous'
+    assert by_id['canonical-0667']['label'] == 'text_ambiguous'
+    assert by_id['canonical-1578']['label'] == 'reference_wrong'

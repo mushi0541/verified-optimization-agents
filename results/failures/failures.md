@@ -15,11 +15,11 @@
 | Category | Wrong accept | Correct refusal | Total | Share |
 |---|---|---|---|---|
 | pending | 18 | 46 | 64 | 62.7% |
-| wrong constraint | 3 | 18 | 21 | 20.6% |
+| wrong constraint | 3 | 19 | 22 | 21.6% |
 | code error | 0 | 9 | 9 | 8.8% |
 | missing constraint | 1 | 2 | 3 | 2.9% |
-| other | 2 | 1 | 3 | 2.9% |
 | integrality error | 0 | 2 | 2 | 2.0% |
+| other | 2 | 0 | 2 | 2.0% |
 
 ## False alarms by signal
 
