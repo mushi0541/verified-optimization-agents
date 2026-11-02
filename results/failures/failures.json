@@ -19,7 +19,7 @@
       "false alarm": 6
     }
   },
-  "pending_rows": 80,
+  "pending_rows": 64,
   "wrong_by_label": {
     "missing constraint": {
       "wrong accept": 1,
@@ -27,7 +27,7 @@
     },
     "wrong constraint": {
       "wrong accept": 3,
-      "correct refusal": 2
+      "correct refusal": 18
     },
     "wrong data value": {
       "wrong accept": 0,
@@ -55,7 +55,7 @@
     },
     "pending": {
       "wrong accept": 18,
-      "correct refusal": 62
+      "correct refusal": 46
     }
   },
   "false_alarms_by_signal": {

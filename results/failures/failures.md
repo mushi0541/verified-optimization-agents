@@ -8,15 +8,15 @@
 | constraint_pairs_60 | 120 | 7 | 39 | 8 |
 | linguistic_60 | 60 | 4 | 8 | 6 |
 
-**Not final:** 80 rows are still pending (blank label), shown as 'pending'.
+**Not final:** 64 rows are still pending (blank label), shown as 'pending'.
 
 ## Wrong answers by category (102 in all)
 
 | Category | Wrong accept | Correct refusal | Total | Share |
 |---|---|---|---|---|
-| pending | 18 | 62 | 80 | 78.4% |
+| pending | 18 | 46 | 64 | 62.7% |
+| wrong constraint | 3 | 18 | 21 | 20.6% |
 | code error | 0 | 9 | 9 | 8.8% |
-| wrong constraint | 3 | 2 | 5 | 4.9% |
 | missing constraint | 1 | 2 | 3 | 2.9% |
 | other | 2 | 1 | 3 | 2.9% |
 | integrality error | 0 | 2 | 2 | 2.0% |
