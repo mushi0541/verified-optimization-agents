@@ -20,10 +20,9 @@ REQUIRED_FIELDS = ("title", "author", "year")
 def parse_bibtex(bib_text: str) -> dict[str, dict]:
     """Parse BibTeX text into a dictionary of {key: fields_dict}.
 
-    Extracts entry type, citation key, and key-value fields.
+    Extracts entry type, citation key, and key-value fields with balanced brace support.
     """
     entries = {}
-    # Find each entry: @type{key, ...
     entry_pattern = re.compile(r"@(\w+)\s*\{\s*([^,]+),", re.MULTILINE)
     matches = list(entry_pattern.finditer(bib_text))
     for i, match in enumerate(matches):
@@ -36,16 +35,46 @@ def parse_bibtex(bib_text: str) -> dict[str, dict]:
         block = bib_text[start:end]
 
         fields = {"_type": entry_type}
-        # Parse fields: name = {val} or name = "val" or name = 123
-        field_matches = re.finditer(
-            r'([a-zA-Z_][a-zA-Z0-9_-]*)\s*=\s*(?:\{((?:[^{}]|\{[^{}]*\})*)\}|"([^"]*)"|([0-9]+))',
-            block,
-            re.DOTALL,
-        )
-        for fm in field_matches:
+        pos = 0
+        assign_pat = re.compile(r'([a-zA-Z_][a-zA-Z0-9_-]*)\s*=\s*', re.MULTILINE)
+        while pos < len(block):
+            fm = assign_pat.search(block, pos)
+            if not fm:
+                break
             fname = fm.group(1).lower()
-            val = fm.group(2) if fm.group(2) is not None else (fm.group(3) if fm.group(3) is not None else fm.group(4))
-            fields[fname] = val.strip() if val else ""
+            val_start = fm.end()
+            if val_start >= len(block):
+                break
+            first_char = block[val_start]
+            if first_char == "{":
+                depth = 1
+                curr = val_start + 1
+                while curr < len(block) and depth > 0:
+                    if block[curr] == "{":
+                        depth += 1
+                    elif block[curr] == "}":
+                        depth -= 1
+                    curr += 1
+                val = block[val_start + 1:curr - 1]
+                pos = curr
+            elif first_char == '"':
+                end_quote = block.find('"', val_start + 1)
+                if end_quote != -1:
+                    val = block[val_start + 1:end_quote]
+                    pos = end_quote + 1
+                else:
+                    val = block[val_start + 1:]
+                    pos = len(block)
+            else:
+                num_m = re.match(r'([0-9a-zA-Z_]+)', block[val_start:])
+                if num_m:
+                    val = num_m.group(1)
+                    pos = val_start + num_m.end()
+                else:
+                    val = ""
+                    pos = val_start + 1
+            fields[fname] = val.strip()
+
         entries[key] = fields
     return entries
 
