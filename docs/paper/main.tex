@@ -300,7 +300,7 @@ For 10 of the 14, leaving the start city out of that one constraint makes the sa
 The repair round sees an infeasible status but does not find the cause, so these problems are refused rather than
 answered. A repair prompt that names common causes of infeasibility is a direct fix.
 
-\textbf{A misreading that every rewording shares.} Three Production problems were answered with revenues 20 to 30
+\textbf{A misreading that every rewording shares.} Three Production problems were answered with revenues 21 to 31
 times the reference. The question gives the handling time of each cargo type on each vehicle; the benchmark means
 that every ton uses time on all vehicles, while the model assigns cargo to vehicles. In two of the three cases all
 three rewordings repeat the reading, so paraphrase agreement is complete and the score is 1.0. This is the main limit
@@ -319,19 +319,20 @@ coverage, not on the wrong-accept rate.
 
 \subsection{Reference answers}
 \label{sec:references}
-Pollution and Inventory account for 64 of the 102 wrong answers, and for almost every wrong answer that was accepted,
-so we checked their references. \texttt{scripts/check\_references.py} reads each question's data from its text,
+Pollution and Inventory account for 64 of the 102 wrong answers, and for 18 of the 24 wrong answers that were
+accepted, so we checked their references. \texttt{scripts/check\_references.py} reads each question's data from its text,
 solves the model the text states with HiGHS, and compares the optimum with the reference (no LLM is used).
 \begin{itemize}
-\item \textbf{Pollution:} none of the 73 readable references is reproduced by the stated model, nor by about 250
-other readings of the text. Six problems are infeasible as stated, and 34 references are below the stated model's
+\item \textbf{Pollution:} none of the 73 readable references is reproduced by the stated model, nor by several
+other readings of the text that we tried (scaling the cost or removal terms, no limit on each source's shares,
+binary choices, a transposed cost table). Six problems are infeasible as stated, and 34 references are below the stated model's
 optimum, which no stricter reading can explain. In 7 of the pipeline's 21 Pollution answers, the answer equals the
 stated model's optimum to every digit. These references therefore follow a model the text does not state.
-\item \textbf{Inventory:} 106 of 117 readable references are reproduced, all of them with the storage capacity
+\item \textbf{Inventory:} 122 of the 125 checked references are reproduced, all of them with the storage capacity
 applying also right after a delivery arrives, which matches the usual wording (``at any moment''). Those references
 are sound, and an answer that checks the capacity only at the end of the day is a real model error. Three questions
 say ``at the end of any day''; for two of them only the stricter rule gives the reference, which contradicts their
-text.
+text. The three references that match neither reading (canonical-0648, 0649 and 0650) need a hand check.
 \end{itemize}
 Following our protocol, every result is reported with all problems, and Gap~2 is also reported without Pollution,
 with this reason stated; no problem is dropped silently.
@@ -345,8 +346,8 @@ every Pollution reference and a few Inventory references follow a model the text
 grading therefore counts some correct models as wrong, which lowers the measured accuracy and raises the measured
 wrong-accept rate of every system alike.
 
-\textbf{Method.} Number coverage is saturated on this benchmark: on the development split 91\% of feasible models
-use every number of the question, wrong models included, because the generated questions never omit data. The signal
+\textbf{Method.} Number coverage is saturated on this benchmark: pooled over five development runs, 134 of 147
+feasible models (91\%) use every number of the question, and so do all 30 wrong ones, because the generated questions never omit data. The signal
 is cheap and kept, but it cannot separate correct from wrong models here. Paraphrase agreement cannot detect a
 misreading that every rewording shares (the Production cases of Section~\ref{sec:failures}); by default the paraphraser
 and the formalizer share one model, and a second paraphrase model is available to test this.
