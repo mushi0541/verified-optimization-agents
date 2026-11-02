@@ -20,12 +20,19 @@ from scripts.analyze_e3 import mcnemar_p  # noqa: E402
 
 
 def _stats(records: list[dict], threshold: float) -> dict:
-    accepted = [r for r in records if r["verifier"]["feasible"] and r["verifier"]["score"] >= threshold]
     tokens = [r["usage"]["input_tokens"] + r["usage"]["output_tokens"] for r in records]
-    return {"problems": len(records), "correct": sum(r["correct"] for r in records),
-            "no_feasible_model": sum(not r["verifier"]["feasible"] for r in records),
-            "accepted": len(accepted), "wrong_accepted": sum(not r["correct"] for r in accepted),
-            "mean_tokens": sum(tokens) / len(tokens) if tokens else 0.0}
+    stats = {"problems": len(records), "correct": sum(r["correct"] for r in records),
+             "no_feasible_model": None, "accepted": None, "wrong_accepted": None,  # B0 and B1 have no verifier
+             "mean_tokens": sum(tokens) / len(tokens) if tokens else 0.0}
+    if all(r["verifier"] for r in records):
+        accepted = [r for r in records if r["verifier"]["feasible"] and r["verifier"]["score"] >= threshold]
+        stats.update(no_feasible_model=sum(not r["verifier"]["feasible"] for r in records), accepted=len(accepted),
+                     wrong_accepted=sum(not r["correct"] for r in accepted))
+    return stats
+
+
+def _count(value) -> str:
+    return "--" if value is None else str(value)
 
 
 def compare(first: list[dict], second: list[dict], threshold: float) -> dict:
@@ -61,9 +68,10 @@ def markdown(result: dict) -> str:
     for name, g in result["groups"].items():
         x, y = g["first"], g["second"]
         lines.append(f"| {name} | {x['problems']} | {x['correct']} / {y['correct']} | {g['only_first_correct']} / "
-                     f"{g['only_second_correct']} | {g['mcnemar_p']:.3f} | {x['no_feasible_model']} / "
-                     f"{y['no_feasible_model']} | {x['accepted']} / {y['accepted']} | {x['wrong_accepted']} / "
-                     f"{y['wrong_accepted']} | {x['mean_tokens']:,.0f} / {y['mean_tokens']:,.0f} |")
+                     f"{g['only_second_correct']} | {g['mcnemar_p']:.3f} | "
+                     + " | ".join(f"{_count(x[key])} / {_count(y[key])}"
+                                  for key in ("no_feasible_model", "accepted", "wrong_accepted"))
+                     + f" | {x['mean_tokens']:,.0f} / {y['mean_tokens']:,.0f} |")
     return "\n".join(lines) + "\n"
 
 
