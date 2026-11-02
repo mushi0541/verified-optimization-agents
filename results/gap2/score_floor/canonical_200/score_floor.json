@@ -1,0 +1,175 @@
+{
+  "records": [
+    "results/pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261101-1429/records.jsonl",
+    "results/pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_587_r1_20261101-2254/records.jsonl",
+    "results/pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261102-0153/records.jsonl"
+  ],
+  "sample": "samples/canonical_200.json",
+  "runs": [
+    {
+      "top_score": 1.0,
+      "by_class": {
+        "BinPacking": {
+          "answers": 7,
+          "wrong": 0
+        },
+        "Inventory": {
+          "answers": 3,
+          "wrong": 2
+        },
+        "JobShop": {
+          "answers": 6,
+          "wrong": 0
+        },
+        "Knapsack": {
+          "answers": 20,
+          "wrong": 0
+        },
+        "NetworkFlow": {
+          "answers": 19,
+          "wrong": 0
+        },
+        "Pollution": {
+          "answers": 1,
+          "wrong": 1
+        },
+        "Portfolio": {
+          "answers": 0,
+          "wrong": 0
+        },
+        "Production": {
+          "answers": 19,
+          "wrong": 2
+        },
+        "TSP": {
+          "answers": 5,
+          "wrong": 0
+        },
+        "Transportation": {
+          "answers": 10,
+          "wrong": 0
+        }
+      },
+      "all": {
+        "answers": 90,
+        "wrong": 5,
+        "rate": 0.05555555555555555
+      },
+      "without_pollution": {
+        "answers": 89,
+        "wrong": 4,
+        "rate": 0.0449438202247191
+      }
+    },
+    {
+      "top_score": 1.0,
+      "by_class": {
+        "BinPacking": {
+          "answers": 5,
+          "wrong": 0
+        },
+        "Inventory": {
+          "answers": 3,
+          "wrong": 1
+        },
+        "JobShop": {
+          "answers": 9,
+          "wrong": 0
+        },
+        "Knapsack": {
+          "answers": 19,
+          "wrong": 0
+        },
+        "NetworkFlow": {
+          "answers": 20,
+          "wrong": 0
+        },
+        "Pollution": {
+          "answers": 2,
+          "wrong": 2
+        },
+        "Portfolio": {
+          "answers": 0,
+          "wrong": 0
+        },
+        "Production": {
+          "answers": 17,
+          "wrong": 1
+        },
+        "TSP": {
+          "answers": 8,
+          "wrong": 0
+        },
+        "Transportation": {
+          "answers": 13,
+          "wrong": 0
+        }
+      },
+      "all": {
+        "answers": 96,
+        "wrong": 4,
+        "rate": 0.041666666666666664
+      },
+      "without_pollution": {
+        "answers": 94,
+        "wrong": 2,
+        "rate": 0.02127659574468085
+      }
+    },
+    {
+      "top_score": 1.0,
+      "by_class": {
+        "BinPacking": {
+          "answers": 5,
+          "wrong": 0
+        },
+        "Inventory": {
+          "answers": 3,
+          "wrong": 2
+        },
+        "JobShop": {
+          "answers": 10,
+          "wrong": 0
+        },
+        "Knapsack": {
+          "answers": 19,
+          "wrong": 0
+        },
+        "NetworkFlow": {
+          "answers": 16,
+          "wrong": 0
+        },
+        "Pollution": {
+          "answers": 3,
+          "wrong": 3
+        },
+        "Portfolio": {
+          "answers": 0,
+          "wrong": 0
+        },
+        "Production": {
+          "answers": 20,
+          "wrong": 3
+        },
+        "TSP": {
+          "answers": 9,
+          "wrong": 0
+        },
+        "Transportation": {
+          "answers": 18,
+          "wrong": 0
+        }
+      },
+      "all": {
+        "answers": 103,
+        "wrong": 8,
+        "rate": 0.07766990291262135
+      },
+      "without_pollution": {
+        "answers": 100,
+        "wrong": 5,
+        "rate": 0.05
+      }
+    }
+  ]
+}

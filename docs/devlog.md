@@ -392,3 +392,47 @@ development split.
 which has only 5 TSP problems. It shows a cost of the parser that the Phase 1 design did not expect: an error in the
 parser's requirements reaches the model built from them. Here the models are mostly infeasible, so the checks refuse
 them: the cost falls on coverage, not on the wrong-accept rate.
+
+## 16. Why no threshold meets alpha = 10% under leave-one-class-out
+
+**Date.** 2026-11-02 (#36, exploratory). A follow-up to devlog 13: is the calibration rule the problem, or the
+score?
+
+**Failure.** H2 fails at alpha = 10% on every canonical run. Devlog 13 showed that most of the failure comes from
+held-out classes with their own kind of error. This entry asks whether another rule for picking the threshold would
+avoid it.
+
+**The floor of the score** (`scripts/score_floor.py`, `results/gap2/score_floor/`). No threshold accepts fewer wrong
+answers than the strictest one, which keeps only the answers at the top score (1.0). On `canonical_587`:
+- 280 answers have score 1.0, and 21 of them (7.5%) are wrong. Without Pollution it is 11 of 270 (4.1%).
+- **Pollution:** 10 of 10 answers at score 1.0 are wrong. Their references do not follow from the text (#79).
+- **Production:** 8 of 54 answers at score 1.0 are wrong (14.8%). This is the cargo misreading that every rewording
+  repeats (devlog 9, #41).
+
+So when Pollution or Production is the held-out class, *no* threshold can bring that class below 10%. The pooled
+floor is below 10% (4% to 8% in every `canonical_200` repeat), but leave-one-class-out tests each class on its own
+threshold. The limit is in the score: answers that every signal agrees with.
+
+**Other rules** (`scripts/threshold_rules.py`, `results/gap2/threshold_rules/`, each tested leave-one-class-out as in
+H2):
+- R0, the H2 rule (pooled one-sided bound);
+- R1, nested strictest: hold out each calibration class in turn, and take the strictest of those thresholds;
+- R2, worst class: every calibration class must be at most alpha;
+- R3, pooled observed rate with no bound.
+
+On E3 repeat 1 of `canonical_200`, no rule set to alpha = 10% meets it with at least 50% answered. (R2 set to 12%
+answers 54.5% with 6.4% wrong, but reaching 10% by setting the rule to 12% would be tuning it on the result.) On
+`canonical_587`:
+- **All classes:** none meets it either. R2 answers nothing, because Pollution and Production are above alpha even at
+  score 1.0. R3 answers 80.2%, with 13.2% wrong.
+- **Without Pollution:** R1 at alpha 10% answers 86.1% with 7.5% wrong, and a one-sided bound of 9.8%. That meets both
+  the H2 rule and the bound. R0 gives 10.7% there (devlog 13).
+
+**Change.** None to H2. R1 was not chosen in advance, and on `canonical_200` it answers almost nothing, because its
+inner folds are too small. Reporting it as the H2 result would be choosing the rule after seeing the results.
+
+**Effect.** Two findings for the paper:
+1. H2 at 10% fails because of errors that every signal agrees with (Pollution's doubtful references, and Production's
+   shared misreading), not because of the calibration rule.
+2. A nested rule that has already survived a class shift is a promising hypothesis: it met 10% on the larger sample
+   without Pollution. It needs a test that was set up in advance, on new problems.
