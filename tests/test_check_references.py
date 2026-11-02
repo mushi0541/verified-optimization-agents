@@ -139,3 +139,33 @@ def test_the_initial_stock_is_the_number_the_pattern_captures():
             "* Day 2: 20 units\n* Day 3: 30 units\nThe three costs are 3 per unit ordered, 2 per unit held and 20 per "
             "unit short.")
     assert parse_inventory(text)["initial"] == 20.0
+
+
+def test_hand_labels_schema_and_values():
+    import csv
+    from pathlib import Path
+    from optverify.data import load_split
+
+    path = Path('results/reference_check/hand_labels.csv')
+    assert path.exists(), 'hand_labels.csv must exist'
+    rows = list(csv.DictReader(path.open(encoding='utf-8')))
+    assert len(rows) >= 10, 'hand_labels.csv must contain hand check rows'
+
+    expected_fields = {'problem_id', 'problem_class', 'reference', 'hand_optimum', 'reading', 'label', 'note'}
+    assert set(rows[0].keys()) == expected_fields
+
+    canonical_problems = {p.problem_id: p for p in load_split('canonical')}
+    valid_labels = {'reference_correct', 'reference_wrong', 'text_ambiguous', 'not_checked'}
+
+    for r in rows:
+        pid = r['problem_id']
+        assert pid in canonical_problems, f'Unknown problem_id: {pid}'
+        assert r['problem_class'] in {'Inventory', 'Pollution'}
+        assert r['label'] in valid_labels
+        assert float(r['reference']) == pytest.approx(canonical_problems[pid].answer, rel=1e-3)
+
+    by_id = {r['problem_id']: r for r in rows}
+    assert by_id['canonical-0648']['label'] == 'reference_wrong'
+    assert by_id['canonical-0644']['label'] == 'text_ambiguous'
+    assert by_id['canonical-0667']['label'] == 'text_ambiguous'
+    assert by_id['canonical-1578']['label'] == 'reference_wrong'
