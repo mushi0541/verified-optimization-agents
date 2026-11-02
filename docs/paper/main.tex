@@ -323,9 +323,10 @@ Pollution and Inventory account for 64 of the 102 wrong answers, and for 18 of t
 accepted, so we checked their references. \texttt{scripts/check\_references.py} reads each question's data from its text,
 solves the model the text states with HiGHS, and compares the optimum with the reference (no LLM is used).
 \begin{itemize}
-\item \textbf{Pollution:} none of the 73 readable references is reproduced by the stated model, nor by several
-other readings of the text that we tried (scaling the cost or removal terms, no limit on each source's shares,
-binary choices, a transposed cost table). Six problems are infeasible as stated, and 34 references are below the stated model's
+\item \textbf{Pollution:} none of the 73 readable references is reproduced by the stated model. Of the other
+readings of the text that we tried (scaling the cost or removal terms, no limit on each source's shares, binary
+choices, a transposed cost table), only binary choices with no share limit reproduce a reference, and only one:
+canonical-1623, within 0.1\%, which is very likely chance. Six problems are infeasible as stated, and 34 references are below the stated model's
 optimum, which no stricter reading can explain. In 7 of the pipeline's 21 Pollution answers, the answer equals the
 stated model's optimum to every digit. These references therefore follow a model the text does not state.
 \item \textbf{Inventory:} 122 of the 125 checked references are reproduced, all of them with the storage capacity
