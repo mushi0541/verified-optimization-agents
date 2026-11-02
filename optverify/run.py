@@ -205,6 +205,7 @@ def run_config(args: argparse.Namespace) -> dict:
     return {
         **{k: _config_value(v) for k, v in vars(args).items()},
         "env_file": Path(args.env_file).name,  # the name only: a full path would put a local folder in results/
+        "sample_file": _saved_path(args.sample_file),
         "endpoint": _endpoint(args.model),
         # Only the pipeline has a paraphraser.
         "paraphrase_endpoint": _endpoint(args.paraphrase_model or args.model) if args.system == "pipeline" else None,
@@ -234,6 +235,17 @@ def resume_state(out_dir: Path, config: dict) -> tuple[list[dict], int]:
         raise SystemExit(f"--resume: the settings differ from the earlier run in {', '.join(different)}")
     records = [json.loads(line) for line in records_file.read_text(encoding="utf-8").splitlines() if line.strip()]
     return records, summary.get("resumes", 0)
+
+
+def _saved_path(path: Path | None) -> str | None:
+    """A path as saved in summary.json, with no local folder: a relative path as given (so earlier runs can still be
+    resumed), an absolute one relative to the repository, or only its name when it lies outside the repository."""
+    if path is None or not path.is_absolute():
+        return None if path is None else str(path)
+    try:
+        return path.resolve().relative_to(RESULTS_DIR.parent.resolve()).as_posix()
+    except ValueError:
+        return path.name
 
 
 def _config_value(value):

@@ -1,6 +1,7 @@
 """Tests for run.py --resume: continue a run after failed problems (for example a network outage)."""
 
 import json
+from pathlib import Path
 
 import pytest
 
@@ -80,6 +81,14 @@ def test_the_env_file_is_saved_by_name_only(monkeypatch, tmp_path, offline):
     summary = (out_dir / "summary.json").read_text(encoding="utf-8")
     assert json.loads(summary)["config"]["env_file"] == "none"
     assert str(tmp_path.name) not in summary  # no local folder in results/
+
+
+def test_the_sample_file_is_saved_without_a_local_folder(tmp_path):
+    repo = run_module.RESULTS_DIR.parent
+    assert run_module._saved_path(None) is None
+    assert run_module._saved_path(Path("samples") / "tsp_60.json") == str(Path("samples") / "tsp_60.json")  # as before
+    assert run_module._saved_path(repo / "samples" / "tsp_60.json") == "samples/tsp_60.json"
+    assert run_module._saved_path(tmp_path / "copy" / "tsp_60.json") == "tsp_60.json"  # outside the repository
 
 
 def test_resume_refuses_other_settings_or_an_unfinished_folder(monkeypatch, tmp_path, offline):

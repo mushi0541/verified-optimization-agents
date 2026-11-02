@@ -1,0 +1,336 @@
+{
+  "records": [
+    "results/pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261101-1429/records.jsonl",
+    "results/pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_587_r1_20261101-2254/records.jsonl",
+    "results/pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261102-0153/records.jsonl"
+  ],
+  "settings": {
+    "threshold": 0.8,
+    "draws": 2000,
+    "seed": 0,
+    "target_gain": 0.1,
+    "sample": "samples/canonical_200.json"
+  },
+  "runs": [
+    {
+      "problems": 200,
+      "failed_problems": 0,
+      "correct": 156,
+      "auroc": {
+        "feasibility": 0.5795454545454546,
+        "number": 0.5897435897435898,
+        "requirement": 0.6810168997668997,
+        "paraphrase": 0.8776952214452215,
+        "combined": 0.8825757575757576,
+        "combined_without_number": 0.8621794871794872,
+        "combined_without_requirement": 0.9007867132867133,
+        "combined_without_paraphrase": 0.6937645687645687
+      },
+      "intervals": {
+        "feasibility": [
+          0.5285714285714286,
+          0.640625
+        ],
+        "number": [
+          0.5143986448334275,
+          0.672712703962704
+        ],
+        "requirement": [
+          0.590933017502303,
+          0.7715894868585732
+        ],
+        "paraphrase": [
+          0.8119517543859649,
+          0.938717594723117
+        ],
+        "combined": [
+          0.8093677156177156,
+          0.9488695426195426
+        ],
+        "combined_without_number": [
+          0.7815615892007977,
+          0.9353918650793651
+        ],
+        "combined_without_requirement": [
+          0.8382308619650392,
+          0.9573077457933528
+        ],
+        "combined_without_paraphrase": [
+          0.6031976744186046,
+          0.7894051535087719
+        ],
+        "gain": [
+          0.21845862470862465,
+          0.3802
+        ],
+        "drop_number": [
+          -0.0068217255717255565,
+          0.05742187500000007
+        ],
+        "drop_requirement": [
+          -0.050053153791637106,
+          0.012578125000000107
+        ],
+        "drop_paraphrase": [
+          0.10692196341623894,
+          0.2747353888633226
+        ]
+      },
+      "verdict": {
+        "testable": true,
+        "gain": 0.303030303030303,
+        "gain_ok": true,
+        "drops_ok": {
+          "number": false,
+          "requirement": false,
+          "paraphrase": true
+        },
+        "supported": false
+      },
+      "at_threshold": {
+        "threshold": 0.8,
+        "problems": 200,
+        "accepted": 163,
+        "coverage": 0.815,
+        "precision": 0.9202453987730062,
+        "recall": 0.9615384615384616,
+        "wrong_accepted": 13
+      }
+    },
+    {
+      "problems": 200,
+      "failed_problems": 0,
+      "correct": 157,
+      "auroc": {
+        "feasibility": 0.5116279069767442,
+        "number": 0.5025922085616945,
+        "requirement": 0.6564212709228262,
+        "paraphrase": 0.8589838542438157,
+        "combined": 0.9006813805362168,
+        "combined_without_number": 0.8781661976003555,
+        "combined_without_requirement": 0.891941934528218,
+        "combined_without_paraphrase": 0.6605688046215376
+      },
+      "intervals": {
+        "feasibility": [
+          0.5,
+          0.5394736842105263
+        ],
+        "number": [
+          0.4473461321287408,
+          0.5680636777128005
+        ],
+        "requirement": [
+          0.5707210031347962,
+          0.7436559139784946
+        ],
+        "paraphrase": [
+          0.7844527882074815,
+          0.922270955165692
+        ],
+        "combined": [
+          0.8328828220029734,
+          0.9594388242030922
+        ],
+        "combined_without_number": [
+          0.8004658385093167,
+          0.9447021943573668
+        ],
+        "combined_without_requirement": [
+          0.8197831978319783,
+          0.9534835210680017
+        ],
+        "combined_without_paraphrase": [
+          0.5700129954515919,
+          0.7515297202797203
+        ],
+        "gain": [
+          0.31853333333333333,
+          0.45308857808857805
+        ],
+        "drop_number": [
+          -0.006333333333333302,
+          0.06048842461885939
+        ],
+        "drop_requirement": [
+          -0.03202688990360225,
+          0.05852355512384655
+        ],
+        "drop_paraphrase": [
+          0.15286086823132383,
+          0.3296969696969697
+        ]
+      },
+      "verdict": {
+        "testable": true,
+        "gain": 0.3890534735594726,
+        "gain_ok": true,
+        "drops_ok": {
+          "number": false,
+          "requirement": false,
+          "paraphrase": true
+        },
+        "supported": false
+      },
+      "at_threshold": {
+        "threshold": 0.8,
+        "problems": 200,
+        "accepted": 169,
+        "coverage": 0.845,
+        "precision": 0.9171597633136095,
+        "recall": 0.9872611464968153,
+        "wrong_accepted": 14
+      }
+    },
+    {
+      "problems": 200,
+      "failed_problems": 0,
+      "correct": 158,
+      "auroc": {
+        "feasibility": 0.5357142857142857,
+        "number": 0.5441531042796866,
+        "requirement": 0.5857444243520193,
+        "paraphrase": 0.8243670886075949,
+        "combined": 0.8257233273056058,
+        "combined_without_number": 0.8082429174201327,
+        "combined_without_requirement": 0.843203737191079,
+        "combined_without_paraphrase": 0.60375226039783
+      },
+      "intervals": {
+        "feasibility": [
+          0.5,
+          0.5795454545454546
+        ],
+        "number": [
+          0.47480237154150196,
+          0.6157353672691096
+        ],
+        "requirement": [
+          0.5016722408026756,
+          0.67328125
+        ],
+        "paraphrase": [
+          0.747120596205962,
+          0.8954817637452368
+        ],
+        "combined": [
+          0.7345118649466476,
+          0.9064069264069264
+        ],
+        "combined_without_number": [
+          0.7146042363433668,
+          0.8893093661305582
+        ],
+        "combined_without_requirement": [
+          0.7632112447628058,
+          0.9163982205859794
+        ],
+        "combined_without_paraphrase": [
+          0.5089775219298246,
+          0.6959375
+        ],
+        "gain": [
+          0.196711598281736,
+          0.3733333333333333
+        ],
+        "drop_number": [
+          -0.011889862327909895,
+          0.056811332127787884
+        ],
+        "drop_requirement": [
+          -0.05032332946443374,
+          0.019692264257481606
+        ],
+        "drop_paraphrase": [
+          0.13530802391878738,
+          0.30928751296104273
+        ]
+      },
+      "verdict": {
+        "testable": true,
+        "gain": 0.2900090415913201,
+        "gain_ok": true,
+        "drops_ok": {
+          "number": false,
+          "requirement": false,
+          "paraphrase": true
+        },
+        "supported": false
+      },
+      "at_threshold": {
+        "threshold": 0.8,
+        "problems": 200,
+        "accepted": 167,
+        "coverage": 0.835,
+        "precision": 0.9101796407185628,
+        "recall": 0.9620253164556962,
+        "wrong_accepted": 15
+      }
+    }
+  ],
+  "summary": {
+    "auroc": {
+      "feasibility": {
+        "mean": 0.5422958824121615,
+        "sd": 0.0344337970351387,
+        "repeats_with_value": 3
+      },
+      "number": {
+        "mean": 0.5454963008616569,
+        "sd": 0.04359121406053477,
+        "repeats_with_value": 3
+      },
+      "requirement": {
+        "mean": 0.6410608650139151,
+        "sd": 0.04945874740816462,
+        "repeats_with_value": 3
+      },
+      "paraphrase": {
+        "mean": 0.853682054765544,
+        "sd": 0.027056500998239568,
+        "repeats_with_value": 3
+      },
+      "combined": {
+        "mean": 0.8696601551391934,
+        "sd": 0.03911249193998401,
+        "repeats_with_value": 3
+      },
+      "combined_without_number": {
+        "mean": 0.8495295340666584,
+        "sd": 0.03663785287251508,
+        "repeats_with_value": 3
+      },
+      "combined_without_requirement": {
+        "mean": 0.8786441283353368,
+        "sd": 0.031009248961643233,
+        "repeats_with_value": 3
+      },
+      "combined_without_paraphrase": {
+        "mean": 0.6526952112613121,
+        "sd": 0.045519765143054655,
+        "repeats_with_value": 3
+      }
+    },
+    "gain": {
+      "mean": 0.3273642727270319,
+      "sd": 0.05381966589337477,
+      "repeats_with_value": 3
+    },
+    "precision": {
+      "mean": 0.9158616009350595,
+      "sd": 0.005156916760377229,
+      "repeats_with_value": 3
+    },
+    "recall": {
+      "mean": 0.9702749748303243,
+      "sd": 0.014712470147471271,
+      "repeats_with_value": 3
+    },
+    "coverage": {
+      "mean": 0.8316666666666667,
+      "sd": 0.01527525231651948,
+      "repeats_with_value": 3
+    },
+    "h1": "partly supported (the gain holds, but not every signal is needed)"
+  }
+}
