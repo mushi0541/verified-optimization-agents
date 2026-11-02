@@ -7,3 +7,14 @@ canonical-0634,Inventory,555.0,555.0,capacity also after arrival,reference_corre
 canonical-0666,Inventory,1361.0,1361.0,capacity also after arrival,reference_correct,Spot-check confirmed by hand from question text
 canonical-0680,Inventory,1461.0,1461.0,capacity also after arrival,reference_correct,Spot-check confirmed by hand from question text
 canonical-0736,Inventory,1204.0,1204.0,capacity also after arrival,reference_correct,Spot-check confirmed by hand from question text
+canonical-1572,Pollution,8453.692,infeasible,stated model,reference_wrong,Infeasible as stated: max removal rate 47% cannot meet required P = 0.639
+canonical-1575,Pollution,4119.23,infeasible,stated model,reference_wrong,Infeasible as stated: max removal rate 35% cannot meet required P = 0.398
+canonical-1578,Pollution,2477.054,5683.573,stated model,reference_wrong,Reference 2477.054 is strictly below stated model minimum expenditure 5683.573
+canonical-1601,Pollution,36126.941,infeasible,stated model,reference_wrong,Infeasible as stated: max removal rate 54% cannot meet required P = 0.628
+canonical-1579,Pollution,29652.902,,none,not_checked,Unparsed question text with non-breaking hyphen
+canonical-1608,Pollution,14271.717,,none,not_checked,Unparsed question text with threshold letter T
+canonical-1609,Pollution,120230.532,,none,not_checked,Unparsed question text with threshold letter T
+canonical-1615,Pollution,46218.956,,none,not_checked,Unparsed question text with non-breaking hyphen
+canonical-1621,Pollution,33766.481,,none,not_checked,Unparsed question text with reduction letter R
+canonical-1639,Pollution,10236.521,,none,not_checked,Unparsed question text with non-breaking hyphen
+canonical-1641,Pollution,5420.844,,none,not_checked,Unparsed question text with reduction letter R
