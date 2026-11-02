@@ -130,3 +130,12 @@ Procurement cost of 2 per kiloliter, holding cost of 1 per kiloliter, shortage p
     assert data_f["initial"] == 15.0
     assert data_f["capacity"] == 50.0
 
+
+
+def test_the_initial_stock_is_the_number_the_pattern_captures():
+    # Another number before it in the same sentence (here the horizon) must not be read as the initial stock.
+    text = ("A depot manages stock. The initial stock for the 3-day horizon is 20 units. Each order must be between 0 "
+            "and 50 units. Storage capacity is 100 units. Orders arrive with no delay.\n* Day 1: 10 units\n"
+            "* Day 2: 20 units\n* Day 3: 30 units\nThe three costs are 3 per unit ordered, 2 per unit held and 20 per "
+            "unit short.")
+    assert parse_inventory(text)["initial"] == 20.0

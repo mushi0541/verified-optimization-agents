@@ -6,6 +6,6 @@ counts as reproduced within the grading tolerance (0.2%). Made by `scripts/check
 | Class | Problems | Checked | Reference reproduced | Pipeline answers | Pipeline = reference | Pipeline = a stated reading only |
 |---|---|---|---|---|---|---|
 | Pollution | 80 | 73 | 0 | 21 | 0 | 7 |
-| Inventory | 160 | 125 | 122 | 19 | 10 | 7 |
+| Inventory | 160 | 160 | 159 | 23 | 12 | 7 |
 
-Inventory references reproduced by each capacity reading: capacity at end of period: 69, capacity also after arrival: 122.
+Inventory references reproduced by each capacity reading: capacity at end of period: 91, capacity also after arrival: 159.

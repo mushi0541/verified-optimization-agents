@@ -134,11 +134,9 @@ def parse_inventory(question: str) -> dict | None:
             costs = [float(re.search(NUMBER, c[0] if isinstance(c, tuple) else c).group(1)) for c in cost_matches[:3]]
     if not (initial and bounds and capacity and demand and len(costs) == 3):
         return None
-    init_val = 0.0 if "zero" in initial.group(0).lower() else float(re.search(NUMBER, initial.group(0)).group(1))
-    cap_m = re.search(NUMBER, capacity.group(0))
-    cap_val = float(cap_m.group(1)) if cap_m else float(capacity.group(1))
-    return {"initial": init_val, "low": float(bounds.group(1)), "high": float(bounds.group(2)),
-            "capacity": cap_val, "lead": lead_time, "demand": demand,
+    initial_stock = float(initial.group(1)) if initial.lastindex else 0.0  # the "zero" patterns capture no number
+    return {"initial": initial_stock, "low": float(bounds.group(1)), "high": float(bounds.group(2)),
+            "capacity": float(capacity.group(1)), "lead": lead_time, "demand": demand,
             "order_cost": costs[0], "hold_cost": costs[1], "short_cost": costs[2]}
 
 
