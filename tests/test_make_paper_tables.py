@@ -118,6 +118,6 @@ def test_an_ablation_rate_from_fewer_than_two_repeats_is_marked(tmp_path):
     path.write_text("\n".join(",".join(row) for row in [header, *rows]) + "\n", encoding="utf-8")
     make_tables(tmp_path / "results", tmp_path / "tables")
     text = (tmp_path / "tables" / "ablations.tex").read_text(encoding="utf-8")
-    assert "(vi) Calibrated & 3 & 82.0 $\pm$ 2.0 & 3.3 $\pm$ 5.8 & 20.0$^\dagger$ & 0.91 $\pm$ 0.07" in text
+    assert r"(vi) Calibrated & 3 & 82.0 $\pm$ 2.0 & 3.3 $\pm$ 5.8 & 20.0$^\dagger$ & 0.91 $\pm$ 0.07" in text
     assert "(iv) Without the parser & 1 & 82.0 & 84.0 & 4.8 & 0.93 & 16,594 \\\\" in text  # one repeat: no sd, no mark
-    assert "$^\dagger$ from fewer than two of the repeats" in text
+    assert r"$^\dagger$ from fewer than two of the repeats" in text

@@ -145,7 +145,7 @@ def test_ablation_table_hand_computed_values(synthetic_records_file, tmp_path):
     assert math.isclose(r_vii_r0[6], 6.5)
 
     # 6. Missing rows: (iv) and (vii) r = 2 must produce "not run" cells and 0 repeats
-    r_iv = row_dict["(iv) Without the parser"]
+    r_iv = row_dict["(iv) Without the parser, and so without requirement coverage"]
     assert r_iv[1] == "not run"
     assert r_iv[2] == ""
     assert r_iv[7] == 0

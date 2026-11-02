@@ -147,7 +147,7 @@ ROW_SPECS = [
     ("(i) Without number coverage", "rescore", {"signals": ("requirement", "paraphrase"), "k": 3, "repairs": True, "threshold": 0.8}),
     ("(ii) Without requirement coverage", "rescore", {"signals": ("number", "paraphrase"), "k": 3, "repairs": True, "threshold": 0.8}),
     ("(iii) Without paraphrase agreement", "rescore", {"signals": ("number", "requirement"), "k": 0, "repairs": True, "threshold": 0.8}),
-    ("(iv) Without the parser", "external", "no_parser"),
+    ("(iv) Without the parser, and so without requirement coverage", "external", "no_parser"),
     ("(v) k = 1 paraphrase", "rescore", {"signals": SIGNALS, "k": 1, "repairs": True, "threshold": 0.8}),
     ("(v) k = 2 paraphrases", "rescore", {"signals": SIGNALS, "k": 2, "repairs": True, "threshold": 0.8}),
     ("(vi) Calibrated threshold (alpha = 0.10, thresholds from the whole run)", "rescore", {"signals": SIGNALS, "k": 3, "repairs": True, "alpha": 0.10}),
