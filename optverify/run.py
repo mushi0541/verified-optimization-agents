@@ -18,6 +18,7 @@ from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 
+from . import prompts
 from .calibration import check_system, threshold_from_file
 from .data import SPLIT_FILES, load_sample_file, load_split, sample_per_class
 from .grading import summarize
@@ -70,6 +71,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--workers", type=int, default=2, help="parallel problems (keep low on free tiers)")
     parser.add_argument("--env-file", default=".env")
     parser.add_argument("--trace", action="store_true", help="write per-step trace logs to logs/<run_name>/<problem_id>.jsonl")
+    parser.add_argument(
+        "--prompt-version", choices=prompts.VERSIONS, default="v1",
+        help="v1: the Phase 1 prompts (default); v2: requirements in plain words and an infeasibility-aware repair (#95)",
+    )
     parser.add_argument(
         "--resume",
         type=Path,
@@ -125,6 +130,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    prompts.use_version(args.prompt_version)
 
     load_dotenv(args.env_file, override=False)
     llm = make_llm(args.model)
@@ -147,7 +153,9 @@ def main() -> None:
     else:
         split_tag = args.sample_file.stem if args.sample_file else args.split
         paraphraser_tag = f"_para-{_slug(args.paraphrase_model)}" if args.system == "pipeline" and args.paraphrase_model else ""
-        run_name = f"{args.system}_{_slug(args.model)}{paraphraser_tag}_{split_tag}_r{args.repairs}_{datetime.now():%Y%m%d-%H%M}"
+        prompts_tag = "" if args.prompt_version == "v1" else f"_prompts-{args.prompt_version}"  # never mix versions
+        run_name = (f"{args.system}_{_slug(args.model)}{paraphraser_tag}{prompts_tag}_{split_tag}_r{args.repairs}"
+                    f"_{datetime.now():%Y%m%d-%H%M}")
         out_dir = RESULTS_DIR / run_name
         out_dir.mkdir(parents=True, exist_ok=True)
     log_dir = LOGS_DIR / out_dir.name if args.trace else None  # a resumed run keeps its log folder
@@ -222,7 +230,7 @@ def resume_state(out_dir: Path, config: dict) -> tuple[list[dict], int]:
     if not summary_file.exists() or not records_file.exists():
         raise SystemExit(f"--resume needs {out_dir} with records.jsonl and summary.json from an earlier run")
     summary = json.loads(summary_file.read_text(encoding="utf-8"))
-    earlier = summary["config"]
+    earlier = {"prompt_version": "v1", **summary["config"]}  # runs from before #95 all used the v1 prompts
     config = json.loads(json.dumps(config))  # compare as saved: tuples become lists
     free = RESUME_FREE_KEYS
     if config.get("system") != "pipeline":
