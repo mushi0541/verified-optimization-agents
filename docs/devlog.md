@@ -423,3 +423,39 @@ they were run again with `--resume` (`pass_2.txt`), so 200 of 200 finished with 
   about equally well on this benchmark. The pipeline gives reasons for each refusal (missing requirements,
   disagreeing rewordings) where B2 only gives a vote share; that is a difference in what the user learns, not in the
   error rate. This is one repeat; repeats 2 and 3 of B2 (#37) would narrow the intervals.
+
+## 17. Ablations (i) to (vii): the paraphrase check carries the system, the parser costs tokens for nothing here
+
+**Date.** 2026-11-02 (#38, E5). The two runs that need new calls are in: ablation (iv) without the parser and (vii)
+r = 2, both on `ablation_50`, with the #34 settings otherwise and the v1 prompts.
+
+**Change.** None to the system. `results/ablations/ablations.csv` is written by `scripts/ablation_table.py` from:
+- the three `canonical_200` repeats (E3 repeats 1 and 3, and the `canonical_200` part of the `canonical_587` run),
+  which all hold `ablation_50`, for every row read from saved records;
+- the two new runs, for (iv) and r = 2 (one repeat each).
+
+**Effect** (on the 50 problems, at the fixed 0.8 threshold, mean of 3 repeats unless one):
+
+| Ablation | Coverage | Wrong-accept rate | AUROC | Tokens per problem |
+|---|---|---|---|---|
+| Main pipeline (k = 3, r = 1, all signals) | 84.0% | 5.6% | 0.913 | 21,381 |
+| (i) without number coverage | 81.3% | 5.0% | 0.878 | 21,381 |
+| (ii) without requirement coverage | 85.3% | 7.1% | 0.932 | 21,381 |
+| (iii) without paraphrase agreement | 94.7% | 14.1% | 0.688 | 8,389 |
+| (iv) without the parser (1 repeat) | 84.0% | 4.8% | 0.934 | 16,594 |
+| (v) k = 1 / k = 2 | 86.7% / 83.3% | 7.7% / 5.6% | 0.862 / 0.911 | 12,830 / 17,042 |
+| (vi) calibrated threshold, alpha = 10% | 3.3% | 20.0% | 0.913 | 21,381 |
+| (vii) r = 0 / r = 2 (r = 2: 1 repeat) | 78.7% / 84.0% | 5.1% / 9.5% | 0.943 / 0.935 | 19,374 / 20,341 |
+
+- **Paraphrase agreement carries the system.** Without it, the wrong-accept rate goes from 5.6% to 14.1% and the
+  AUROC from 0.91 to 0.69. Every other signal changes these by much less than its sd over the repeats.
+- **The parser does not pay for itself on this sample.** Without it, accuracy is the same (82%), coverage is the same,
+  the wrong-accept rate is 4.8% against 5.6%, and it costs 22% fewer tokens. This agrees with the TSP diagnostic
+  (devlog 14). It is one repeat, and the parser's requirements are what requirement coverage (ii) is built on.
+- **One repair round helps, a second does not.** r = 0 drops accuracy from 82% to 77%; r = 2 gives 80% with a higher
+  wrong-accept rate (one repeat).
+- **k = 2 is as good as k = 3** here (5.6% at both) for 20% fewer tokens; k = 1 is clearly worse.
+- **The calibrated threshold at 10%** answers almost nothing, as in Gap 2 (devlog 13 and 16).
+
+These are 50 problems, so differences of a few points are within the noise (the sd over repeats is about 2 to 3
+points for the wrong-accept rate). The two clear effects are (iii) and the token saving of (iv).
