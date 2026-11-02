@@ -237,13 +237,13 @@ the 95\% bootstrap interval of the paired difference at $k = 3$ lies below zero.
 The proposed architecture decomposes optimization modeling into specialized agent roles with runtime verification, automated self-repair, and calibrated decision gating. The system accepts a natural language problem description $Q$ and produces either an optimal solution value with supporting execution evidence, an escalation to an operations expert with diagnostic reasons, or a safe abstention.
 
 \subsection{Agent Roles and Modeling Pipeline}
-The multi-agent workflow comprises five primary functional roles coordinated through structured datacontracts:
+The multi-agent workflow comprises five primary functional roles coordinated through structured data contracts:
 
 \textbf{1. Structured Parser.} Rather than asking a single model to simultaneously comprehend text and formulate mathematical programming code, the parser extracts an intermediate, solver-independent specification without solving the problem. The parser outputs: (i) the objective sense $\omega \in \{\text{minimize}, \text{maximize}\}$; (ii) the verbal objective statement; (iii) declared decision variables with indices, physical units, and variable domains (continuous, integer, binary); (iv) explicit parameters with extracted values and units; and (v) an enumerated checklist of operational requirements $\mathcal{R} = \{R_1, R_2, \dots, R_m\}$, where each $R_i$ represents exactly one operational restriction.
 
 \textbf{2. Formalizer with Targeted Self-Repair.} The formalizer ingests the original prompt $Q$ and the structured specification to write executable Python code using the PuLP modeling library. To facilitate verification, the prompt instructs the formalizer to label every added constraint with its corresponding requirement identifier (e.g., \texttt{"R1\_capacity"}). If initial execution produces a syntax error, runtime crash, or solver infeasibility, the code and captured traceback are fed to a repair loop for up to $r$ iterations ($r=1$ by default).
 
-\textbf{3. Sandboxed Solver-Runner.} The generated Python script executes in an isolated subprocess with restricted access to system resources and no environment credentials. Solvers (CBC and HiGHS) run under a strict 120-second timeout. The runner captures standard output, exit codes, and solver log attributes, returning the final status $s \in \{\text{optimal}, \text{infeasible}, \text{unbounded}, \text{error}, \text{no\_code}\}$, the numeric objective value $v^*$, and runtime latency.
+\textbf{3. Sandboxed Solver-Runner.} The generated Python script executes in a separate process in isolated mode (\texttt{-I}) with minimal environment variables passed through, so no API keys or credentials are visible to the code. The HiGHS solver runs with a 120-second limit (\texttt{pulp.HiGHS(msg=False, timeLimit=120)}), and the child runner terminates any script exceeding 180 seconds. The runner captures standard output, exit codes, and solver log attributes, returning the final status $s \in \{\text{optimal}, \text{infeasible}, \text{unbounded}, \text{error}, \text{no\_code}\}$, the numeric objective value $v^*$, and runtime latency.
 
 \textbf{4. Paraphrase Generator and Consensus Engine.} When the primary model reaches an optimal status, the system generates $k$ ($k=3$ default) semantically invariant rewordings $\{Q^{(1)}, \dots, Q^{(k)}\}$ using temperature sampling ($T=0.7$). Each rewording is independently translated into code by the formalizer and solved to obtain reworded objective values $\{v^{(1)}, \dots, v^{(k)}\}$. Rewordings that fail are retried once; surviving runs establish an empirical consensus distribution over the problem interpretation.
 
@@ -252,7 +252,7 @@ The multi-agent workflow comprises five primary functional roles coordinated thr
 \subsection{Label-Free Verification Signals (Gap 1)}
 To assess solution correctness at inference time without ground-truth answers, the verifier computes three orthogonal verification signals:
 
-\textbf{Number Coverage ($S_{\text{num}}$).} Missing parameters frequently cause loose or trivial models. We extract the multiset of numeric values present in $Q$, filtering out conversational numbers and index labels. Let $\mathcal{N}_Q$ be the required values and $\mathcal{N}_C$ the numbers referenced in the generated PuLP code. Number coverage is defined as:
+\textbf{Number Coverage ($S_{\text{num}}$).} Missing parameters frequently cause under-constrained or trivial models. The verifier extracts numeric values present in $Q$, skipping 0 and 1, ignoring item labels such as ``Package 3'', and matching percentages used as fractions (e.g., 24\% used as 0.24). Let $\mathcal{N}_Q$ be the required values and $\mathcal{N}_C$ the numbers referenced in the generated PuLP code. Number coverage is defined as:
 \begin{equation}
 S_{\text{num}} = \frac{|\mathcal{N}_Q \cap \mathcal{N}_C|}{|\mathcal{N}_Q|}.
 \end{equation}
@@ -262,16 +262,9 @@ S_{\text{num}} = \frac{|\mathcal{N}_Q \cap \mathcal{N}_C|}{|\mathcal{N}_Q|}.
 S_{\text{req}} = \frac{|\mathcal{R}_{\text{linked}}|}{|\mathcal{R}|}.
 \end{equation}
 
-\textbf{Paraphrase Agreement ($S_{\text{para}}$).} If a model captures the true underlying mathematical structure, its objective value must remain invariant under surface lexical variations of the prompt. For each valid rewording $j \in \{1, \dots, k\}$, we evaluate agreement against the primary objective $v^*$ within a relative tolerance $\epsilon = 0.2\%$:
-\begin{equation}
-A_j = \mathbb{I}\left( \frac{|v^{(j)} - v^*|}{\max(|v^*|, 10^{-6})} \le 0.002 \right), \quad S_{\text{para}} = \frac{1}{k} \sum_{j=1}^k A_j.
-\end{equation}
+\textbf{Paraphrase Agreement ($S_{\text{para}}$).} If a model captures the true underlying mathematical structure, its objective value must remain invariant under surface lexical variations of the prompt. For each rewording that produces an optimal solver status (a failed rewording is retried once; if it fails again, it is omitted and recorded), we evaluate agreement against the primary objective $v^*$ within a relative tolerance of 0.2\% ($|v^{(j)} - v^*| \le 0.002 \cdot \max(|v^*|, |v^{(j)}|)$). Let $k_{\text{solved}} \le k$ be the number of solved rewordings. Paraphrase agreement $S_{\text{para}}$ is the share of solved rewordings that agree with $v^*$, or 1.0 when no rewordings are drawn.
 
-\textbf{Combined Verification Score ($S$).} When the solver status is optimal, the verifier computes a composite score $S \in [0, 1]$ aggregating the arithmetic mean of available signals:
-\begin{equation}
-S = \frac{S_{\text{num}} + S_{\text{req}} + S_{\text{para}}}{3}.
-\end{equation}
-If the solver status is not optimal, $S$ is set to 0.
+\textbf{Combined Verification Score ($S$).} When the solver status is optimal, the verifier computes a composite score $S \in [0, 1]$ as the arithmetic mean of available signals. With the full pipeline ($k \ge 1$ and the parser active), $S = (S_{\text{num}} + S_{\text{req}} + S_{\text{para}})/3$. When the parser is omitted, requirement coverage is unavailable and the mean is taken over the remaining two signals. If there is no optimal model, $S = 0$.
 
 \subsection{Decision Gating and Error Control (Gap 2)}
 The decision layer maps the verification outcome $(s, S)$ to an action $d \in \{\text{answer}, \text{escalate}, \text{abstain}\}$ parameterized by threshold $\tau$:
@@ -285,7 +278,7 @@ d = \begin{cases}
 The threshold $\tau$ can be fixed empirically (e.g., $\tau=0.8$) or calibrated via leave-one-class-out validation to satisfy a target wrong-accept rate $\alpha$.
 
 \subsection{Token Accounting and Efficiency Metering (Gap 3)}
-Every LLM invocation records input tokens, output tokens, call latency, and caller role in a centralized token meter. By logging per-step accounting into each run record (\texttt{RunRecord.usage\_by\_step}), the framework enables rigorous, equal-budget comparisons between multi-agent collaborative execution and single-agent budget-matched resampling.
+Every LLM invocation records input tokens, output tokens, call latency, and caller role in a centralized token meter. By logging per-step accounting into each run record (\texttt{RunRecord.usage\_by\_step}), the framework enables direct, equal-budget comparisons between multi-agent collaborative execution and single-agent budget-matched resampling.
 
 \section{Experimental Setup}
 \label{sec:setup}
@@ -293,23 +286,23 @@ Every LLM invocation records input tokens, output tokens, call latency, and call
 \subsection{Benchmarks and Problem Splits}
 We evaluate the systems across two distinct benchmarks spanning synthetic complexity scaling and out-of-domain transfer:
 
-\textbf{1. OPT-Engine (\cthree{}).} The primary testbed is OPT-Engine~\cite{chen2026optengine}, an open benchmark covering ten canonical operations research problem families: BinPacking, FacilityLocation, FlowShop, Investment, JobShop, Knapsack, MultiKnapsack, Pollution, Portfolio, Production, Transportation, and the Traveling Salesperson Problem (TSP). We evaluate on three fixed evaluation subsets:
+\textbf{1. OPT-Engine (\cthree{}).} The primary testbed is OPT-Engine~\cite{chen2026optengine}, an open benchmark covering ten canonical operations research problem families: BinPacking, Inventory, JobShop, Knapsack, NetworkFlow, Pollution, Portfolio, Production, TSP, and Transportation. We evaluate on fixed evaluation subsets:
 \begin{itemize}
 \item \texttt{canonical\_200}: 20 problems sampled uniformly across all 10 problem classes, used for the main evaluation repeats and baseline comparisons.
-\item \texttt{canonical\_587}: the full canonical split (587 problems) used to verify asymptotic calibration and scaling behavior.
-\item \texttt{constraint\_pairs\_60}: 60 paired instances designed to test complex constraint interactions.
-\item \texttt{linguistic\_60}: 60 instances evaluating phrasing diversity and prompt paraphrasing robustness.
-\item \texttt{dev\_30}: 30 development instances (3 per class) strictly reserved for prompt tuning and ablations, never included in reported test metrics.
+\item \texttt{canonical\_587}: a fixed sample of 587 problems (\texttt{canonical\_200} plus up to 40 additional problems per class, with NetworkFlow having fewer), providing a larger calibration sample across the 10 classes.
+\item \texttt{constraint\_pairs\_60}: 60 paired problem instances (120 problems in total) designed to evaluate constraint interaction complexity.
+\item \texttt{linguistic\_60}: 60 instances evaluating prompt phrasing diversity.
+\item \texttt{dev\_30} and \texttt{dev\_93}: development splits (3 and 10 problems per class, respectively) strictly reserved for prompt design, error analysis, and ablations, never included in test evaluations.
 \end{itemize}
 
-\textbf{2. OpsOR-Bench.} To evaluate resilience under genuine domain shift (Gap 2, H2), we constructed OpsOR-Bench, a standalone benchmark of 12 distinct operations problems reflecting industrial supply chain logistics, multi-period production, workforce shift scheduling, and vehicle routing. OpsOR-Bench problems exhibit complex constraint combinations and phrasing styles absent from the synthetic OPT-Engine generators.
+\textbf{2. OpsOR-Bench.} To evaluate resilience under genuine domain shift (Gap 2, H2), we constructed OpsOR-Bench, a standalone benchmark of 36 problems across three realistic operations families: gate assignment, ground-crew rostering, and equipment dispatch (\texttt{scripts/make\_opsor.py}). It introduces operational structures and phrasing absent from the synthetic OPT-Engine generators.
 
 \subsection{Evaluated Models and Baselines}
-All experiments run with frontier open-weights and commercial models:
+All models are evaluated via Amazon Bedrock open-weight endpoints:
 \begin{itemize}
-\item \textbf{Primary Model:} Amazon Bedrock \texttt{openai.gpt-oss-120b-1:0}, an open-weights mixture-of-experts model optimized for structured reasoning and code generation.
-\item \textbf{Cross-Architecture Validation:} \texttt{deepseek.v3.2} and \texttt{qwen2.5-72b-instruct} evaluated for baseline comparisons and multi-family paraphrasing checks.
-\item \textbf{Solvers:} PuLP 2.8 with CBC and HiGHS exact solvers running in Python 3.13 subprocesses.
+\item \textbf{Primary Model:} \texttt{openai.gpt-oss-120b-1:0}, an open-weights mixture-of-experts model used for all pipeline roles and baselines.
+\item \textbf{Second Paraphrase Model:} \texttt{deepseek.v3.2}, used for the B0 baseline comparison and to test whether an independent model family improves paraphrase agreement.
+\item \textbf{Solvers and Runtime:} Python 3.12, PuLP 3.3.2, and the HiGHS solver (\texttt{pulp.HiGHS(msg=False, timeLimit=120)}), running in isolated subprocesses.
 \end{itemize}
 
 We evaluate the proposed pipeline against three reference systems:
@@ -319,8 +312,8 @@ We evaluate the proposed pipeline against three reference systems:
 \item \textbf{Baseline B2 (Budget-Matched Single Agent):} Formulates problem $Q$ under B1, then continues drawing independent candidate solutions at temperature $T=0.7$ until consuming the identical mean token budget used by the $k=3$ multi-agent pipeline ($\approx 20,800$ tokens per problem). B2 clusters candidate optima and returns the modal solution with consensus agreement.
 \end{itemize}
 
-\subsection{Execution Parameters and Rigor}
-Unless otherwise specified, all formalizer calls use greedy decoding ($T=0.0$), while paraphrasers sample at $T=0.7$. All reported test figures represent the mean and sample standard deviation across three independent evaluation repeats ($r \in \{0, 1, 2\}$) performed across team member accounts. No reference answers are ever exposed to the models, prompts, or repair agents during execution.
+\subsection{Execution Parameters}
+Unless otherwise specified, all formalizer calls use greedy decoding ($T=0.0$), while paraphrasers sample at $T=0.7$. Reported test figures represent the mean and sample standard deviation across three independent evaluation repeats where multiple repeats exist. No reference answers are ever exposed to the models, prompts, or repair agents during execution.
 
 \section{Evaluation Methodology}
 \label{sec:methodology}
@@ -343,14 +336,7 @@ Following statistical best practices for safety-critical systems, every $WAR$ es
 \textbf{Discrimination (AUROC).} To evaluate how effectively verification signals distinguish correct models from flawed ones prior to thresholding, we compute the Area Under the Receiver Operating Characteristic curve (AUROC) using the continuous score $S$. Uncertainty is quantified via 1,000 stratified bootstrap resamples.
 
 \subsection{Leave-One-Class-Out Calibration (Gap 2)}
-To test whether error bounds hold under domain transfer, we implement Leave-One-Class-Out (LOCO) cross-validation across the ten problem classes:
-1. For each held-out class $c \in \{1, \dots, 10\}$, we treat the remaining nine classes as the calibration set $\mathcal{D}_{\text{cal}}$.
-2. On $\mathcal{D}_{\text{cal}}$, we identify the minimum threshold $\hat{\tau}_c$ such that the upper bound of the exact one-sided $1 - \delta$ binomial confidence interval on $WAR$ remains at or below target risk $\alpha = 10\%$:
-\begin{equation}
-\hat{\tau}_c = \inf \left\{ \tau \in [0, 1] : \text{BinomUpper}(N_{\text{wrg}}(\tau), N_{\text{ans}}(\tau), 1 - \delta) \le \alpha \right\}.
-\end{equation}
-3. We apply $\hat{\tau}_c$ to evaluate coverage and wrong-accept rate on the unseen held-out class $c$.
-4. The procedure is repeated for all ten folds, and held-out decisions are pooled to evaluate overall hypothesis H2.
+To test whether error bounds hold under domain transfer, we implement Leave-One-Class-Out (LOCO) cross-validation across the ten problem classes. For each held-out class $c \in \{1, \dots, 10\}$, the remaining nine classes serve as the calibration set $\mathcal{D}_{\text{cal}}$. The calibration procedure (\texttt{scripts/calibrate.py}) scans candidate thresholds from strict (1.0) to lenient (0.0). It retains the last threshold before the one-sided 95\% Clopper-Pearson binomial upper bound on $WAR$ first exceeds the risk target $\alpha = 10\%$, requiring at least 29 accepted calibration answers. That threshold is then applied to the unseen held-out class $c$. The held-out answers are pooled over all ten folds to evaluate hypothesis H2.
 
 \subsection{Paired Hypothesis Testing (Gap 3)}
 To test H3 (comparing the multi-agent pipeline against B2 at matched token budgets), we evaluate both systems at identical 50\% coverage targets. We report the difference in wrong-accept rate $\Delta WAR = WAR_{\text{pipeline}} - WAR_{\text{B2}}$ alongside 95\% paired bootstrap confidence intervals and McNemar's test for paired binary outcomes.
@@ -436,13 +422,13 @@ coverage, not on the wrong-accept rate.
 \label{sec:case_studies}
 To inspect the internal mechanics of the multi-agent pipeline at inference time, we analyze step-by-step execution traces from development runs (\texttt{logs/sample/}, detailed in \texttt{docs/failures/trajectories.md}):
 
-\textbf{1. Clean Solve: Knapsack (\texttt{canonical-1155}).} The parser extracts seven linear requirements and parameters without solving. The formalizer generates complete 0--1 knapsack code with named constraints, achieving optimal solver status with objective 3,424.0 on attempt 1. All $k=3$ rewordings independently solve to 3,424.0. The verifier records 100\% number coverage, 100\% requirement coverage, and 100\% paraphrase agreement ($S=1.000$), enabling immediate acceptance at threshold $\tau=0.8$.
+\textbf{1. Clean Solve: Knapsack (\texttt{canonical-1155}).} The parser extracts the single operational requirement and parameters without solving. The formalizer generates complete 0--1 knapsack code with named constraints, achieving optimal solver status with objective 3,424.0 on attempt 1. All $k=3$ rewordings independently solve to 3,424.0. The verifier records 100\% number coverage, 100\% requirement coverage, and 100\% paraphrase agreement ($S=1.000$), enabling immediate acceptance at threshold $\tau=0.8$.
 
-\textbf{2. Repair Recovery: Portfolio (\texttt{canonical-1250}).} The initial formalizer code encountered a syntax error in PuLP summation indexing, producing status \texttt{error}. The automated repair round fed the captured traceback and failing lines back to the formalizer, which corrected the indexing on attempt 2, obtaining optimal objective 0.1354. All three paraphrases corroborated the solution ($S_{\text{para}}=1.000$), while one unreferenced descriptive number yielded $S_{\text{num}}=0.962$. The combined score $S=0.987$ comfortably cleared the decision gate, converting a potential code failure into a verified correct answer.
+\textbf{2. Repair Recovery: Portfolio (\texttt{canonical-1250}).} The initial formalizer code looked up a non-existent constraint identifier (\texttt{model.constraints["R4_complexity"]}), producing a \texttt{KeyError} in the solver runner. The automated repair round fed the captured traceback back to the formalizer, which corrected the dictionary lookup on attempt 2, obtaining optimal objective 0.1354. All three paraphrases corroborated the solution ($S_{\text{para}}=1.000$), while one unreferenced number yielded $S_{\text{num}}=0.962$. The composite score $S=0.987$ cleared the 0.8 decision gate, converting an execution failure into a verified answer.
 
-\textbf{3. Wrong Accept: Pollution (\texttt{canonical-1601}).} The formalizer generated an optimal LP achieving objective 47,912.4 against the benchmark reference 36,126.9. While all three rewordings converged to the same misformulation ($S_{\text{para}}=1.000$), requirements R3 and R5 had no named constraint in the code ($S_{\text{req}}=0.600$). Due to the high weighting of unanimous paraphrase agreement, the combined score $S=0.867$ exceeded the 0.8 threshold, accepting a flawed solution. This case illustrates the vulnerability of consensus when all prompt variants share an underlying prompt misinterpretation.
+\textbf{3. Wrong Accept: Pollution (\texttt{canonical-1601}).} The formalizer generated an optimal LP achieving objective 47,912.4 against the benchmark reference 36,126.9. While all three rewordings converged to the same objective ($S_{\text{para}}=1.000$), requirements R3 and R5 had no named constraint in the code ($S_{\text{req}}=0.600$). Because all three signals have equal weight, the mean score $S = (1.0 + 0.6 + 1.0)/3 = 0.867$ cleared the 0.8 threshold, accepting a flawed solution. Notably, canonical-1601 is in Pollution Control, whose stated problem model is mathematically infeasible (\#79), so the benchmark reference itself cannot be reproduced; the instance reflects both an unlinked requirement and an invalid benchmark reference.
 
-\textbf{4. Correct Refusal: JobShop (\texttt{canonical-0890}).} The main model generated a flawed route scheduling formulation yielding an inflated objective of 265.0. However, all three rewordings formalized the machine non-overlap constraints correctly, each discovering the true reference optimum 54.0. Paraphrase agreement with the main model collapsed to $S_{\text{para}}=0.000$, driving the composite score to $S=0.611$. The decision gate escalated the case to an analyst with explicit disagreement warnings, successfully averting an erroneous acceptance.
+\textbf{4. Correct Refusal: JobShop (\texttt{canonical-0890}).} The main model generated a route scheduling formulation yielding an objective of 265.0. However, all three rewordings independently reached 54.0, the reference optimum. Paraphrase agreement with the main model collapsed to $S_{\text{para}}=0.000$, driving the composite score to $S=0.611$. The decision gate escalated the case to an analyst with explicit disagreement warnings, successfully averting an erroneous acceptance.
 
 \subsection{Reference answers}
 \label{sec:references}
