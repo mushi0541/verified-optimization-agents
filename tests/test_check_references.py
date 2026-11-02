@@ -146,7 +146,7 @@ def test_hand_labels_schema_and_values():
     from pathlib import Path
     from optverify.data import load_split
 
-    path = Path('results/reference_check/hand_labels.csv')
+    path = Path(__file__).resolve().parent.parent / 'results' / 'reference_check' / 'hand_labels.csv'
     assert path.exists(), 'hand_labels.csv must exist'
     rows = list(csv.DictReader(path.open(encoding='utf-8')))
     assert len(rows) >= 10, 'hand_labels.csv must contain hand check rows'
