@@ -61,3 +61,19 @@ Tests, with the same rules as above and as on `canonical_587`:
 
 Reported in any case, not tests: per class, and with every class weighted equally, because BinPacking is half of
 this sample.
+
+## Addendum 2: more models (written before any full run with them)
+
+The model list is fixed here, after a 2-problem smoke test on development problems (`canonical-0139`,
+`canonical-0637`) that only checked that each model runs the pipeline end to end. All on Bedrock us-east-1:
+`deepseek.v3.2`, `qwen.qwen3-next-80b-a3b`, `mistral.mistral-large-3-675b-instruct`, `moonshotai.kimi-k2.5`,
+`zai.glm-4.7`, and `openai.gpt-oss-20b-1:0` (a smaller model of the main family).
+
+For each model, on `canonical_200`, with the #34 settings and v1 prompts: the pipeline (k = 3, r = 1), B1 (r = 1),
+and then B2 (r = 1, at most 24 samples, budget 1.25 times that model's pipeline mean tokens, so the analysis can hold
+B2 to the pipeline's budget as in E3). The same model is used for every step, including the paraphraser.
+
+Tests per model, with the rules above: **H1** (`analyze_gap1.py`), **H3** (`analyze_e3.py`) and **H3c**
+(`explore_combination.py`, the k = 1 combination against B2 at 50% coverage). For gpt-oss-120b, `canonical_200` was
+used to explore the combination, so H3c there is not a test; for the other models it is new data. Reported in any
+case: every model's numbers, including a model on which nothing works.
