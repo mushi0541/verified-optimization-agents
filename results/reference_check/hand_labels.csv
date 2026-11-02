@@ -1,0 +1,9 @@
+problem_id,problem_class,reference,hand_optimum,reading,label,note
+canonical-0648,Inventory,1818.0,876.0 (end of period) / 1061.0 (after arrival),both,reference_wrong,Neither stated reading reproduces reference 1818.0
+canonical-0644,Inventory,652.0,592.0 (end of period) / 652.0 (after arrival),capacity also after arrival,text_ambiguous,Reference matches after arrival reading despite end of day wording in text
+canonical-0667,Inventory,2282.0,2072.0 (end of period) / 2282.0 (after arrival),capacity also after arrival,text_ambiguous,Reference matches after arrival reading despite end of each day wording in text
+canonical-0630,Inventory,889.0,889.0,capacity also after arrival,reference_correct,Spot-check confirmed by hand from question text
+canonical-0634,Inventory,555.0,555.0,capacity also after arrival,reference_correct,Spot-check confirmed by hand from question text
+canonical-0666,Inventory,1361.0,1361.0,capacity also after arrival,reference_correct,Spot-check confirmed by hand from question text
+canonical-0680,Inventory,1461.0,1461.0,capacity also after arrival,reference_correct,Spot-check confirmed by hand from question text
+canonical-0736,Inventory,1204.0,1204.0,capacity also after arrival,reference_correct,Spot-check confirmed by hand from question text
