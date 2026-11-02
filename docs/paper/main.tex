@@ -67,16 +67,17 @@ optimization modeling, large language models, multi-agent systems, verification,
 
 Operations teams describe planning problems in plain language, and answering them needs a formal optimization model.
 Large language models (LLMs) can now write such models as solver code: fine-tuned systems reach about 60\% to 70\%
-macro accuracy on standard benchmarks~\cite{chen2025sirl,lu2025optmath,huang2025orlm}. Accuracy falls sharply on
+macro accuracy on standard benchmarks~\cite{chen2025sirl,lu2025optmath,huang2025orlm,tsouros2023holy,kannappan2024optiguide}. Accuracy falls sharply on
 larger and more realistic problems. On the industrial MIPLIB-NL benchmark the best model solves only 39\% of the
-instances, and SIRL-32B falls from 87.40\% on MAMO-Complex to 1.43\%~\cite{li2026miplibnl}.
+instances, and SIRL-32B falls from 87.40\% on MAMO-Complex to 1.43\%~\cite{li2026miplibnl,shen2024mamo}.
 
 The more serious problem is that these systems always answer. A generated model that runs and returns an
 ``optimal'' value can still miss a stated requirement. Missing constraints are the most common error type in the
 analyses of OptiTree~\cite{liu2025optitree} and ORLM~\cite{huang2025orlm}, and a common modelling error on
 MIPLIB-NL~\cite{li2026miplibnl}. The checks proposed so far are weak for this purpose: self-review by the same
-model~\cite{jiang2025llmopt}, uncalibrated LLM verdicts~\cite{liu2026optverifier}, or solver queries that cannot see
-an omitted requirement~\cite{abdulrahman2026verisimpl}. In operations a confident wrong plan is worse than no plan,
+model~\cite{jiang2025llmopt}, uncalibrated LLM verdicts~\cite{liu2026optverifier,zheng2023judging}, or solver queries that cannot see
+an omitted requirement~\cite{abdulrahman2026verisimpl}. While verifier models aid mathematical reasoning~\cite{cobbe2021gsm8k},
+uncalibrated verdicts cannot guarantee safety under distribution shift. In operations a confident wrong plan is worse than no plan,
 because a silently dropped crew limit or capacity can produce a schedule that cannot be carried out. An operations
 user needs a system that answers only when its checks support the answer, and otherwise abstains or hands the case to
 an analyst with reasons.
@@ -88,15 +89,20 @@ questions of this work:
 \begin{itemize}
 \item \textbf{Gap~1, label-free verification.} No reviewed system checks at inference time, without reference
 answers, whether a model uses every number of the question or reaches the same optimum when the question is reworded.
+While self-consistency over reasoning paths improves accuracy on general tasks~\cite{wang2023selfconsistency},
+it has not been applied to verify mathematical formulation equivalence across paraphrased optimization questions.
 Checks of the stated requirements exist only in part, as structure verdicts~\cite{liu2026optverifier} and
 per-constraint solver queries~\cite{abdulrahman2026verisimpl}. \textbf{RQ1:} do such requirement-level signals detect wrong models better than
 solver feasibility alone?
 \item \textbf{Gap~2, error control under shift.} No reviewed system can refuse to answer with a controlled error
-rate, and the closest recent attempt saw its error bound fail on new problems~\cite{lian2026admitor}. \textbf{RQ2:}
-does a threshold calibrated on nine problem classes keep the wrong-accept rate at or below its target on the unseen
+rate, and the closest recent attempt saw its error bound fail on new problems~\cite{lian2026admitor}. Grounded in
+selective classification~\cite{geifman2017selective,geifman2019selectivenet,kamath2020selective} and conformal risk control~\cite{vovk2005algorithmic,bates2021risk,angelopoulos2021gentle},
+\textbf{RQ2:} does a threshold calibrated on nine problem classes keep the wrong-accept rate at or below its target on the unseen
 tenth class?
-\item \textbf{Gap~3, cost.} No reviewed study compares a multi-agent design with a single agent that spends the same
-number of tokens. \textbf{RQ3:} at the same token budget, does the multi-agent pipeline give a better trade-off between
+\item \textbf{Gap~3, cost.} Multi-agent collaborative frameworks such as CAMEL~\cite{li2023camel}, AutoGen~\cite{wu2023autogen},
+and MetaGPT~\cite{hong2024metagpt} show strong capabilities, but their token usage is rarely benchmarked against single-agent
+sampling under scaling laws~\cite{kaplan2020scaling} or cost-effective inference routing~\cite{chen2024frugalgpt}.
+\textbf{RQ3:} at the same token budget, does the multi-agent pipeline give a better trade-off between
 accuracy and wrongly accepted answers than a single agent that resamples?
 \end{itemize}
 
@@ -123,7 +129,8 @@ with a solver. It compares pure-text reasoning, text reasoning with computationa
 SIR stays reliable as problems grow, while constraint augmentation lowers the accuracy of both pure-text
 reasoning and SIR. OptiBench and
 ReSocratic~\cite{yang2025optibench} and OptMATH~\cite{lu2025optmath} provide fixed collections and synthesized
-training data, and MIPLIB-NL~\cite{li2026miplibnl} reverse-builds industrial instances from MIPLIB 2017. Reference
+training data, NL4Opt~\cite{ramamonjison2023nl4opt} and MAMO~\cite{shen2024mamo} explore natural language formulations,
+and MIPLIB-NL~\cite{li2026miplibnl} reverse-builds industrial instances from MIPLIB 2017. Reference
 answers are not always reliable: one audit found 50\% of IndustryOR and 41\% of OptMATH-Bench instances
 incorrect~\cite{zhang2025optimind}. We therefore use generated problems with computed optima, and check doubtful
 references by hand.
