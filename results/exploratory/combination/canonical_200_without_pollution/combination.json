@@ -178,5 +178,6 @@
     "b2": [
       "results/b2_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261102-0231/records.jsonl"
     ]
-  }
+  },
+  "status": "Exploratory: not pre-registered."
 }

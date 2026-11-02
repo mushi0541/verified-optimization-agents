@@ -593,3 +593,57 @@ the H1 to H3 results change. The one lead worth a new pre-registered test is the
 - **Labels committed:** Recorded in `results/reference_check/hand_labels.csv` with problem ID, class, reference, hand optimum, reading, label, and note.
 
 **Effect.** Sensitivity analysis policy pre-registered in #103 excludes all `reference_wrong` instances (Pollution and `canonical-0648`) and retains `text_ambiguous` instances in both main and sensitivity evaluations.
+
+## 20. Pre-registered tests on 387 new problems: B2 is better, and the combination does not help
+
+**Date.** 2026-11-02 (#103, #104). The pre-registration (`docs/preregistration_combination.md`, commit 710b7aa, with
+the issue as time stamp) fixed the combined system, the data and the pass rules before any B2 sample on these
+problems existed. This entry reports every pre-registered number, whichever way it goes.
+
+**Data.** `samples/canonical_587_rest_387.json`: the 387 problems of `canonical_587` outside `canonical_200`. The
+pipeline records are from the `canonical_587` run (v1 prompts, k = 3, r = 1). New run: B2 on the 387 problems
+(`results/b2_bedrock-openai.gpt-oss-120b-1-0_canonical_587_rest_387_r1_20261102-1248`, 0 failed). The run started on
+the `mushi0541` key and was resumed with the second key after the first expired (one resume, `config.json`).
+
+**H3c (primary), `results/preregistered/h3c/canonical_587_rest_387/`.** Budget 21,723 tokens per problem.
+
+| System | Tokens | Accuracy | AUROC | WAR at 50% | WAR at 70% |
+|---|---|---|---|---|---|
+| Pipeline, k = 3 | 21,723 | 74.4% | 0.824 | 8.8% | 8.9% |
+| B2 | 21,750 | 78.0% | 0.891 | 4.3% | 4.3% |
+| Pipeline k = 1 + B2 (the pre-registered combination) | 21,709 | 74.4% | 0.850 | 7.2% | 7.9% |
+| Ceiling: pipeline k = 3 + all of B2 (twice the budget) | 49,307 | 74.4% | 0.915 | 3.6% | 5.2% |
+
+- **H3c is not supported.** Combination minus B2 at 50% coverage: [-0.1, +7.0] points. At 70% coverage the
+  combination is worse than B2: [+1.2, +6.3].
+- **Without Pollution** (reported, not a test): 1.8% for B2 against 3.4% for the combination and 5.1% for the
+  pipeline at 50%, so the order is the same.
+- **The combination does help the pipeline:** combination minus pipeline is [-3.7, +1.0] at 50%. But it does not
+  reach B2, because its answer is the pipeline's, and B2's own answers are more often right.
+
+**H3 on all 587 problems (secondary), `results/preregistered/h3/canonical_587/`.** B2 is held to the pipeline's
+tokens at each k (budget ratio 0.997 to 1.002).
+
+| k | Budget | Accuracy, pipeline / B2 | Accuracy difference, 95% CI | WAR at 50%, pipeline / B2 | WAR difference, 95% CI |
+|---|---|---|---|---|---|
+| 1 | 12,747 | 75.8% / 77.9% | [-4.1, +0.2] | 10.5% / 8.6% | [-1.5, +4.8] |
+| 2 | 17,191 | 75.8% / 78.5% | [-4.9, -0.5] | 8.5% / 7.2% | [-1.7, +4.4] |
+| 3 | 21,723 | 75.8% / 78.9% | [-5.1, -1.0] | 7.4% / 5.0% | [-0.5, +5.1] |
+
+- **H3 is not supported,** as on `canonical_200` (devlog 15).
+- **With 587 problems the accuracy difference is now significant:** B2 is 3.1 points more accurate at k = 3 (McNemar
+  p = 0.006).
+- **The wrong-accept rate also favours B2,** but its interval includes 0.
+
+**What this means.**
+- At an equal token budget, spending the tokens on independent samples and a vote (B2) is at least as good as the
+  multi-agent pipeline on this benchmark, and more accurate.
+- **B2's agreement is also the better confidence score:** AUROC 0.891 against 0.824 on the 387 problems.
+- So the pipeline's verification signals do separate right from wrong answers (H1 partly supported, AUROC 0.87 on
+  `canonical_200`, `results/gap1/`), but at equal cost
+  plain resampling separates them better.
+- The pipeline's remaining advantage is its explanation of a refusal (which check failed), not its accuracy or its
+  wrong-accept rate. That is a usability claim, not a measured one here.
+
+**Still running:** the same tests for six more models on `canonical_200` (addendum 2), and on the 1,070 unused
+problems (addendum 1). They will show whether this holds for other models.

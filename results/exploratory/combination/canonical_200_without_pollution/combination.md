@@ -1,6 +1,6 @@
-# Exploratory: the pipeline combined with B2 (180 problems, without Pollution)
+# The pipeline combined with B2 (180 problems, without Pollution)
 
-Budget: 20,187 tokens per problem (the pipeline at k = 3). Not pre-registered.
+Budget: 20,187 tokens per problem (the pipeline at k = 3). Exploratory: not pre-registered.
 
 | System | Tokens | Accuracy | AUROC | WAR at 50% | WAR at 70% | WAR at 80% | WAR at 90% |
 |---|---|---|---|---|---|---|---|

@@ -101,9 +101,9 @@ def markdown(result: dict) -> str:
     def rate(value):
         return "--" if value is None else f"{100 * value:.1f}%"
 
-    lines = [f"# Exploratory: the pipeline combined with B2 ({result['problems']} problems"
+    lines = [f"# The pipeline combined with B2 ({result['problems']} problems"
              + (f", without {', '.join(result['skipped_classes'])})" if result["skipped_classes"] else ")"), "",
-             f"Budget: {result['budget_tokens']:,.0f} tokens per problem (the pipeline at k = 3). Not pre-registered.", "",
+             f"Budget: {result['budget_tokens']:,.0f} tokens per problem (the pipeline at k = 3). {result['status']}", "",
              "| System | Tokens | Accuracy | AUROC | " + " | ".join(f"WAR at {100 * c:g}%" for c in COVERAGES) + " |",
              "|---|---|---|---|" + "---|" * len(COVERAGES)]
     for name, s in result["systems"].items():
@@ -125,9 +125,13 @@ def main() -> None:
     parser.add_argument("--b2", nargs="+", required=True)
     parser.add_argument("--skip-class", nargs="*", default=[])
     parser.add_argument("--out", type=Path)
+    parser.add_argument("--preregistered", action="store_true",
+                        help="label the output as the pre-registered test of #103 (default: exploratory)")
     args = parser.parse_args()
     result = explore(load_records(args.pipeline), load_records(args.b2), tuple(args.skip_class))
     result["records"] = {"pipeline": args.pipeline, "b2": args.b2}
+    result["status"] = ("Pre-registered test (#103, docs/preregistration_combination.md)." if args.preregistered
+                        else "Exploratory: not pre-registered.")
     text = markdown(result)
     print(text)
     if args.out:
