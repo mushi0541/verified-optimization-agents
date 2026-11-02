@@ -35,7 +35,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from optverify.calibration import check_system, load_run, record_system, threshold_from_file  # noqa: E402
+from optverify.calibration import check_system, load_run, only_sample, record_system, threshold_from_file  # noqa: E402
 from optverify.data import load_split  # noqa: E402
 from optverify.grading import is_correct  # noqa: E402
 from optverify.rescore import rescore  # noqa: E402
@@ -227,7 +227,10 @@ def summarize(runs: list[dict]) -> dict:
 
 def markdown(result: dict) -> str:
     runs, summary = result["runs"], result["summary"]
-    lines = [f"# Gap 1 (H1): {', '.join(result['records'])}", "", f"H1: **{summary['h1']}**", ""]
+    sample = result["settings"].get("sample")
+    lines = [f"# Gap 1 (H1): {', '.join(result['records'])}", "",
+             *([f"**Only the problems of `{sample}`** (`--sample`), in every run.", ""] if sample else []),
+             f"H1: **{summary['h1']}**", ""]
     header = "| Score | " + " | ".join(f"Run {i + 1}" for i in range(len(runs))) + " | Mean (sd) |"
     lines += [header, "|---|" + "---|" * (len(runs) + 1)]
     for name in score_sets():
@@ -305,9 +308,12 @@ def main() -> None:
     parser.add_argument("--draws", type=int, default=2000, help="bootstrap resamples")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--out", type=Path, help="folder for gap1.json and gap1.md")
+    parser.add_argument("--sample", type=Path, help="analyze only the problems of this sample file, in every run")
     args = parser.parse_args()
 
     all_records = [load_run(path) for path in args.records]  # failed problems included, as unanswered
+    if args.sample:
+        all_records = [only_sample(records, args.sample) for records in all_records]
     threshold = args.threshold
     if args.calibration:
         calibration = json.loads(args.calibration.read_text(encoding="utf-8"))
@@ -318,12 +324,13 @@ def main() -> None:
     result = {
         "records": [path.as_posix() for path in args.records],
         "settings": {"threshold": None if threshold == float("inf") else threshold, "draws": args.draws, "seed": args.seed,
-                     "target_gain": TARGET_GAIN},
+                     "target_gain": TARGET_GAIN, "sample": args.sample.as_posix() if args.sample else None},
         "runs": runs,
         "summary": summarize(runs),
     }
     if args.baseline:
-        result["b0"] = b0_reference(load_run(args.baseline), problem_ids)
+        baseline = load_run(args.baseline)
+        result["b0"] = b0_reference(only_sample(baseline, args.sample) if args.sample else baseline, problem_ids)
     text = markdown(result)
     print(text)
     if args.out:

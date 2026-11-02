@@ -47,6 +47,7 @@ from optverify.calibration import (  # noqa: E402
     fixed_threshold,
     leave_one_class_out,
     load_run,
+    only_sample,
     scored_answers,
     upper_bound,
 )
@@ -219,7 +220,9 @@ def summarize(runs: list[dict], alphas: list[float]) -> dict:
 def markdown(result: dict) -> str:
     runs, alphas = result["runs"], result["settings"]["alphas"]
     excluded = result["settings"].get("excluded_classes")
+    sample = result["settings"].get("sample")
     lines = [f"# Gap 2 (H2): {', '.join(result['records'])}", "",
+             *([f"**Only the problems of `{sample}`** (`--sample`), in every repeat.", ""] if sample else []),
              *([f"**Sensitivity analysis without {', '.join(excluded)}.** Not the H2 result itself; report it next to the full one.", ""]
                if excluded else []), f"H2 (alpha = {H2_ALPHA:.0%}, at least "
              f"{MIN_COVERAGE:.0%} answered): **{result['summary']['h2']}**", "",
@@ -256,7 +259,8 @@ def markdown(result: dict) -> str:
                 lines.append(f"| {i} | {_pct(rule) if rule is not None else 'none up to 30%'} | "
                              f"{_pct(bound) if bound is not None else 'none up to 30%'} | {_pct(coverage)} |")
     for i, shift in enumerate(result.get("shift", []), start=1):
-        lines += ["", f"Shift test, run {i}: thresholds calibrated on every class of this run, applied to "
+        classes = f"every class of this run except {', '.join(excluded)}" if excluded else "every class of this run"
+        lines += ["", f"Shift test, run {i}: thresholds calibrated on {classes}, applied to "
                       f"{result['settings']['shift']} ({shift['problems']} problems).", "",
                   "| Setting | Threshold | " + " | ".join(shift["families"]) + " | All |",
                   "|---|---|" + "---|" * (len(shift["families"]) + 1)]
@@ -365,9 +369,12 @@ def main() -> None:
     parser.add_argument("--alpha-scan", action="store_true", help="also scan alpha from 5%% to 30%% (an extra analysis)")
     parser.add_argument("--exclude-classes", nargs="+", default=[], help="sensitivity analysis without these classes")
     parser.add_argument("--shift", help="records.jsonl of a run on another benchmark (OpsOR-Bench) for the shift test")
+    parser.add_argument("--sample", type=Path, help="analyze only the problems of this sample file, in every repeat")
     args = parser.parse_args()
 
     all_records = [load_repeat(spec) for spec in args.records]  # failed problems included, as unanswered
+    if args.sample:
+        all_records = [only_sample(records, args.sample) for records in all_records]
     if args.exclude_classes:
         all_records = [[r for r in records if r["problem_class"] not in args.exclude_classes] for records in all_records]
     subset = set(json.loads(args.subset.read_text(encoding="utf-8"))) if args.subset else None
@@ -376,7 +383,7 @@ def main() -> None:
         "records": [spec.replace("\\", "/") for spec in args.records],
         "settings": {"alphas": args.alphas, "fixed_threshold": args.fixed_threshold,
                      "subset": args.subset.as_posix() if args.subset else None, "h2_alpha": H2_ALPHA, "min_coverage": MIN_COVERAGE,
-                     "excluded_classes": args.exclude_classes,
+                     "excluded_classes": args.exclude_classes, "sample": args.sample.as_posix() if args.sample else None,
                      "shift": args.shift.replace("\\", "/") if args.shift else None},
         "runs": runs,
         "summary": summarize(runs, args.alphas),
@@ -386,7 +393,8 @@ def main() -> None:
         result["shift"] = [shift_test(records, shift_records, args.alphas, args.fixed_threshold) for records in all_records]
     if args.baseline:
         problem_ids = {r["problem_id"] for records in all_records for r in records}
-        result["b0"] = b0_reference(load_run(args.baseline), problem_ids)
+        baseline = load_run(args.baseline)
+        result["b0"] = b0_reference(only_sample(baseline, args.sample) if args.sample else baseline, problem_ids)
     text = markdown(result)
     print(text)
     if args.out:
