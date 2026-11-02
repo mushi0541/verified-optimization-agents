@@ -1,0 +1,152 @@
+[1/120] constraint-0617 Inventory: correct=False
+[2/120] constraint-0107 Inventory: correct=True
+[3/120] constraint-0098 Inventory: correct=False
+[4/120] constraint-0636 Inventory: correct=False
+[5/120] constraint-0010 Inventory: correct=False
+[6/120] constraint-0533 Inventory: correct=True
+[7/120] constraint-0589 Inventory: correct=True
+[8/120] constraint-0066 Inventory: correct=False
+[9/120] constraint-0130 Inventory: correct=False
+[10/120] constraint-0657 Inventory: correct=False
+[11/120] constraint-0124 Inventory: correct=False
+[12/120] constraint-0652 Inventory: correct=False
+[13/120] constraint-0103 Inventory: correct=True
+[14/120] constraint-0632 Inventory: correct=False
+[15/120] constraint-0077 Inventory: correct=False
+[16/120] constraint-0601 Inventory: correct=False
+[17/120] constraint-0122 Inventory: correct=True
+[18/120] constraint-0091 Inventory: correct=True
+[19/120] constraint-0316 Knapsack: correct=True
+[20/120] constraint-0654 Inventory: correct=False
+[21/120] constraint-0627 Inventory: correct=True
+[22/120] constraint-0216 Knapsack: correct=True
+[23/120] constraint-0847 Knapsack: correct=True
+[24/120] constraint-0749 Knapsack: correct=True
+[25/120] constraint-0296 Knapsack: correct=True
+[26/120] constraint-0196 Knapsack: correct=True
+[27/120] constraint-0827 Knapsack: correct=True
+[28/120] constraint-0727 Knapsack: correct=True
+[29/120] constraint-0233 Knapsack: correct=True
+[30/120] constraint-0764 Knapsack: correct=True
+[31/120] constraint-0361 Knapsack: correct=True
+[32/120] constraint-0891 Knapsack: correct=True
+[33/120] constraint-0184 Knapsack: correct=True
+[34/120] constraint-0712 Knapsack: correct=True
+[35/120] constraint-0325 Knapsack: correct=True
+[36/120] constraint-0857 Knapsack: correct=True
+[37/120] constraint-0225 Knapsack: correct=True
+[38/120] constraint-0757 Knapsack: correct=True
+[39/120] constraint-0303 Knapsack: correct=True
+[40/120] constraint-0832 Knapsack: correct=True
+[41/120] constraint-0938 TSP: correct=False
+[42/120] constraint-0407 TSP: correct=False
+[43/120] constraint-0986 TSP: correct=False
+[44/120] constraint-0453 TSP: correct=True
+[45/120] constraint-0395 TSP: correct=True
+[46/120] constraint-0388 TSP: correct=True
+[47/120] constraint-0923 TSP: correct=True
+[48/120] constraint-0919 TSP: correct=True
+[49/120] constraint-0459 TSP: correct=True
+[50/120] constraint-1034 TSP: correct=False
+[51/120] constraint-0991 TSP: correct=True
+[52/120] constraint-0502 TSP: correct=True
+[53/120] constraint-1057 TSP: correct=False
+[54/120] constraint-0465 TSP: correct=True
+[55/120] constraint-0996 TSP: correct=True
+[56/120] constraint-0493 TSP: correct=True
+[57/120] constraint-0454 TSP: correct=True
+[58/120] constraint-1024 TSP: correct=True
+[59/120] constraint-0988 TSP: correct=False
+[60/120] constraint-0527 TSP: correct=True
+[61/120] constraint-0104 Inventory: correct=True
+[62/120] constraint-0114 Inventory: correct=False
+[63/120] constraint-0634 Inventory: correct=False
+[64/120] constraint-0642 Inventory: correct=False
+[65/120] constraint-0011 Inventory: correct=True
+[66/120] constraint-0530 Inventory: correct=False
+[67/120] constraint-0068 Inventory: correct=False
+[68/120] constraint-0140 Inventory: correct=False
+[69/120] constraint-0597 Inventory: correct=False
+[70/120] constraint-0672 Inventory: correct=True
+[71/120] constraint-0669 Inventory: correct=False
+[72/120] constraint-0134 Inventory: correct=True
+[73/120] constraint-0110 Inventory: correct=False
+[74/120] constraint-0647 Inventory: correct=False
+[75/120] constraint-0080 Inventory: correct=False
+[76/120] constraint-0132 Inventory: correct=False
+[77/120] constraint-0670 Inventory: correct=True
+[78/120] constraint-0615 Inventory: correct=False
+[79/120] constraint-0618 Inventory: correct=False
+[80/120] constraint-0324 Knapsack: correct=True
+[81/120] constraint-0854 Knapsack: correct=True
+[82/120] constraint-0095 Inventory: correct=False
+[83/120] constraint-0219 Knapsack: correct=True
+[84/120] constraint-0748 Knapsack: correct=True
+[85/120] constraint-0302 Knapsack: correct=True
+[86/120] constraint-0833 Knapsack: correct=True
+[87/120] constraint-0198 Knapsack: correct=True
+[88/120] constraint-0724 Knapsack: correct=True
+[89/120] constraint-0238 Knapsack: correct=True
+[90/120] constraint-0186 Knapsack: correct=True
+[91/120] constraint-0768 Knapsack: correct=True
+[92/120] constraint-0715 Knapsack: correct=True
+[93/120] constraint-0334 Knapsack: correct=True
+[94/120] constraint-0864 Knapsack: correct=True
+[95/120] constraint-0229 Knapsack: correct=True
+[96/120] constraint-0761 Knapsack: correct=True
+[97/120] constraint-0310 Knapsack: correct=True
+[98/120] constraint-0839 Knapsack: correct=True
+[99/120] constraint-0357 Knapsack: correct=True
+[100/120] constraint-0887 Knapsack: correct=True
+[101/120] constraint-0410 TSP: correct=True
+[102/120] constraint-0940 TSP: correct=False
+[103/120] constraint-0460 TSP: correct=False
+[104/120] constraint-0397 TSP: correct=True
+[105/120] constraint-0926 TSP: correct=True
+[106/120] constraint-0389 TSP: correct=True
+[107/120] constraint-0992 TSP: correct=True
+[108/120] constraint-0916 TSP: correct=True
+[109/120] constraint-0999 TSP: correct=False
+[110/120] constraint-0467 TSP: correct=False
+[111/120] constraint-1040 TSP: correct=False
+[112/120] constraint-1007 TSP: correct=False
+[113/120] constraint-0511 TSP: correct=False
+[114/120] constraint-0501 TSP: correct=False
+[115/120] constraint-1035 TSP: correct=False
+[116/120] constraint-0473 TSP: correct=True
+[117/120] constraint-0993 TSP: correct=False
+[118/120] constraint-0461 TSP: correct=True
+[119/120] constraint-0425 TSP: correct=True
+[120/120] constraint-0956 TSP: correct=True
+{
+  "run": "pipeline_bedrock-openai.gpt-oss-120b-1-0_constraint_pairs_60_r1_20261101-2337",
+  "resumes": 0,
+  "failed_problems": [],
+  "problems": 120,
+  "accuracy": 0.6333333333333333,
+  "solved_rate": 0.8666666666666667,
+  "status_counts": {
+    "error": 5,
+    "infeasible": 6,
+    "no_code": 4,
+    "not_solved": 1,
+    "optimal": 104
+  },
+  "mean_input_tokens": 8798.325,
+  "mean_output_tokens": 13353.966666666667,
+  "mean_llm_calls": 8.1,
+  "mean_latency_s": 98.34368146166622,
+  "accuracy_by_class": {
+    "Inventory": 0.3,
+    "Knapsack": 1.0,
+    "TSP": 0.6
+  },
+  "decision_counts": {
+    "abstain": 16,
+    "answer": 73,
+    "escalate": 31
+  },
+  "coverage": 0.6083333333333333,
+  "selective_accuracy": 0.9315068493150684,
+  "wrong_accept_rate": 0.0684931506849315
+}

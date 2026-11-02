@@ -1,0 +1,90 @@
+[1/60] linguistic-1172 Inventory: correct=False
+[2/60] linguistic-1128 Inventory: correct=False
+[3/60] linguistic-0197 Inventory: correct=False
+[4/60] linguistic-1195 Inventory: correct=False
+[5/60] linguistic-0215 Inventory: correct=True
+[6/60] linguistic-0020 Inventory: correct=False
+[7/60] linguistic-0132 Inventory: correct=False
+[8/60] linguistic-0261 Inventory: correct=False
+[9/60] linguistic-0248 Inventory: correct=False
+[10/60] linguistic-0630 Knapsack: correct=True
+[11/60] linguistic-1288 Knapsack: correct=True
+[12/60] linguistic-0207 Inventory: correct=True
+[13/60] linguistic-0686 Knapsack: correct=True
+[14/60] linguistic-1397 Knapsack: correct=True
+[15/60] linguistic-0543 Knapsack: correct=True
+[16/60] linguistic-1316 Knapsack: correct=True
+[17/60] linguistic-0462 Knapsack: correct=True
+[18/60] linguistic-0608 Knapsack: correct=True
+[19/60] linguistic-0463 Knapsack: correct=True
+[20/60] linguistic-0417 Knapsack: correct=True
+[21/60] linguistic-1569 TSP: correct=True
+[22/60] linguistic-1056 TSP: correct=True
+[23/60] linguistic-0868 TSP: correct=True
+[24/60] linguistic-1521 TSP: correct=True
+[25/60] linguistic-1012 TSP: correct=True
+[26/60] linguistic-1574 TSP: correct=True
+[27/60] linguistic-1625 TSP: correct=True
+[28/60] linguistic-0815 TSP: correct=False
+[29/60] linguistic-1048 TSP: correct=False
+[30/60] linguistic-1181 Inventory: correct=False
+[31/60] linguistic-0200 Inventory: correct=False
+[32/60] linguistic-1621 TSP: correct=True
+[33/60] linguistic-1136 Inventory: correct=False
+[34/60] linguistic-1205 Inventory: correct=False
+[35/60] linguistic-0220 Inventory: correct=False
+[36/60] linguistic-0134 Inventory: correct=False
+[37/60] linguistic-0021 Inventory: correct=False
+[38/60] linguistic-0268 Inventory: correct=False
+[39/60] linguistic-0211 Inventory: correct=True
+[40/60] linguistic-0636 Knapsack: correct=True
+[41/60] linguistic-0254 Inventory: correct=True
+[42/60] linguistic-1296 Knapsack: correct=True
+[43/60] linguistic-0693 Knapsack: correct=True
+[44/60] linguistic-1407 Knapsack: correct=True
+[45/60] linguistic-0547 Knapsack: correct=True
+[46/60] linguistic-1325 Knapsack: correct=True
+[47/60] linguistic-0465 Knapsack: correct=True
+[48/60] linguistic-0613 Knapsack: correct=True
+[49/60] linguistic-0466 Knapsack: correct=True
+[50/60] linguistic-0418 Knapsack: correct=True
+[51/60] linguistic-1481 TSP: correct=True
+[52/60] linguistic-1577 TSP: correct=True
+[53/60] linguistic-0870 TSP: correct=True
+[54/60] linguistic-1527 TSP: correct=True
+[55/60] linguistic-1635 TSP: correct=True
+[56/60] linguistic-1052 TSP: correct=False
+[57/60] linguistic-1015 TSP: correct=True
+[58/60] linguistic-0816 TSP: correct=True
+[59/60] linguistic-1582 TSP: correct=True
+[60/60] linguistic-1631 TSP: correct=True
+{
+  "run": "pipeline_bedrock-openai.gpt-oss-120b-1-0_linguistic_60_r1_20261102-0045",
+  "resumes": 0,
+  "failed_problems": [],
+  "problems": 60,
+  "accuracy": 0.6833333333333333,
+  "solved_rate": 0.9666666666666667,
+  "status_counts": {
+    "error": 1,
+    "no_code": 1,
+    "optimal": 58
+  },
+  "mean_input_tokens": 11163.366666666667,
+  "mean_output_tokens": 15279.816666666668,
+  "mean_llm_calls": 8.75,
+  "mean_latency_s": 96.76437323165882,
+  "accuracy_by_class": {
+    "Inventory": 0.2,
+    "Knapsack": 1.0,
+    "TSP": 0.85
+  },
+  "decision_counts": {
+    "abstain": 2,
+    "answer": 43,
+    "escalate": 15
+  },
+  "coverage": 0.7166666666666667,
+  "selective_accuracy": 0.9069767441860465,
+  "wrong_accept_rate": 0.09302325581395349
+}
