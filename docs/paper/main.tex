@@ -349,10 +349,10 @@ To test H3 (comparing the multi-agent pipeline against B2 at matched token budge
 \generated{tables/baselines.tex}{scripts/compare\_baselines.py}
 
 \subsection{Gap 1: do the signals detect wrong models? (H1)}
-\generated{tables/gap1.tex}{the Gap 1 analysis script}
+\generated{tables/gap1.tex}{scripts/analyze\_gap1.py}
 
 \subsection{Gap 2: calibrated abstention and the shift test (H2)}
-\generated{tables/gap2.tex}{scripts/calibrate.py}
+\generated{tables/gap2.tex}{scripts/analyze\_gap2.py}
 
 \subsection{Gap 3: the pipeline against a single agent at an equal token budget (H3)}
 \generated{tables/gap3.tex}{scripts/analyze\_e3.py}
@@ -362,7 +362,7 @@ To test H3 (comparing the multi-agent pipeline against B2 at matched token budge
 
 \section{Ablation and Comparative Analysis}
 \plan{The contribution of each component (ablations i to vii) and the efficiency and cost trade-offs (E6).}
-\generated{tables/ablations.tex}{scripts/rescore.py}
+\generated{tables/ablations.tex}{scripts/ablation\_table.py}
 
 \section{Failure Analysis}
 \label{sec:failures}
@@ -442,15 +442,17 @@ choices, a transposed cost table), only binary choices with no share limit repro
 canonical-1623, within 0.1\%, which is very likely chance. Six problems are infeasible as stated, and 34 references are below the stated model's
 optimum, which no stricter reading can explain. In 7 of the pipeline's 21 Pollution answers, the answer equals the
 stated model's optimum to every digit. These references therefore follow a model the text does not state.
-\item \textbf{Inventory:} 122 of the 125 checked references are reproduced, all of them with the storage capacity
-applying also right after a delivery arrives, which matches the usual wording (``at any moment''). Those references
-are sound, and an answer that checks the capacity only at the end of the day is a real model error. Three questions
-say ``at the end of any day''; for two of them only the stricter rule gives the reference, which contradicts their
-text. The three references that match neither reading (canonical-0648, 0649 and 0650) need a hand check.
+\item \textbf{Inventory:} all 160 questions are read, and 159 references are reproduced, all of them with the
+storage capacity applying also right after a delivery arrives, which matches the usual wording (``at any moment'').
+Those references are sound, and an answer that checks the capacity only at the end of the day is a real model error.
+Three questions say ``at the end of any day''; for two of them (canonical-0644 and 0667) only the stricter rule gives
+the reference, which contradicts their text. The one reference that no reading reproduces, canonical-0648, was
+solved by hand (\#40): its stated model gives 876 or 1,061 against the reference 1,818, so the reference is wrong.
 \end{itemize}
 Following our protocol, every result is reported with all problems, and Gap~2 is also reported without Pollution,
 with this reason stated; no problem is dropped silently.
-\plan{Final labels of the 64 pending rows from \#40: Pollution as ``doubtful reference''; Inventory per the check.}
+\plan{Hand-check labels (\#40): Inventory 157 correct, 2 ambiguous (0644, 0667) and 1 wrong (0648); Pollution
+doubtful (73 checked by the script, 7 not readable). Use them for the 64 pending rows once the label file is merged.}
 
 \section{Limitations and Threats to Validity}
 \textbf{Data.} \cthree{} problems are generated from templates, so wording and structure repeat within a class, and
