@@ -1,0 +1,68 @@
+{
+  "run": "b2_bedrock-mistral.mistral-large-3-675b-instruct_canonical_200_r1_20261103-1042",
+  "config": {
+    "system": "b2",
+    "model": "bedrock:mistral.mistral-large-3-675b-instruct",
+    "split": "canonical",
+    "sample_file": "samples\\canonical_200.json",
+    "per_class": null,
+    "seed": null,
+    "repairs": 1,
+    "paraphrases": 2,
+    "signals": [
+      "number",
+      "requirement",
+      "paraphrase"
+    ],
+    "no_parser": false,
+    "threshold": 0.8,
+    "calibration": null,
+    "budget_tokens": 21889.0,
+    "max_samples": 24,
+    "sample_temperature": 0.7,
+    "paraphrase_temperature": 0.7,
+    "paraphrase_model": null,
+    "workers": 4,
+    "env_file": ".env",
+    "trace": false,
+    "prompt_version": "v1",
+    "resume": null,
+    "alpha": null,
+    "endpoint": "bedrock us-east-1",
+    "paraphrase_endpoint": null
+  },
+  "resumes": 0,
+  "failed_problems": [],
+  "problems": 200,
+  "accuracy": 0.795,
+  "solved_rate": 0.95,
+  "status_counts": {
+    "error": 4,
+    "infeasible": 6,
+    "optimal": 190
+  },
+  "mean_input_tokens": 8466.855,
+  "mean_output_tokens": 13282.73,
+  "mean_llm_calls": 9.92,
+  "mean_latency_s": 162.07762389749965,
+  "accuracy_by_class": {
+    "BinPacking": 1.0,
+    "Inventory": 0.4,
+    "JobShop": 0.95,
+    "Knapsack": 1.0,
+    "NetworkFlow": 1.0,
+    "Pollution": 0.0,
+    "Portfolio": 0.85,
+    "Production": 0.85,
+    "TSP": 0.95,
+    "Transportation": 0.95
+  },
+  "decision_counts": {
+    "abstain": 1,
+    "answer": 152,
+    "escalate": 47
+  },
+  "coverage": 0.76,
+  "selective_accuracy": 0.9078947368421053,
+  "wrong_accept_rate": 0.09210526315789473
+}

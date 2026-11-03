@@ -1,0 +1,167 @@
+{
+  "problems": 200,
+  "only_in_pipeline": [],
+  "only_in_b2": [],
+  "settings": {
+    "coverage": 0.5,
+    "draws": 1000,
+    "bootstrap": 1000,
+    "seed": 0
+  },
+  "levels": [
+    {
+      "k": 1,
+      "budget_tokens": 9439.35,
+      "pipeline": {
+        "accuracy": 0.71,
+        "accuracy_ci": [
+          0.6418125478377101,
+          0.7718430106364877
+        ],
+        "wrong_accept_rate": 0.10348,
+        "coverage": 0.5,
+        "mean_tokens": 9439.35,
+        "mean_calls": 4.18
+      },
+      "b2": {
+        "accuracy": 0.77,
+        "accuracy_ci": [
+          0.7053936054340206,
+          0.8264191371984089
+        ],
+        "wrong_accept_rate": 0.12643000000000001,
+        "coverage": 0.5,
+        "mean_tokens": 9441.35,
+        "mean_calls": 4.31,
+        "budget_ratio": 1.0002118789959054,
+        "within_budget_tolerance": true,
+        "mean_samples": 3.97
+      },
+      "paired": {
+        "mcnemar_p": 0.01690053939819336,
+        "accuracy_difference_ci": [
+          -0.1050000000000001,
+          -0.015000000000000013
+        ],
+        "wrong_accept_difference_ci": [
+          -0.07337662337662337,
+          0.031362229102167155
+        ]
+      }
+    },
+    {
+      "k": 2,
+      "budget_tokens": 13511.595,
+      "pipeline": {
+        "accuracy": 0.71,
+        "accuracy_ci": [
+          0.6418125478377101,
+          0.7718430106364877
+        ],
+        "wrong_accept_rate": 0.10124000000000001,
+        "coverage": 0.5,
+        "mean_tokens": 13511.595,
+        "mean_calls": 6.38
+      },
+      "b2": {
+        "accuracy": 0.77,
+        "accuracy_ci": [
+          0.7053936054340206,
+          0.8264191371984089
+        ],
+        "wrong_accept_rate": 0.09356,
+        "coverage": 0.5,
+        "mean_tokens": 13414.34,
+        "mean_calls": 6.125,
+        "budget_ratio": 0.9928021081152892,
+        "within_budget_tolerance": true,
+        "mean_samples": 5.66
+      },
+      "paired": {
+        "mcnemar_p": 0.01690053939819336,
+        "accuracy_difference_ci": [
+          -0.1050000000000001,
+          -0.015000000000000013
+        ],
+        "wrong_accept_difference_ci": [
+          -0.03751937984496124,
+          0.06029850746268656
+        ]
+      }
+    },
+    {
+      "k": 3,
+      "budget_tokens": 17511.46,
+      "pipeline": {
+        "accuracy": 0.71,
+        "accuracy_ci": [
+          0.6418125478377101,
+          0.7718430106364877
+        ],
+        "wrong_accept_rate": 0.056459999999999996,
+        "coverage": 0.5,
+        "mean_tokens": 17511.46,
+        "mean_calls": 8.55
+      },
+      "b2": {
+        "accuracy": 0.79,
+        "accuracy_ci": [
+          0.7269312953862013,
+          0.8442602432758712
+        ],
+        "wrong_accept_rate": 0.07638,
+        "coverage": 0.5,
+        "mean_tokens": 17595.5,
+        "mean_calls": 8.03,
+        "budget_ratio": 1.004799142961238,
+        "within_budget_tolerance": true,
+        "mean_samples": 7.395
+      },
+      "paired": {
+        "mcnemar_p": 0.0008554458618164062,
+        "accuracy_difference_ci": [
+          -0.125,
+          -0.03500000000000003
+        ],
+        "wrong_accept_difference_ci": [
+          -0.06080357142857143,
+          0.0407563025210084
+        ]
+      }
+    }
+  ],
+  "h3": {
+    "k": 3,
+    "wrong_accept_difference_ci": [
+      -0.06080357142857143,
+      0.0407563025210084
+    ],
+    "supported": false
+  },
+  "reference_points": {
+    "B0": {
+      "problems": 200,
+      "accuracy": 0.69,
+      "accuracy_ci": [
+        0.6209229594796748,
+        0.7533419625582742
+      ],
+      "coverage": 0.885,
+      "wrong_accept_rate": 0.22033898305084745,
+      "mean_tokens": 2361.9,
+      "mean_calls": 1.0
+    },
+    "B1": {
+      "problems": 200,
+      "accuracy": 0.745,
+      "accuracy_ci": [
+        0.6787246033612804,
+        0.803859184799542
+      ],
+      "coverage": 0.965,
+      "wrong_accept_rate": 0.22797927461139897,
+      "mean_tokens": 2747.49,
+      "mean_calls": 1.115
+    }
+  }
+}
