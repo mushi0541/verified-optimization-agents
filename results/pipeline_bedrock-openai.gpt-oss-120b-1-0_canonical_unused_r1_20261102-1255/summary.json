@@ -1,0 +1,68 @@
+{
+  "run": "pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_unused_r1_20261102-1255",
+  "config": {
+    "system": "pipeline",
+    "model": "bedrock:openai.gpt-oss-120b-1:0",
+    "split": "canonical",
+    "sample_file": "samples\\canonical_unused.json",
+    "per_class": null,
+    "seed": null,
+    "repairs": 1,
+    "paraphrases": 3,
+    "signals": [
+      "number",
+      "requirement",
+      "paraphrase"
+    ],
+    "no_parser": false,
+    "threshold": 0.8,
+    "calibration": null,
+    "budget_tokens": null,
+    "max_samples": 10,
+    "sample_temperature": 0.7,
+    "paraphrase_temperature": 0.7,
+    "paraphrase_model": null,
+    "workers": 6,
+    "env_file": ".env",
+    "trace": false,
+    "prompt_version": "v1",
+    "resume": "C:\\Users\\Mushahid\\AppData\\Local\\Temp\\claude\\f--AgenticAI-Assignments\\54891661-bd40-4dfc-9e67-8eb0de75e027\\scratchpad\\wt_combo\\results\\pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_unused_r1_20261102-1255",
+    "alpha": null,
+    "endpoint": "bedrock us-east-1",
+    "paraphrase_endpoint": "bedrock us-east-1"
+  },
+  "resumes": 1,
+  "failed_problems": [],
+  "problems": 1070,
+  "accuracy": 0.9074766355140187,
+  "solved_rate": 0.985981308411215,
+  "status_counts": {
+    "error": 2,
+    "infeasible": 10,
+    "no_code": 3,
+    "optimal": 1055
+  },
+  "mean_input_tokens": 6322.84953271028,
+  "mean_output_tokens": 9579.8261682243,
+  "mean_llm_calls": 8.218691588785047,
+  "mean_latency_s": 121.03837383831753,
+  "accuracy_by_class": {
+    "BinPacking": 0.9890909090909091,
+    "Inventory": 0.35,
+    "JobShop": 0.9222222222222223,
+    "Knapsack": 0.9052631578947369,
+    "Pollution": 0.0,
+    "Portfolio": 0.8777777777777778,
+    "Production": 0.9,
+    "TSP": 0.8833333333333333,
+    "Transportation": 1.0
+  },
+  "decision_counts": {
+    "abstain": 15,
+    "answer": 988,
+    "escalate": 67
+  },
+  "coverage": 0.9233644859813084,
+  "selective_accuracy": 0.9645748987854251,
+  "wrong_accept_rate": 0.0354251012145749
+}
