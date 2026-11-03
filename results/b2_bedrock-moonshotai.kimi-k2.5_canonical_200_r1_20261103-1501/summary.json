@@ -1,0 +1,67 @@
+{
+  "run": "b2_bedrock-moonshotai.kimi-k2.5_canonical_200_r1_20261103-1501",
+  "config": {
+    "system": "b2",
+    "model": "bedrock:moonshotai.kimi-k2.5",
+    "split": "canonical",
+    "sample_file": "samples\\canonical_200.json",
+    "per_class": null,
+    "seed": null,
+    "repairs": 1,
+    "paraphrases": 2,
+    "signals": [
+      "number",
+      "requirement",
+      "paraphrase"
+    ],
+    "no_parser": false,
+    "threshold": 0.8,
+    "calibration": null,
+    "budget_tokens": 22867.0,
+    "max_samples": 24,
+    "sample_temperature": 0.7,
+    "paraphrase_temperature": 0.7,
+    "paraphrase_model": null,
+    "workers": 4,
+    "env_file": ".env",
+    "trace": false,
+    "prompt_version": "v1",
+    "resume": null,
+    "alpha": null,
+    "endpoint": "bedrock us-east-1",
+    "paraphrase_endpoint": null
+  },
+  "resumes": 0,
+  "failed_problems": [],
+  "problems": 200,
+  "accuracy": 0.83,
+  "solved_rate": 0.995,
+  "status_counts": {
+    "no_code": 1,
+    "optimal": 199
+  },
+  "mean_input_tokens": 7950.5,
+  "mean_output_tokens": 14972.4,
+  "mean_llm_calls": 10.675,
+  "mean_latency_s": 252.8911930665,
+  "accuracy_by_class": {
+    "BinPacking": 1.0,
+    "Inventory": 0.6,
+    "JobShop": 1.0,
+    "Knapsack": 1.0,
+    "NetworkFlow": 1.0,
+    "Pollution": 0.0,
+    "Portfolio": 0.85,
+    "Production": 0.85,
+    "TSP": 1.0,
+    "Transportation": 1.0
+  },
+  "decision_counts": {
+    "abstain": 1,
+    "answer": 183,
+    "escalate": 16
+  },
+  "coverage": 0.915,
+  "selective_accuracy": 0.8743169398907104,
+  "wrong_accept_rate": 0.12568306010928962
+}
