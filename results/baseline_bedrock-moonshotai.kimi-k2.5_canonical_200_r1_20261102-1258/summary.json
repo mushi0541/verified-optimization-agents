@@ -1,0 +1,59 @@
+{
+  "run": "baseline_bedrock-moonshotai.kimi-k2.5_canonical_200_r1_20261102-1258",
+  "config": {
+    "system": "baseline",
+    "model": "bedrock:moonshotai.kimi-k2.5",
+    "split": "canonical",
+    "sample_file": "samples\\canonical_200.json",
+    "per_class": null,
+    "seed": null,
+    "repairs": 1,
+    "paraphrases": 2,
+    "signals": [
+      "number",
+      "requirement",
+      "paraphrase"
+    ],
+    "no_parser": false,
+    "threshold": 0.8,
+    "calibration": null,
+    "budget_tokens": null,
+    "max_samples": 10,
+    "sample_temperature": 0.7,
+    "paraphrase_temperature": 0.7,
+    "paraphrase_model": null,
+    "workers": 3,
+    "env_file": ".env",
+    "trace": false,
+    "prompt_version": "v1",
+    "resume": "C:\\Users\\Mushahid\\AppData\\Local\\Temp\\claude\\f--AgenticAI-Assignments\\54891661-bd40-4dfc-9e67-8eb0de75e027\\scratchpad\\wt_combo\\results\\baseline_bedrock-moonshotai.kimi-k2.5_canonical_200_r1_20261102-1258",
+    "alpha": null,
+    "endpoint": "bedrock us-east-1",
+    "paraphrase_endpoint": null
+  },
+  "resumes": 1,
+  "failed_problems": [],
+  "problems": 200,
+  "accuracy": 0.81,
+  "solved_rate": 0.995,
+  "status_counts": {
+    "infeasible": 1,
+    "optimal": 199
+  },
+  "mean_input_tokens": 837.385,
+  "mean_output_tokens": 1548.945,
+  "mean_llm_calls": 1.015,
+  "mean_latency_s": 33.09666549399988,
+  "accuracy_by_class": {
+    "BinPacking": 1.0,
+    "Inventory": 0.6,
+    "JobShop": 0.8,
+    "Knapsack": 1.0,
+    "NetworkFlow": 1.0,
+    "Pollution": 0.0,
+    "Portfolio": 0.85,
+    "Production": 0.85,
+    "TSP": 1.0,
+    "Transportation": 1.0
+  }
+}
