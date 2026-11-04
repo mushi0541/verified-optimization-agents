@@ -647,3 +647,70 @@ tokens at each k (budget ratio 0.997 to 1.002).
 
 **Still running:** the same tests for six more models on `canonical_200` (addendum 2), and on the 1,070 unused
 problems (addendum 1). They will show whether this holds for other models.
+
+
+## 21. Addenda 1 to 3: the 1,070 unused problems, six more models, and the sensitivity analysis
+
+**Date.** 2026-11-04 (#103, #104). Every number the addenda of `docs/preregistration_combination.md` asked for,
+whichever way it goes. All runs finished with 0 failed problems. WAR is the wrong-accept rate at 50% coverage; an
+interval is the paired bootstrap 95% interval in points (first system minus second).
+
+**Addendum 1: the 1,070 unused problems (gpt-oss-120b).** Half of them are BinPacking.
+- **Accuracy:** B0 88.7%, B1 91.6%, pipeline 90.7%, B2 at the same budget (15,925 tokens) 92.4%.
+- **H1:** combined AUROC 0.781 against 0.576, gain +0.205 (`results/preregistered/h1/canonical_unused/`). Partly
+  supported, as on `canonical_200`.
+- **H2: not supported.** At alpha 10%, 47.5% answered with 15.9% wrong accepted. The smallest alpha the data can meet
+  is 12%. The fixed 0.8 threshold gives 3.5% WAR at 92.3% coverage (`results/preregistered/h2/canonical_unused/`).
+- **H3: not supported.** WAR 5.6% for the pipeline against 2.7% for B2, interval [+1.6, +4.0]. On all 1,457 held-out
+  problems: 6.4% against 3.6%, [+1.6, +4.4] (`results/preregistered/h3/`).
+- **H3c: not supported.** The k = 1 combination minus B2 is [+1.1, +3.2] on the 1,070 and [+1.4, +3.6] on the 1,457
+  (`results/preregistered/h3c/`). The combination does beat the pipeline alone on the 1,070 ([-1.5, -0.1]), so the
+  vote adds to the verifier score, but it does not reach B2.
+- **Per class (a report, not a test, `--per-class`):** BinPacking, JobShop and TSP have 0% WAR for every system. Almost
+  every wrong accept is in Inventory (35 to 42% accuracy) or Pollution (0%). With every class weighted equally, the
+  WAR is 19.6% for the pipeline, 20.2% for B2 and 19.9% for the combination: the systems are about the same once the
+  large easy classes stop setting the average.
+
+**Addendum 2: six more models on `canonical_200`.** gpt-oss-120b is in the first row for comparison (its H3 is on
+the 587; its `canonical_200` was used to explore the combination, so it has no H3c test).
+
+| Model | H1 gain | Accuracy, pipeline / B2 | WAR, pipeline / B2 | H3 interval | H3c interval |
+|---|---|---|---|---|---|
+| gpt-oss-120b (587) | +0.32 | 75.8% / 78.9% | 7.4% / 5.0% | [-0.5, +5.1] | (not a test) |
+| DeepSeek V3.2 | +0.19 | 79.0% / 83.0% | 10.1% / 8.0% | [-2.6, +6.5] | [-3.0, +5.9] |
+| Qwen3 Next 80B | +0.28 | 68.5% / 80.5% | 3.0% / 3.3% | [-3.3, +3.4] | [-2.0, +5.1] |
+| gpt-oss-20b | +0.075 | 65.5% / 82.5% | 6.0% / 5.2% | [-3.8, +5.7] | [-4.4, +3.3] |
+| Mistral Large 3 | +0.31 | 71.0% / 79.0% | 5.6% / 7.6% | [-6.1, +4.1] | [-3.7, +5.4] |
+| GLM 4.7 | +0.19 | 73.0% / 75.5% | 5.5% / 8.0% | [-7.6, +2.6] | [-4.7, +2.1] |
+| Kimi K2.5 | +0.22 | 82.5% / 83.5% | 7.9% / 9.9% | [-7.2, +3.0] | [-5.0, +5.1] |
+
+- **H1** is partly supported for every model except gpt-oss-20b (gain +0.075, below the 0.10 target). The paraphrase
+  check is the strongest single signal for every model (AUROC 0.79 to 0.93).
+- **H3 and H3c are not supported for any model.** B2 is at least as accurate for every model, by 1 to 17 points.
+- **For four of the six models** (Mistral, GLM, Kimi, Qwen) the pipeline's WAR is lower than B2's, unlike gpt-oss-120b,
+  but no interval is below 0 with 200 problems.
+
+**Addendum 3: sensitivity analysis.** Without every Pollution problem and without `canonical-0648`, the one
+`reference_wrong` problem of #40 (#111). `canonical-0648` is in the 387, so the earlier "without Pollution" numbers
+on the 387 and the 1,457 still held it; the new `*_sensitivity` folders leave it out (`--skip-problem`). Of the two
+`text_ambiguous` problems, only `canonical-0644` (in `canonical_200`) is in these samples, and it stays in.
+
+| Set | Problems | H3 interval | H3c interval |
+|---|---|---|---|
+| canonical_587 | 526 | [-0.7, +3.9] | (H3 only) |
+| canonical_587_rest_387 | 346 | [+0.7, +6.1] | [-0.4, +4.0] |
+| canonical_unused | 1,060 | [+1.7, +4.0] | [+1.2, +3.0] |
+| held out, 1,457 | 1,406 | [+1.5, +3.8] | [+1.1, +3.0] |
+| DeepSeek / Qwen / gpt-oss-20b | 180 each | [-3.1, +3.2] / [-4.6, +1.0] / [-5.0, +2.9] | [-3.0, +3.3] / [-3.0, +3.3] / [-4.7, +2.1] |
+| Mistral / GLM / Kimi | 180 each | [-3.2, +5.4] / **[-7.6, -0.3]** / [-4.8, +2.6] | [-0.2, +7.0] / [-3.3, +0.4] / [-5.4, +0.9] |
+
+- **One result changes:** for GLM, H3 is supported in the sensitivity analysis (WAR 1.9% for the pipeline against 5.4%
+  for B2). It is one of seven models, on 180 problems, and not in the main analysis, so it is a lead for the paper's
+  discussion, not a finding.
+- **H2 without Pollution** on the 1,070 is still not supported: 47.0% answered with 14.3% wrong accepted.
+
+**What this means.** On 1,457 held-out problems and on seven models, the pre-registered conclusion of devlog 20
+holds. The verifier signals rank answers well (H1), but at an equal token budget majority voting (B2) is more accurate
+and, for gpt-oss-120b, has a lower wrong-accept rate. Combining the two helps the pipeline but does not beat B2. For
+other models the wrong-accept rates are close, and the direction often favours the pipeline (GLM most clearly), so
+"B2 is safer" is a gpt-oss-120b result, while "B2 is at least as accurate" holds for every model.

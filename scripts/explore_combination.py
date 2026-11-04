@@ -101,8 +101,9 @@ def by_class(ids: list[str], classes: dict[str, str], systems: dict[str, list[di
 
 
 def explore(pipeline: dict[str, dict], b2: dict[str, dict], skip_classes: tuple[str, ...] = (),
-            bootstrap: int = 1000, seed: int = 0, per_class: bool = False) -> dict:
-    ids = sorted(i for i in set(pipeline) & set(b2) if pipeline[i]["problem_class"] not in skip_classes)
+            bootstrap: int = 1000, seed: int = 0, per_class: bool = False, skip_problems: tuple[str, ...] = ()) -> dict:
+    ids = sorted(i for i in set(pipeline) & set(b2)
+                 if pipeline[i]["problem_class"] not in skip_classes and i not in skip_problems)
     full = [pipeline_at(pipeline[i], 3) for i in ids]
     budget = sum(o["tokens"] for o in full) / len(full)
     systems = {"pipeline k=3": full, "B2": [b2_at(b2[i], budget) for i in ids]}
@@ -110,7 +111,8 @@ def explore(pipeline: dict[str, dict], b2: dict[str, dict], skip_classes: tuple[
         rest = budget - sum(pipeline_at(pipeline[i], k)["tokens"] for i in ids) / len(ids)
         systems[f"pipeline k={k} + B2"] = [combined(pipeline[i], b2[i], k, rest) for i in ids]
     systems["ceiling: pipeline k=3 + all of B2"] = [combined(pipeline[i], b2[i], 3, None) for i in ids]
-    result = {"problems": len(ids), "skipped_classes": list(skip_classes), "budget_tokens": budget,
+    result = {"problems": len(ids), "skipped_classes": list(skip_classes), "skipped_problems": list(skip_problems),
+              "budget_tokens": budget,
               "systems": {name: summary(outcomes) for name, outcomes in systems.items()}, "paired": {}}
     for name in [n for n in systems if "+" in n]:
         for other in ("B2", "pipeline k=3"):
@@ -126,8 +128,9 @@ def markdown(result: dict) -> str:
     def rate(value):
         return "--" if value is None else f"{100 * value:.1f}%"
 
+    skipped = result["skipped_classes"] + result.get("skipped_problems", [])
     lines = [f"# The pipeline combined with B2 ({result['problems']} problems"
-             + (f", without {', '.join(result['skipped_classes'])})" if result["skipped_classes"] else ")"), "",
+             + (f", without {', '.join(skipped)})" if skipped else ")"), "",
              f"Budget: {result['budget_tokens']:,.0f} tokens per problem (the pipeline at k = 3). {result['status']}", "",
              "| System | Tokens | Accuracy | AUROC | " + " | ".join(f"WAR at {100 * c:g}%" for c in COVERAGES) + " |",
              "|---|---|---|---|" + "---|" * len(COVERAGES)]
@@ -159,6 +162,7 @@ def main() -> None:
     parser.add_argument("--pipeline", nargs="+", required=True)
     parser.add_argument("--b2", nargs="+", required=True)
     parser.add_argument("--skip-class", nargs="*", default=[])
+    parser.add_argument("--skip-problem", nargs="*", default=[], help="problem IDs to leave out (reference_wrong)")
     parser.add_argument("--out", type=Path)
     parser.add_argument("--per-class", action="store_true",
                         help="also report each class and the mean over classes (every class weighted equally)")
@@ -166,7 +170,7 @@ def main() -> None:
                         help="label the output as the pre-registered test of #103 (default: exploratory)")
     args = parser.parse_args()
     result = explore(load_records(args.pipeline), load_records(args.b2), tuple(args.skip_class),
-                     per_class=args.per_class)
+                     per_class=args.per_class, skip_problems=tuple(args.skip_problem))
     result["records"] = {"pipeline": args.pipeline, "b2": args.b2}
     result["status"] = ("Pre-registered test (#103, docs/preregistration_combination.md)." if args.preregistered
                         else "Exploratory: not pre-registered.")
