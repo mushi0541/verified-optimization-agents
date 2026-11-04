@@ -11,6 +11,41 @@ operations questions into optimization models, verify those models, and answer, 
   `pdflatex main && bibtex main && pdflatex main && pdflatex main`. Tables and figures are read from generated files
   in `docs/paper/tables/` and `docs/paper/figures/`; until a file exists, the PDF shows a grey note in its place.
 
+## Architecture
+
+```mermaid
+flowchart LR
+    Q[/"Operations question<br/>(C^3-Bench or OpsOR-Bench)"/]
+
+    subgraph BASE["Baselines"]
+        BF["Formalizer<br/>one LLM call writes PuLP code<br/>(B0: no repair, B1: one repair)"] --> BS["Solver-runner tool<br/>PuLP + HiGHS in a separate process"]
+        BS -- "B1: status or error text" --> BF
+        BS --> B2["B2: more B1 samples at temperature 0.7<br/>until the token budget is used;<br/>majority answer, agreement as score"]
+    end
+
+    subgraph PROP["Proposed pipeline (k = 3, r = 1)"]
+        P1["Parser<br/>JSON spec with requirements R1, R2, ..."] --> P2["Formalizer<br/>PuLP code, one named constraint<br/>per requirement"]
+        P2 --> P3["Solver-runner tool<br/>repair on any non-optimal status"]
+        P3 -- "optimal" --> PR["Paraphraser<br/>k reworded questions"]
+        PR --> P2b["Baseline prompt + solver<br/>on each rewording"]
+        P3 --> P4["Verifier (Gap 1)<br/>number coverage<br/>requirement coverage<br/>paraphrase agreement"]
+        P2b --> P4
+        P4 --> D{"Decision layer (Gap 2)<br/>score = mean of the signals<br/>fixed threshold 0.8, or calibrated<br/>to a target wrong-accept rate"}
+        D -- "no feasible model" --> A["Abstain"]
+        D -- "score >= threshold" --> ANS["Answer + explanation"]
+        D -- "score < threshold" --> H["Escalate to a human<br/>with the reasons"]
+    end
+
+    Q --> BF
+    Q --> P1
+    T["Token meter on every LLM call<br/>(equal budget for B2, Gap 3)"] -.-> BASE
+    T -.-> PROP
+    ANS --> G["Grader: |pred - ref| <= 0.2% |ref|"]
+    BS --> G
+```
+
+The roles, the data contracts and the mapping of each gap to its code are in [docs/architecture.md](docs/architecture.md).
+
 ## What is in Phase 1
 
 | Requirement | Where |
@@ -56,27 +91,33 @@ Supervisor feedback on Phase 1 and where each point is handled: issue #23.
 | Part | Gap | Where | Status |
 |---|---|---|---|
 | Token use per step (`parse`, `formalize`, `repair`, `paraphrase_<j>`, `sample_<i>`) | Gap 3 | `RunRecord.usage_by_step` in `optverify/contracts.py` | Done |
-| Single agent B2 at an equal token budget | Gap 3 | `optverify/systems.py` `run_single_agent`, `python -m optverify.run b2` | Done; runs pending |
-| E3 analysis: pipeline against B2 at k = 1, 2, 3 | Gap 3 | `scripts/analyze_e3.py` | Done; needs the k = 3 pipeline and B2 runs |
-| B0 and B1 per class, and the base-paper comparison | Baselines | `scripts/compare_baselines.py`, paper values in `docs/paper_sir.json` | Done; B1 on the 100-problem sample: B0 78.0%, B1 80.0% (`results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_100_r1_20261020-1622/`) |
-| E3 plots: accuracy-cost and risk-coverage curves | Gap 3 | `scripts/plot_e3.py` | Done; needs the k = 3 pipeline and B2 runs |
+| Single agent B2 at an equal token budget | Gap 3 | `optverify/systems.py` `run_single_agent`, `python -m optverify.run b2` | Done; runs in `results/b2_*` (#98, #104) |
+| E3 analysis: pipeline against B2 at k = 1, 2, 3 | Gap 3 | `scripts/analyze_e3.py` | Done; `results/gap3/canonical_200/` (#98) and `results/preregistered/h3/` (#104) |
+| B0 and B1 per class, and the base-paper comparison | Baselines | `scripts/compare_baselines.py`, paper values in `docs/paper_sir.json` | Done; `results/e1_e2/` on `canonical_200`, with B0 for gpt-oss-120b and DeepSeek-V3.2 (#90) |
+| E3 plots: accuracy-cost and risk-coverage curves | Gap 3 | `scripts/plot_e3.py` | Done (script); the plots for the paper are #44 |
 | Offline tests for the deterministic parts, run on every pull request | All | `tests/`, `.github/workflows/tests.yml` | Done |
 | Output cap fitted to the per-minute token limit (a rejected request is sent once more) | All | `optverify/llm.py` `fitted_output_cap` | Done |
 | Failed paraphrase runs retried once and left out of the agreement; number coverage ignores item labels, accepts percentages written as fractions and reads commas in code as separators between values | Gap 1 | `optverify/systems.py`, `optverify/verifier.py` | Done; checked on the 10 Phase 1 problems (see below) |
 | Main provider switched to Amazon Bedrock (same model) | All | `optverify/llm.py` `BedrockLLM` | Done; all Phase 1 results rerun on Bedrock |
 | Generated code runs in UTF-8 mode, so printed symbols such as `≤` no longer crash it on Windows | All | `optverify/solver_tool.py` | Done; Phase 1 Run A and pipeline rerun |
 | Paraphrase agreement treats a value and its negative as the same optimum; the paraphraser samples at temperature 0.7 (`--paraphrase-temperature`) | Gap 1 | `optverify/verifier.py` `paraphrase_agreement`, `optverify/systems.py` `run_pipeline` | Done; removes the Production false alarm of the Phase 1 pipeline run (development log entry 8) |
-| Second model for the paraphraser (`--paraphrase-model`, supervisor feedback), so its mistakes are less correlated with the formalizer's | Gap 1 | `optverify/run.py` `paraphrase_client` | Done; run with `bedrock:deepseek.v3.2` pending (development log entry 9) |
+| Second model for the paraphraser (`--paraphrase-model`, supervisor feedback), so its mistakes are less correlated with the formalizer's | Gap 1 | `optverify/run.py` `paraphrase_client` | Done; run with `bedrock:deepseek.v3.2` on `dev_93` and `canonical_200` (development log entry 9, #56) |
 | Fixed evaluation samples | All | samples/, scripts/make_samples.py | Done |
 | OpsOR-Bench: 36 problems in three families (gate assignment, ground-crew rostering, equipment dispatch) | Gap 2 | `optverify/opsor/`, `data/opsor/opsor_bench.jsonl`, `scripts/make_opsor.py` | Done |
 | Interactive interface | All | `optverify/web.py`, `optverify/static/index.html` | Done |
 | Requirement coverage: the parser's requirements get IDs (R1, R2, ...), the formalizer names each constraint after its requirement, and the verifier scores the share of requirements linked to a constraint | Gap 1 | `optverify/roles.py` `number_requirements`, `optverify/prompts.py`, `optverify/solver_tool.py`, `optverify/verifier.py` `requirement_coverage` | Done; checked on the dev split (see below) |
 | Switches for each signal and the parser, and rescoring of saved records for ablations (i) to (vii) | Gap 1 | `--signals`, `--no-parser` in `run.py`; `optverify/rescore.py`, `scripts/rescore.py` | Done |
-| E4 Gap 1 analysis: AUROC of each signal and of the combined score, bootstrap intervals, the H1 verdict | Gap 1 | `scripts/analyze_gap1.py` | Done; results after the E3 runs (#34) |
-| Calibrated threshold for a target wrong-accept rate alpha, with the leave-one-class-out test | Gap 2 | `optverify/calibration.py`, `scripts/calibrate.py`, `--calibration` in `run.py` and `web.py` | Done; runs in #36 |
-| E4 Gap 2 analysis over the repeats: alphas, fixed threshold, B0, 10 against 20 per class, risk-coverage curve, the H2 verdict | Gap 2 | `scripts/analyze_gap2.py` | Done; results after the E3 runs (#34) |
+| E4 Gap 1 analysis: AUROC of each signal and of the combined score, bootstrap intervals, the H1 verdict | Gap 1 | `scripts/analyze_gap1.py` | Done; `results/gap1/` (#93) |
+| Calibrated threshold for a target wrong-accept rate alpha, with the leave-one-class-out test | Gap 2 | `optverify/calibration.py`, `scripts/calibrate.py`, `--calibration` in `run.py` and `web.py` | Done; `results/gap2/` (#36) |
+| E4 Gap 2 analysis over the repeats: alphas, fixed threshold, B0, 10 against 20 per class, risk-coverage curve, the H2 verdict | Gap 2 | `scripts/analyze_gap2.py` | Done; `results/gap2/` (#93) |
 | Comparison of two paraphrase models: AUROC, false alarms, and the misreadings each one catches on problems with the same answer | Gap 1 | `scripts/compare_paraphrasers.py`, `results/paraphraser/` | Done on `dev_93` and `canonical_200`: no gain overall, the default stays the main model (devlog 9, #56) |
 | E3 on `canonical_587` (60 per class) with Gap 1 and Gap 2, including Gap 2 without Pollution as the sensitivity analysis. The sample was enlarged after H2 failed on `canonical_200`, a deviation from the Phase 1 plan (devlog 13) | Gap 1, Gap 2 | `results/pipeline_..._canonical_587_r1_20261101-2254/`, `results/gap1/canonical_587/`, `results/gap2/canonical_587*/` | Done; see devlog 13 |
+| Ablations (i) to (vii) on `ablation_50`, with the two new runs (iv) and r = 2 | Gap 1 | `scripts/ablation_table.py`, `results/ablations/ablations.csv` | Done (#100, devlog 17) |
+| Gap 2 exploratory: the wrong-accept floor of the score per class, and other threshold rules | Gap 2 | `scripts/score_floor.py`, `scripts/threshold_rules.py`, `results/gap2/score_floor/`, `results/gap2/threshold_rules/` | Done (#99, devlog 16); exploratory, not the H2 result |
+| Prompt versions v2 and v3, designed on development problems only | All | `--prompt-version` in `run.py`, `results/prompts_v2/` | Done (#97, devlog 18): no gain, v1 stays the default |
+| Pre-registered tests: the pipeline combined with B2, all 1,070 unused canonical problems, six more models | Gaps 1 to 3 | `docs/preregistration_combination.md`, `results/preregistered/` | Done (#103, #104, devlog 20 and 21) |
+| E6: efficiency and reliability per model and system | All | `scripts/efficiency.py`, `results/e6/` | Done (#112) |
+| Paper tables generated from `results/` | All | `scripts/make_paper_tables.py`, `docs/paper/tables/` | Done (#94, #96, #102, #112, #113) |
 
 ## Setup
 
@@ -95,8 +136,14 @@ python -m pytest -q                       # offline tests, no API key needed
 The main model is `gpt-oss-120b`, an open-weight model, on **Amazon Bedrock**. We first used the Groq free plan, but
 Groq did not let some members create an API key, and its limits (200K tokens per day, 8,000 tokens per minute) are too
 small for the planned runs. Bedrock serves the same model with no daily limit at our scale. It is billed per token
-(US$0.15 per million input and US$0.60 per million output tokens in us-east-1, about US$4 for all planned runs), and
-each member pays from the free credits AWS gives a new account, so the project still costs us nothing.
+(US$0.15 per million input and US$0.60 per million output tokens in us-east-1), and each member pays from the free
+credits AWS gives a new account, so the project still costs us nothing. The measured cost of every system and model
+is in `results/e6/` (see E6 below).
+
+Phase 2 also ran the main systems with six more Bedrock models, so the results are not tied to one model (#103):
+`bedrock:deepseek.v3.2` (the base paper's model), `bedrock:qwen.qwen3-next-80b-a3b`,
+`bedrock:mistral.mistral-large-3-675b-instruct`, `bedrock:moonshotai.kimi-k2.5`, `bedrock:zai.glm-4.7` and
+`bedrock:openai.gpt-oss-20b-1:0`.
 
 Copy `.env.example` to `.env` and fill in one provider. Each member uses their own key. Never commit `.env`.
 
@@ -427,6 +474,24 @@ repeats) and updates `results/manifest.json`.
 | E5 | Ablations (i) to (vii) | `E5.json`, `E5-NOPARSER.json`, `E5-R2.json` | Most ablations rescore E3 records (`scripts/rescore.py`); (iv) and r = 2 are new runs |
 | E6 | Efficiency and reliability | `E6.json` | Metrics from E1 to E3 records |
 
+### Where each saved result comes from
+
+The reported runs were made with `python -m optverify.run` (the settings of each run are in its `summary.json`
+`config`), so each analysis reads those run folders. Every analysis below runs offline, with no API key.
+
+| Course | Runs (in `results/`) | Analysis | Output |
+|---|---|---|---|
+| E1, E2 | `baseline_..._canonical_200_r1_...` (B1, gpt-oss-120b; B0 is its first attempts), `baseline_bedrock-deepseek.v3.2_canonical_200_r0_...` (B0, DeepSeek-V3.2) | `scripts/compare_baselines.py` | `results/e1_e2/` |
+| E3 | `pipeline_..._canonical_200_r1_20261101-1429`, `..._20261102-0153`, and the `canonical_200` part of `pipeline_..._canonical_587_r1_20261101-2254` (three repeats) | read by the E4 and E5 scripts | |
+| E4 Gap 1 | the three E3 repeats, with `--sample samples/canonical_200.json`; also `canonical_587`, `constraint_pairs_60`, `linguistic_60` | `scripts/analyze_gap1.py` | `results/gap1/<sample>/` |
+| E4 Gap 2 | the same repeats; `--exclude-classes Pollution` for the sensitivity analysis; `--shift` with the OpsOR-Bench run | `scripts/analyze_gap2.py` | `results/gap2/<sample>/` |
+| E4 Gap 3 | E3 repeat 1, `b2_..._canonical_200_r1_...` and the B1 run | `scripts/analyze_e3.py` | `results/gap3/canonical_200/` |
+| E5 | the three E3 repeats with `--sample-file samples/ablation_50.json`, plus `pipeline_..._ablation_50_r1_20261102-1000` (iv, run with `--no-parser` before the `_noparser` tag of #101) and `pipeline_..._ablation_50_r2_20261102-1001` (r = 2) | `scripts/ablation_table.py` | `results/ablations/` |
+| E6 | the main runs of every model on `canonical_200`, with `--sample samples/canonical_200.json`; the three `canonical_unused` runs | `scripts/efficiency.py` | `results/e6/<sample>/` |
+| Pre-registered | the runs on `canonical_587_rest_387`, `canonical_unused` and the six other models (#103) | `scripts/analyze_gap1.py`, `analyze_gap2.py`, `analyze_e3.py`, `explore_combination.py` | `results/preregistered/` |
+
+The paper's tables are then written from these outputs with `python scripts/make_paper_tables.py`.
+
 ## Observability
 
 Pass `--trace` to write per-step JSON lines to `logs/<run_name>/<problem_id>.jsonl`. Each line records one step with the following keys:
@@ -492,6 +557,18 @@ scripts/compare_paraphrasers.py  two paraphrase models compared on saved runs (#
 scripts/compare_baselines.py B0 and B1 per class and the base-paper comparison
 scripts/plot_e3.py           E3 accuracy-cost and risk-coverage plots
 scripts/efficiency.py        E6 efficiency and reliability from saved runs
+scripts/ablation_table.py    E5 ablation table from saved records and the two ablation runs
+scripts/compare_runs.py      two pipeline runs on the same problems, per class, paired (prompt versions, #97)
+scripts/explore_combination.py  the pipeline combined with B2 (exploratory, then the pre-registered H3c test)
+scripts/failure_analysis.py  failure analysis labels and frequency tables (#41)
+scripts/format_trajectories.py  step trajectories from trace logs (#41)
+scripts/power_h2.py          Gap 2 power analysis: accepted answers needed to certify a wrong-accept rate
+scripts/score_floor.py       Gap 2 exploratory: wrong answers at the top score, per class
+scripts/threshold_rules.py   Gap 2 exploratory: other threshold rules under leave-one-class-out
+scripts/tsp_parser_rules.py  the parser's subtour rule for every TSP problem (devlog 14)
+scripts/check_references.py  checks the Pollution and Inventory reference answers (#40)
+scripts/check_refs.py        checks the paper's BibTeX references and citations (#43)
+scripts/make_paper_tables.py writes the paper's tables (docs/paper/tables/) from results/
 tests/
 docs/architecture.md
 docs/devlog.md    development log: each failure, the fix and its measured effect
@@ -501,6 +578,18 @@ docs/paper/       Phase 2 paper (IEEEtran LaTeX source and references)
 results/          saved runs
 results/manifest.json completed experiment runs and config hashes
 ```
+
+How the course's suggested folders map to ours:
+
+| Suggested folder | Ours |
+|---|---|
+| `src/` | `optverify/` (the package: agents, tools, verifier, decision layer, CLI and web interface) |
+| `data/` | `data/` (downloaded by `scripts/download_data.py`, not committed, except `data/opsor/`) and `samples/` (fixed problem IDs) |
+| `experiments/` | `experiments/` (configs and the repeat runner) and `scripts/` (analysis from saved runs, no API calls) |
+| `results/` | `results/` (one folder per run, and one per analysis) |
+| `docs/` | `docs/` (architecture, development log, Phase 1 report, Phase 2 paper) |
+| `tests/` | `tests/` (offline, run on every pull request) |
+| `logs/` | `logs/` (trace files written with `--trace`; only `logs/sample/` is committed) |
 
 ## Data splits
 
@@ -514,6 +603,10 @@ results/manifest.json completed experiment runs and config hashes
 | Linguistic | samples/linguistic_60.json | 60 problems, 20 each for Inventory, Knapsack and TSP | Reported E1 results only |
 | Constraint pairs | samples/constraint_pairs_60.json | 60 original and augmented pairs, 20 per class | Reported E1 results only |
 | OpsOR-Bench | data/opsor/opsor_bench.jsonl | 36 problems, three families | Reported E2 shift test only |
+| TSP diagnostic | samples/tsp_60.json | the 60 TSP problems of canonical_587 | The run without the parser (devlog 14); a diagnostic, not a new result |
+| Development, prompt versions | samples/dev_tsp_inventory_60.json | 30 TSP and 30 Inventory problems in no other sample, seed 2 | Prompt versions v2 and v3 only (#97). Never reported as results. |
+| Held out, rest of canonical_587 | samples/canonical_587_rest_387.json | the 387 problems of canonical_587 not in canonical_200 | Pre-registered H3c test (#103) |
+| Held out, every unused problem | samples/canonical_unused.json | the 1,070 canonical problems in no other sample | Pre-registered H1, H2, H3 and H3c tests (#103, Addendum 1) |
 
 Phase 2 uses 20 problems per class (supervisor feedback on Phase 1). Each larger file starts with the Phase 1 file of the same split (`canonical_100`, `ablation_30`, `linguistic_30`, `constraint_pairs_30`) and adds new problems drawn from the rest of the split with seed 0, so Phase 1 runs stay valid as the first part of each larger sample. The Phase 1 files are kept unchanged. New constraint pairs never reuse a problem of an earlier pair. The dev sample shares no problem with any test sample; it was regenerated for Phase 2 because 5 of its old problems are now in canonical_200. Regenerate every file with `python scripts/make_samples.py`; `tests/test_samples.py` checks that the result matches the checked-in files.
 
