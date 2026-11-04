@@ -1,0 +1,172 @@
+{
+  "records": [
+    "results/pipeline_bedrock-moonshotai.kimi-k2.5_canonical_200_r1_20261102-1258/records.jsonl"
+  ],
+  "settings": {
+    "threshold": 0.8,
+    "draws": 2000,
+    "seed": 0,
+    "target_gain": 0.1,
+    "sample": null
+  },
+  "runs": [
+    {
+      "problems": 200,
+      "failed_problems": 0,
+      "correct": 165,
+      "auroc": {
+        "feasibility": 0.5571428571428572,
+        "number": 0.5722943722943723,
+        "requirement": 0.5825108225108225,
+        "paraphrase": 0.7933333333333333,
+        "combined": 0.7753246753246753,
+        "combined_without_number": 0.7683982683982684,
+        "combined_without_requirement": 0.8174025974025974,
+        "combined_without_paraphrase": 0.5876190476190476
+      },
+      "intervals": {
+        "feasibility": [
+          0.5131578947368421,
+          0.6166666666666667
+        ],
+        "number": [
+          0.4957805907172996,
+          0.650887573964497
+        ],
+        "requirement": [
+          0.4841572819240313,
+          0.681991341991342
+        ],
+        "paraphrase": [
+          0.7042540792540792,
+          0.8762228486154866
+        ],
+        "combined": [
+          0.6696428571428571,
+          0.8696393762183235
+        ],
+        "combined_without_number": [
+          0.6656976744186046,
+          0.8637060898910875
+        ],
+        "combined_without_requirement": [
+          0.7271220159151194,
+          0.9025108225108225
+        ],
+        "combined_without_paraphrase": [
+          0.47909906470700514,
+          0.6919113495200452
+        ],
+        "gain": [
+          0.11586378737541525,
+          0.31673017601161324
+        ],
+        "drop_number": [
+          -0.016176470588235348,
+          0.03896534571381194
+        ],
+        "drop_requirement": [
+          -0.08987012987012988,
+          0.010114408887414994
+        ],
+        "drop_paraphrase": [
+          0.09779107225034522,
+          0.28240122160717696
+        ]
+      },
+      "verdict": {
+        "testable": true,
+        "gain": 0.21818181818181814,
+        "gain_ok": true,
+        "drops_ok": {
+          "number": false,
+          "requirement": false,
+          "paraphrase": true
+        },
+        "supported": false
+      },
+      "at_threshold": {
+        "threshold": 0.8,
+        "problems": 200,
+        "accepted": 173,
+        "coverage": 0.865,
+        "precision": 0.8901734104046243,
+        "recall": 0.9333333333333333,
+        "wrong_accepted": 19
+      }
+    }
+  ],
+  "summary": {
+    "auroc": {
+      "feasibility": {
+        "mean": 0.5571428571428572,
+        "sd": null,
+        "repeats_with_value": 1
+      },
+      "number": {
+        "mean": 0.5722943722943723,
+        "sd": null,
+        "repeats_with_value": 1
+      },
+      "requirement": {
+        "mean": 0.5825108225108225,
+        "sd": null,
+        "repeats_with_value": 1
+      },
+      "paraphrase": {
+        "mean": 0.7933333333333333,
+        "sd": null,
+        "repeats_with_value": 1
+      },
+      "combined": {
+        "mean": 0.7753246753246753,
+        "sd": null,
+        "repeats_with_value": 1
+      },
+      "combined_without_number": {
+        "mean": 0.7683982683982684,
+        "sd": null,
+        "repeats_with_value": 1
+      },
+      "combined_without_requirement": {
+        "mean": 0.8174025974025974,
+        "sd": null,
+        "repeats_with_value": 1
+      },
+      "combined_without_paraphrase": {
+        "mean": 0.5876190476190476,
+        "sd": null,
+        "repeats_with_value": 1
+      }
+    },
+    "gain": {
+      "mean": 0.21818181818181814,
+      "sd": null,
+      "repeats_with_value": 1
+    },
+    "precision": {
+      "mean": 0.8901734104046243,
+      "sd": null,
+      "repeats_with_value": 1
+    },
+    "recall": {
+      "mean": 0.9333333333333333,
+      "sd": null,
+      "repeats_with_value": 1
+    },
+    "coverage": {
+      "mean": 0.865,
+      "sd": null,
+      "repeats_with_value": 1
+    },
+    "h1": "partly supported (the gain holds, but not every signal is needed)"
+  },
+  "b0": {
+    "problems": 200,
+    "accepted": 197,
+    "coverage": 0.985,
+    "precision": 0.817258883248731,
+    "accuracy": 0.805,
+    "wrong_accepted": 36
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "run": "b2_bedrock-openai.gpt-oss-120b-1-0_canonical_587_rest_387_r1_20261102-1248",
+  "config": {
+    "system": "b2",
+    "model": "bedrock:openai.gpt-oss-120b-1:0",
+    "split": "canonical",
+    "sample_file": "samples\\canonical_587_rest_387.json",
+    "per_class": null,
+    "seed": null,
+    "repairs": 1,
+    "paraphrases": 2,
+    "signals": [
+      "number",
+      "requirement",
+      "paraphrase"
+    ],
+    "no_parser": false,
+    "threshold": 0.8,
+    "calibration": null,
+    "budget_tokens": 26000.0,
+    "max_samples": 24,
+    "sample_temperature": 0.7,
+    "paraphrase_temperature": 0.7,
+    "paraphrase_model": null,
+    "workers": 4,
+    "env_file": ".env",
+    "trace": false,
+    "prompt_version": "v1",
+    "resume": "C:\\Users\\Mushahid\\AppData\\Local\\Temp\\claude\\f--AgenticAI-Assignments\\54891661-bd40-4dfc-9e67-8eb0de75e027\\scratchpad\\wt_combo\\results\\b2_bedrock-openai.gpt-oss-120b-1-0_canonical_587_rest_387_r1_20261102-1248",
+    "alpha": null,
+    "endpoint": "bedrock us-east-1",
+    "paraphrase_endpoint": null
+  },
+  "resumes": 1,
+  "failed_problems": [],
+  "problems": 387,
+  "accuracy": 0.7803617571059431,
+  "solved_rate": 0.9896640826873385,
+  "status_counts": {
+    "infeasible": 2,
+    "no_code": 2,
+    "optimal": 383
+  },
+  "mean_input_tokens": 8707.852713178294,
+  "mean_output_tokens": 17280.728682170542,
+  "mean_llm_calls": 10.89922480620155,
+  "mean_latency_s": 167.35659951576227,
+  "accuracy_by_class": {
+    "BinPacking": 1.0,
+    "Inventory": 0.325,
+    "JobShop": 0.925,
+    "Knapsack": 0.95,
+    "NetworkFlow": 1.0,
+    "Pollution": 0.0,
+    "Portfolio": 0.925,
+    "Production": 0.8,
+    "TSP": 0.95,
+    "Transportation": 1.0
+  },
+  "decision_counts": {
+    "answer": 305,
+    "escalate": 82
+  },
+  "coverage": 0.7881136950904393,
+  "selective_accuracy": 0.9311475409836065,
+  "wrong_accept_rate": 0.06885245901639345
+}

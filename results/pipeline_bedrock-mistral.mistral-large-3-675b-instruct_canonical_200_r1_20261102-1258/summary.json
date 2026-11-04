@@ -1,0 +1,70 @@
+{
+  "run": "pipeline_bedrock-mistral.mistral-large-3-675b-instruct_canonical_200_r1_20261102-1258",
+  "config": {
+    "system": "pipeline",
+    "model": "bedrock:mistral.mistral-large-3-675b-instruct",
+    "split": "canonical",
+    "sample_file": "samples\\canonical_200.json",
+    "per_class": null,
+    "seed": null,
+    "repairs": 1,
+    "paraphrases": 3,
+    "signals": [
+      "number",
+      "requirement",
+      "paraphrase"
+    ],
+    "no_parser": false,
+    "threshold": 0.8,
+    "calibration": null,
+    "budget_tokens": null,
+    "max_samples": 10,
+    "sample_temperature": 0.7,
+    "paraphrase_temperature": 0.7,
+    "paraphrase_model": null,
+    "workers": 4,
+    "env_file": ".env",
+    "trace": false,
+    "prompt_version": "v1",
+    "resume": "C:\\Users\\Mushahid\\AppData\\Local\\Temp\\claude\\f--AgenticAI-Assignments\\54891661-bd40-4dfc-9e67-8eb0de75e027\\scratchpad\\wt_combo\\results\\pipeline_bedrock-mistral.mistral-large-3-675b-instruct_canonical_200_r1_20261102-1258",
+    "alpha": null,
+    "endpoint": "bedrock us-east-1",
+    "paraphrase_endpoint": "bedrock us-east-1"
+  },
+  "resumes": 2,
+  "failed_problems": [],
+  "problems": 200,
+  "accuracy": 0.71,
+  "solved_rate": 0.955,
+  "status_counts": {
+    "error": 1,
+    "infeasible": 6,
+    "no_code": 1,
+    "optimal": 191,
+    "timeout": 1
+  },
+  "mean_input_tokens": 8380.095,
+  "mean_output_tokens": 9131.365,
+  "mean_llm_calls": 8.55,
+  "mean_latency_s": 102.16607889449972,
+  "accuracy_by_class": {
+    "BinPacking": 0.9,
+    "Inventory": 0.3,
+    "JobShop": 0.5,
+    "Knapsack": 1.0,
+    "NetworkFlow": 1.0,
+    "Pollution": 0.0,
+    "Portfolio": 0.85,
+    "Production": 0.85,
+    "TSP": 0.75,
+    "Transportation": 0.95
+  },
+  "decision_counts": {
+    "abstain": 9,
+    "answer": 143,
+    "escalate": 48
+  },
+  "coverage": 0.715,
+  "selective_accuracy": 0.916083916083916,
+  "wrong_accept_rate": 0.08391608391608392
+}

@@ -1,0 +1,167 @@
+{
+  "problems": 200,
+  "only_in_pipeline": [],
+  "only_in_b2": [],
+  "settings": {
+    "coverage": 0.5,
+    "draws": 1000,
+    "bootstrap": 1000,
+    "seed": 0
+  },
+  "levels": [
+    {
+      "k": 1,
+      "budget_tokens": 9117.28,
+      "pipeline": {
+        "accuracy": 0.73,
+        "accuracy_ci": [
+          0.6628474093126706,
+          0.7901966625338543
+        ],
+        "wrong_accept_rate": 0.12575,
+        "coverage": 0.5,
+        "mean_tokens": 9117.28,
+        "mean_calls": 4.225
+      },
+      "b2": {
+        "accuracy": 0.71,
+        "accuracy_ci": [
+          0.6418125478377101,
+          0.7718430106364877
+        ],
+        "wrong_accept_rate": 0.11433,
+        "coverage": 0.5,
+        "mean_tokens": 9048.31,
+        "mean_calls": 4.835,
+        "budget_ratio": 0.9924352438446553,
+        "within_budget_tolerance": true,
+        "mean_samples": 4.115
+      },
+      "paired": {
+        "mcnemar_p": 0.5966148958541453,
+        "accuracy_difference_ci": [
+          -0.03500000000000003,
+          0.07499999999999996
+        ],
+        "wrong_accept_difference_ci": [
+          -0.04492010853180585,
+          0.06442577030812324
+        ]
+      }
+    },
+    {
+      "k": 2,
+      "budget_tokens": 12425.15,
+      "pipeline": {
+        "accuracy": 0.73,
+        "accuracy_ci": [
+          0.6628474093126706,
+          0.7901966625338543
+        ],
+        "wrong_accept_rate": 0.08904,
+        "coverage": 0.5,
+        "mean_tokens": 12425.15,
+        "mean_calls": 6.285
+      },
+      "b2": {
+        "accuracy": 0.745,
+        "accuracy_ci": [
+          0.6787246033612804,
+          0.803859184799542
+        ],
+        "wrong_accept_rate": 0.09701,
+        "coverage": 0.5,
+        "mean_tokens": 12353.375,
+        "mean_calls": 6.58,
+        "budget_ratio": 0.9942234097777491,
+        "within_budget_tolerance": true,
+        "mean_samples": 5.61
+      },
+      "paired": {
+        "mcnemar_p": 0.7011080384254456,
+        "accuracy_difference_ci": [
+          -0.06500000000000006,
+          0.03500000000000003
+        ],
+        "wrong_accept_difference_ci": [
+          -0.05640486725663717,
+          0.047254150702426556
+        ]
+      }
+    },
+    {
+      "k": 3,
+      "budget_tokens": 15629.705,
+      "pipeline": {
+        "accuracy": 0.73,
+        "accuracy_ci": [
+          0.6628474093126706,
+          0.7901966625338543
+        ],
+        "wrong_accept_rate": 0.05527,
+        "coverage": 0.5,
+        "mean_tokens": 15629.705,
+        "mean_calls": 8.335
+      },
+      "b2": {
+        "accuracy": 0.755,
+        "accuracy_ci": [
+          0.6893601341384026,
+          0.8129158739239983
+        ],
+        "wrong_accept_rate": 0.08,
+        "coverage": 0.5,
+        "mean_tokens": 15657.16,
+        "mean_calls": 8.325,
+        "budget_ratio": 1.0017565910553015,
+        "within_budget_tolerance": true,
+        "mean_samples": 7.065
+      },
+      "paired": {
+        "mcnemar_p": 0.42435622215270996,
+        "accuracy_difference_ci": [
+          -0.07500000000000007,
+          0.020000000000000018
+        ],
+        "wrong_accept_difference_ci": [
+          -0.07599999999999998,
+          0.02615384615384614
+        ]
+      }
+    }
+  ],
+  "h3": {
+    "k": 3,
+    "wrong_accept_difference_ci": [
+      -0.07599999999999998,
+      0.02615384615384614
+    ],
+    "supported": false
+  },
+  "reference_points": {
+    "B0": {
+      "problems": 200,
+      "accuracy": 0.595,
+      "accuracy_ci": [
+        0.5234750247167232,
+        0.6636651699453824
+      ],
+      "coverage": 0.795,
+      "wrong_accept_rate": 0.25157232704402516,
+      "mean_tokens": 1891.9,
+      "mean_calls": 1.0
+    },
+    "B1": {
+      "problems": 200,
+      "accuracy": 0.63,
+      "accuracy_ci": [
+        0.5590535152152605,
+        0.6970301757287622
+      ],
+      "coverage": 0.85,
+      "wrong_accept_rate": 0.25882352941176473,
+      "mean_tokens": 2510.94,
+      "mean_calls": 1.205
+    }
+  }
+}

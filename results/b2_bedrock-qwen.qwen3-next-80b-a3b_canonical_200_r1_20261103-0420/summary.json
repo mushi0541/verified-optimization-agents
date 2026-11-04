@@ -1,0 +1,70 @@
+{
+  "run": "b2_bedrock-qwen.qwen3-next-80b-a3b_canonical_200_r1_20261103-0420",
+  "config": {
+    "system": "b2",
+    "model": "bedrock:qwen.qwen3-next-80b-a3b",
+    "split": "canonical",
+    "sample_file": "samples\\canonical_200.json",
+    "per_class": null,
+    "seed": null,
+    "repairs": 1,
+    "paraphrases": 2,
+    "signals": [
+      "number",
+      "requirement",
+      "paraphrase"
+    ],
+    "no_parser": false,
+    "threshold": 0.8,
+    "calibration": null,
+    "budget_tokens": 30065.0,
+    "max_samples": 24,
+    "sample_temperature": 0.7,
+    "paraphrase_temperature": 0.7,
+    "paraphrase_model": null,
+    "workers": 4,
+    "env_file": ".env",
+    "trace": false,
+    "prompt_version": "v1",
+    "resume": "C:\\Users\\Mushahid\\AppData\\Local\\Temp\\claude\\f--AgenticAI-Assignments\\54891661-bd40-4dfc-9e67-8eb0de75e027\\scratchpad\\wt_combo\\results\\b2_bedrock-qwen.qwen3-next-80b-a3b_canonical_200_r1_20261103-0420",
+    "alpha": null,
+    "endpoint": "bedrock us-east-1",
+    "paraphrase_endpoint": null
+  },
+  "resumes": 1,
+  "failed_problems": [],
+  "problems": 200,
+  "accuracy": 0.805,
+  "solved_rate": 0.915,
+  "status_counts": {
+    "error": 5,
+    "infeasible": 8,
+    "no_code": 3,
+    "optimal": 183,
+    "timeout": 1
+  },
+  "mean_input_tokens": 10023.785,
+  "mean_output_tokens": 19721.575,
+  "mean_llm_calls": 11.345,
+  "mean_latency_s": 351.8986253580004,
+  "accuracy_by_class": {
+    "BinPacking": 1.0,
+    "Inventory": 0.5,
+    "JobShop": 1.0,
+    "Knapsack": 1.0,
+    "NetworkFlow": 1.0,
+    "Pollution": 0.0,
+    "Portfolio": 0.85,
+    "Production": 0.85,
+    "TSP": 0.9,
+    "Transportation": 0.95
+  },
+  "decision_counts": {
+    "abstain": 2,
+    "answer": 144,
+    "escalate": 54
+  },
+  "coverage": 0.72,
+  "selective_accuracy": 0.9375,
+  "wrong_accept_rate": 0.0625
+}

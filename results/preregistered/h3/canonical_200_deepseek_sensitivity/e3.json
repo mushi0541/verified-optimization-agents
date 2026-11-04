@@ -1,0 +1,149 @@
+{
+  "problems": 180,
+  "only_in_pipeline": [],
+  "only_in_b2": [],
+  "settings": {
+    "coverage": 0.5,
+    "draws": 1000,
+    "bootstrap": 1000,
+    "seed": 0
+  },
+  "levels": [
+    {
+      "k": 1,
+      "budget_tokens": 8629.133333333333,
+      "pipeline": {
+        "accuracy": 0.8777777777777778,
+        "accuracy_ci": [
+          0.8208179230608852,
+          0.9217951785733571
+        ],
+        "wrong_accept_rate": 0.057888888888888886,
+        "coverage": 0.5,
+        "mean_tokens": 8629.133333333333,
+        "mean_calls": 4.155555555555556
+      },
+      "b2": {
+        "accuracy": 0.9111111111111111,
+        "accuracy_ci": [
+          0.8596637840517918,
+          0.9483365254568146
+        ],
+        "wrong_accept_rate": 0.05697777777777778,
+        "coverage": 0.5,
+        "mean_tokens": 8596.127777777778,
+        "mean_calls": 4.122222222222222,
+        "budget_ratio": 0.9961751019157326,
+        "within_budget_tolerance": true,
+        "mean_samples": 3.966666666666667
+      },
+      "paired": {
+        "mcnemar_p": 0.109375,
+        "accuracy_difference_ci": [
+          -0.06666666666666676,
+          0.0
+        ],
+        "wrong_accept_difference_ci": [
+          -0.03319783197831979,
+          0.03232323232323232
+        ]
+      }
+    },
+    {
+      "k": 2,
+      "budget_tokens": 12090.344444444445,
+      "pipeline": {
+        "accuracy": 0.8777777777777778,
+        "accuracy_ci": [
+          0.8208179230608852,
+          0.9217951785733571
+        ],
+        "wrong_accept_rate": 0.04806666666666666,
+        "coverage": 0.5,
+        "mean_tokens": 12090.344444444445,
+        "mean_calls": 6.177777777777778
+      },
+      "b2": {
+        "accuracy": 0.9166666666666666,
+        "accuracy_ci": [
+          0.866279666007947,
+          0.9526084322436965
+        ],
+        "wrong_accept_rate": 0.046566666666666666,
+        "coverage": 0.5,
+        "mean_tokens": 12067.56111111111,
+        "mean_calls": 5.7444444444444445,
+        "budget_ratio": 0.99811557615765,
+        "within_budget_tolerance": true,
+        "mean_samples": 5.5
+      },
+      "paired": {
+        "mcnemar_p": 0.0390625,
+        "accuracy_difference_ci": [
+          -0.0722222222222223,
+          -0.011111111111111072
+        ],
+        "wrong_accept_difference_ci": [
+          -0.031031590718479173,
+          0.03575116159008775
+        ]
+      }
+    },
+    {
+      "k": 3,
+      "budget_tokens": 15606.027777777777,
+      "pipeline": {
+        "accuracy": 0.8777777777777778,
+        "accuracy_ci": [
+          0.8208179230608852,
+          0.9217951785733571
+        ],
+        "wrong_accept_rate": 0.048433333333333335,
+        "coverage": 0.5,
+        "mean_tokens": 15606.027777777777,
+        "mean_calls": 8.244444444444444
+      },
+      "b2": {
+        "accuracy": 0.9222222222222223,
+        "accuracy_ci": [
+          0.8729449390367161,
+          0.9568268163982805
+        ],
+        "wrong_accept_rate": 0.048855555555555555,
+        "coverage": 0.5,
+        "mean_tokens": 15604.427777777777,
+        "mean_calls": 7.444444444444445,
+        "budget_ratio": 0.9998974755124889,
+        "within_budget_tolerance": true,
+        "mean_samples": 7.111111111111111
+      },
+      "paired": {
+        "mcnemar_p": 0.021484375,
+        "accuracy_difference_ci": [
+          -0.08333333333333337,
+          -0.011111111111111072
+        ],
+        "wrong_accept_difference_ci": [
+          -0.0314625850340136,
+          0.03181272509003602
+        ]
+      }
+    }
+  ],
+  "h3": {
+    "k": 3,
+    "wrong_accept_difference_ci": [
+      -0.0314625850340136,
+      0.03181272509003602
+    ],
+    "supported": false
+  },
+  "skipped": {
+    "classes": [
+      "Pollution"
+    ],
+    "problems": [
+      "canonical-0648"
+    ]
+  }
+}

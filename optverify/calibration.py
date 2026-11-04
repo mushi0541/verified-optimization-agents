@@ -7,7 +7,7 @@ accepted: the decision layer abstains on everything else, whatever the threshold
 """
 
 import json
-from math import comb
+from math import exp, lgamma, log, log1p
 from pathlib import Path
 
 from .verifier import SIGNALS
@@ -18,9 +18,15 @@ MIN_ACCEPTED = 29  # with fewer accepted problems, even 0 wrong cannot give a 95
 def binomial_cdf(k: int, n: int, p: float) -> float:
     """P(X <= k) for X ~ Binomial(n, p).
 
-    In floats comb(n, i) overflows near n = 1,030; our calibrations accept at most a few hundred problems.
+    Each term is computed in logs: in plain floats comb(n, i) overflows near n = 1,030 (canonical_unused has 1,070).
     """
-    return sum(comb(n, i) * p**i * (1 - p) ** (n - i) for i in range(k + 1))
+    if p <= 0:
+        return 1.0
+    if p >= 1:
+        return 1.0 if k >= n else 0.0
+    log_p, log_q = log(p), log1p(-p)
+    return sum(exp(lgamma(n + 1) - lgamma(i + 1) - lgamma(n - i + 1) + i * log_p + (n - i) * log_q)
+               for i in range(k + 1))
 
 
 def upper_bound(wrong: int, accepted: int, confidence: float = 0.95) -> float:

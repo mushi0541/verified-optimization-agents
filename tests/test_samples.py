@@ -17,7 +17,8 @@ SAMPLES_DIR = Path(__file__).resolve().parent.parent / "samples"
 SAMPLE_FILES = [
     "canonical_100.json", "canonical_200.json", "ablation_30.json", "ablation_50.json", "linguistic_30.json",
     "linguistic_60.json", "constraint_pairs_30.json", "constraint_pairs_60.json", "dev_30.json",
-    "canonical_587.json", "dev_93.json", "tsp_60.json", "dev_tsp_inventory_60.json",
+    "canonical_587.json", "dev_93.json", "tsp_60.json", "canonical_587_rest_387.json", "dev_tsp_inventory_60.json",
+    "canonical_unused.json",
 ]
 
 

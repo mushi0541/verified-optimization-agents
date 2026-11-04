@@ -160,6 +160,8 @@ def main() -> None:
                     f"_r{args.repairs}_{datetime.now():%Y%m%d-%H%M}")
         out_dir = RESULTS_DIR / run_name
         out_dir.mkdir(parents=True, exist_ok=True)
+        # The settings, saved now: a run stopped before summary.json is written can still be resumed.
+        (out_dir / "config.json").write_text(json.dumps(config, indent=2), encoding="utf-8")
     log_dir = LOGS_DIR / out_dir.name if args.trace else None  # a resumed run keeps its log folder
 
     def solve(problem):
@@ -225,13 +227,16 @@ def run_config(args: argparse.Namespace) -> dict:
 def resume_state(out_dir: Path, config: dict) -> tuple[list[dict], int]:
     """The finished records of an earlier run, and how often it was resumed; refuses a run with other settings.
 
-    The earlier run's summary.json is needed to check the settings, so a run stopped before writing it cannot be
-    resumed this way.
+    The settings are read from the earlier run's summary.json, or, for a run stopped before it wrote one, from the
+    config.json it wrote at the start. A folder with neither is refused.
     """
-    summary_file, records_file = out_dir / "summary.json", out_dir / "records.jsonl"
-    if not summary_file.exists() or not records_file.exists():
-        raise SystemExit(f"--resume needs {out_dir} with records.jsonl and summary.json from an earlier run")
-    summary = json.loads(summary_file.read_text(encoding="utf-8"))
+    summary_file, config_file, records_file = out_dir / "summary.json", out_dir / "config.json", out_dir / "records.jsonl"
+    if not records_file.exists() or not (summary_file.exists() or config_file.exists()):
+        raise SystemExit(f"--resume needs {out_dir} with records.jsonl and summary.json (or config.json) from an earlier run")
+    if summary_file.exists():
+        summary = json.loads(summary_file.read_text(encoding="utf-8"))
+    else:  # stopped before the end: no summary yet
+        summary = {"config": json.loads(config_file.read_text(encoding="utf-8")), "resumes": 0}
     earlier = {"prompt_version": "v1", **summary["config"]}  # runs from before #95 all used the v1 prompts
     config = json.loads(json.dumps(config))  # compare as saved: tuples become lists
     free = RESUME_FREE_KEYS

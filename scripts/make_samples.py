@@ -90,11 +90,22 @@ def generate_samples(output_dir: Path = DEFAULT_OUTPUT_DIR, data_dir: Path = DAT
     paths["dev_93"] = save("dev_93.json", dev_93)
     # The TSP problems of canonical_587, for the diagnostic run without the parser (devlog entry 14).
     paths["tsp_60"] = save("tsp_60.json", [p for p in canonical_587 if p.problem_class == "TSP"])
+    # The part of canonical_587 outside canonical_200: problems no design choice has looked at, for the
+    # pre-registered test of the pipeline combined with B2 (#103).
+    canonical_200_ids = {p.problem_id for p in canonical_200}
+    paths["canonical_587_rest_387"] = save("canonical_587_rest_387.json",
+                                           [p for p in canonical_587 if p.problem_id not in canonical_200_ids])
     # Development problems for the v2 prompts (#95): 30 TSP and 30 Inventory problems in no sample above, test or
     # development, so the prompt change is designed without touching the test set.
     used_ids = test_ids | {p.problem_id for p in dev_93}
     v2_pool = [p for p in canonical_problems if p.problem_id not in used_ids and p.problem_class in ("Inventory", "TSP")]
-    paths["dev_tsp_inventory_60"] = save("dev_tsp_inventory_60.json", sample_per_class(v2_pool, per_class=30, seed=2))
+    dev_tsp_inventory_60 = sample_per_class(v2_pool, per_class=30, seed=2)
+    paths["dev_tsp_inventory_60"] = save("dev_tsp_inventory_60.json", dev_tsp_inventory_60)
+    # Every canonical problem in no sample above, test or development: the largest held-out set, for the
+    # pre-registered tests of #103 (all of it is used, so no seed).
+    used_ids |= {p.problem_id for p in dev_30 + dev_tsp_inventory_60}
+    paths["canonical_unused"] = save("canonical_unused.json",
+                                     [p for p in canonical_problems if p.problem_id not in used_ids])
     return paths
 
 

@@ -1,0 +1,167 @@
+{
+  "problems": 200,
+  "only_in_pipeline": [],
+  "only_in_b2": [],
+  "settings": {
+    "coverage": 0.5,
+    "draws": 1000,
+    "bootstrap": 1000,
+    "seed": 0
+  },
+  "levels": [
+    {
+      "k": 1,
+      "budget_tokens": 8674.905,
+      "pipeline": {
+        "accuracy": 0.79,
+        "accuracy_ci": [
+          0.7269312953862013,
+          0.8442602432758712
+        ],
+        "wrong_accept_rate": 0.14089000000000002,
+        "coverage": 0.5,
+        "mean_tokens": 8674.905,
+        "mean_calls": 4.15
+      },
+      "b2": {
+        "accuracy": 0.82,
+        "accuracy_ci": [
+          0.759618903115993,
+          0.8706310716516024
+        ],
+        "wrong_accept_rate": 0.11377000000000001,
+        "coverage": 0.5,
+        "mean_tokens": 8602.715,
+        "mean_calls": 3.985,
+        "budget_ratio": 0.991678295036084,
+        "within_budget_tolerance": true,
+        "mean_samples": 3.825
+      },
+      "paired": {
+        "mcnemar_p": 0.109375,
+        "accuracy_difference_ci": [
+          -0.06000000000000005,
+          0.0
+        ],
+        "wrong_accept_difference_ci": [
+          -0.02337662337662337,
+          0.0731981981981982
+        ]
+      }
+    },
+    {
+      "k": 2,
+      "budget_tokens": 12235.715,
+      "pipeline": {
+        "accuracy": 0.79,
+        "accuracy_ci": [
+          0.7269312953862013,
+          0.8442602432758712
+        ],
+        "wrong_accept_rate": 0.1092,
+        "coverage": 0.5,
+        "mean_tokens": 12235.715,
+        "mean_calls": 6.17
+      },
+      "b2": {
+        "accuracy": 0.825,
+        "accuracy_ci": [
+          0.765116029369791,
+          0.8749755892262878
+        ],
+        "wrong_accept_rate": 0.08366,
+        "coverage": 0.5,
+        "mean_tokens": 12185.175,
+        "mean_calls": 5.6,
+        "budget_ratio": 0.9958694690093712,
+        "within_budget_tolerance": true,
+        "mean_samples": 5.36
+      },
+      "paired": {
+        "mcnemar_p": 0.0390625,
+        "accuracy_difference_ci": [
+          -0.06500000000000006,
+          -0.009999999999999898
+        ],
+        "wrong_accept_difference_ci": [
+          -0.018398727465535523,
+          0.07195582679453646
+        ]
+      }
+    },
+    {
+      "k": 3,
+      "budget_tokens": 15847.79,
+      "pipeline": {
+        "accuracy": 0.79,
+        "accuracy_ci": [
+          0.7269312953862013,
+          0.8442602432758712
+        ],
+        "wrong_accept_rate": 0.10117000000000001,
+        "coverage": 0.5,
+        "mean_tokens": 15847.79,
+        "mean_calls": 8.23
+      },
+      "b2": {
+        "accuracy": 0.83,
+        "accuracy_ci": [
+          0.7706283996061141,
+          0.8793043767637823
+        ],
+        "wrong_accept_rate": 0.08026,
+        "coverage": 0.5,
+        "mean_tokens": 15916.715,
+        "mean_calls": 7.33,
+        "budget_ratio": 1.0043491868582306,
+        "within_budget_tolerance": true,
+        "mean_samples": 6.99
+      },
+      "paired": {
+        "mcnemar_p": 0.021484375,
+        "accuracy_difference_ci": [
+          -0.07499999999999996,
+          -0.010000000000000009
+        ],
+        "wrong_accept_difference_ci": [
+          -0.02615384615384614,
+          0.065044814340589
+        ]
+      }
+    }
+  ],
+  "h3": {
+    "k": 3,
+    "wrong_accept_difference_ci": [
+      -0.02615384615384614,
+      0.065044814340589
+    ],
+    "supported": false
+  },
+  "reference_points": {
+    "B0": {
+      "problems": 200,
+      "accuracy": 0.795,
+      "accuracy_ci": [
+        0.7323460792147154,
+        0.8486894280044801
+      ],
+      "coverage": 0.96,
+      "wrong_accept_rate": 0.171875,
+      "mean_tokens": 2405.13,
+      "mean_calls": 1.0
+    },
+    "B1": {
+      "problems": 200,
+      "accuracy": 0.81,
+      "accuracy_ci": [
+        0.7486684813762567,
+        0.8618968746271598
+      ],
+      "coverage": 0.985,
+      "wrong_accept_rate": 0.17766497461928935,
+      "mean_tokens": 2551.24,
+      "mean_calls": 1.04
+    }
+  }
+}

@@ -107,8 +107,25 @@ def test_resume_refuses_other_settings_or_an_unfinished_folder(monkeypatch, tmp_
         _run(monkeypatch, tmp_path, "--resume", str(out_dir), "--repairs", "1")
 
     (out_dir / "summary.json").unlink()
+    (out_dir / "config.json").unlink()
     with pytest.raises(SystemExit, match="summary.json"):
         _run(monkeypatch, tmp_path, "--resume", str(out_dir))
+
+
+def test_a_run_stopped_before_its_summary_resumes_from_its_config(monkeypatch, tmp_path, offline):
+    _run(monkeypatch, tmp_path)
+    (out_dir,) = (tmp_path / "results").iterdir()
+    config = json.loads((out_dir / "config.json").read_text(encoding="utf-8"))
+    assert config == json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))["config"]
+    (out_dir / "summary.json").unlink()  # as if the run had been stopped before the end
+    with pytest.raises(SystemExit, match="repairs"):  # the settings are still checked
+        _run(monkeypatch, tmp_path, "--resume", str(out_dir), "--repairs", "1")
+
+    offline["calls"].clear()
+    _run(monkeypatch, tmp_path, "--resume", str(out_dir))
+    assert offline["calls"] == [offline["failed"]]  # only the problem with no record runs again
+    summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+    assert summary["failed_problems"] == [] and summary["resumes"] == 1
 
 
 def test_prompt_version_v2_has_its_own_folder_and_v1_runs_still_resume(monkeypatch, tmp_path, offline):

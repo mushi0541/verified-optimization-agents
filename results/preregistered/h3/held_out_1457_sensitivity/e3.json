@@ -1,0 +1,330 @@
+{
+  "problems": 1406,
+  "only_in_pipeline": [
+    "canonical-0041",
+    "canonical-0042",
+    "canonical-0265",
+    "canonical-0267",
+    "canonical-0310",
+    "canonical-0313",
+    "canonical-0366",
+    "canonical-0370",
+    "canonical-0394",
+    "canonical-0399",
+    "canonical-0414",
+    "canonical-0420",
+    "canonical-0430",
+    "canonical-0437",
+    "canonical-0488",
+    "canonical-0496",
+    "canonical-0497",
+    "canonical-0506",
+    "canonical-0523",
+    "canonical-0533",
+    "canonical-0644",
+    "canonical-0645",
+    "canonical-0655",
+    "canonical-0657",
+    "canonical-0659",
+    "canonical-0675",
+    "canonical-0678",
+    "canonical-0684",
+    "canonical-0688",
+    "canonical-0692",
+    "canonical-0697",
+    "canonical-0704",
+    "canonical-0749",
+    "canonical-0755",
+    "canonical-0756",
+    "canonical-0763",
+    "canonical-0769",
+    "canonical-0774",
+    "canonical-0778",
+    "canonical-0779",
+    "canonical-0798",
+    "canonical-0799",
+    "canonical-0805",
+    "canonical-0807",
+    "canonical-0817",
+    "canonical-0835",
+    "canonical-0859",
+    "canonical-0860",
+    "canonical-0864",
+    "canonical-0866",
+    "canonical-0870",
+    "canonical-0871",
+    "canonical-0877",
+    "canonical-0891",
+    "canonical-0899",
+    "canonical-0900",
+    "canonical-0909",
+    "canonical-0923",
+    "canonical-0931",
+    "canonical-0933",
+    "canonical-0940",
+    "canonical-0947",
+    "canonical-0957",
+    "canonical-0971",
+    "canonical-0987",
+    "canonical-1010",
+    "canonical-1044",
+    "canonical-1058",
+    "canonical-1067",
+    "canonical-1073",
+    "canonical-1079",
+    "canonical-1086",
+    "canonical-1144",
+    "canonical-1153",
+    "canonical-1166",
+    "canonical-1169",
+    "canonical-1182",
+    "canonical-1183",
+    "canonical-1184",
+    "canonical-1192",
+    "canonical-1200",
+    "canonical-1204",
+    "canonical-1205",
+    "canonical-1206",
+    "canonical-1207",
+    "canonical-1212",
+    "canonical-1214",
+    "canonical-1215",
+    "canonical-1219",
+    "canonical-1220",
+    "canonical-1221",
+    "canonical-1226",
+    "canonical-1227",
+    "canonical-1231",
+    "canonical-1236",
+    "canonical-1238",
+    "canonical-1245",
+    "canonical-1246",
+    "canonical-1248",
+    "canonical-1249",
+    "canonical-1277",
+    "canonical-1281",
+    "canonical-1282",
+    "canonical-1302",
+    "canonical-1304",
+    "canonical-1323",
+    "canonical-1324",
+    "canonical-1328",
+    "canonical-1331",
+    "canonical-1335",
+    "canonical-1340",
+    "canonical-1380",
+    "canonical-1388",
+    "canonical-1390",
+    "canonical-1391",
+    "canonical-1396",
+    "canonical-1398",
+    "canonical-1399",
+    "canonical-1400",
+    "canonical-1404",
+    "canonical-1418",
+    "canonical-1419",
+    "canonical-1420",
+    "canonical-1421",
+    "canonical-1427",
+    "canonical-1430",
+    "canonical-1432",
+    "canonical-1434",
+    "canonical-1436",
+    "canonical-1443",
+    "canonical-1448",
+    "canonical-1449",
+    "canonical-1454",
+    "canonical-1457",
+    "canonical-1464",
+    "canonical-1476",
+    "canonical-1484",
+    "canonical-1531",
+    "canonical-1540",
+    "canonical-1566",
+    "canonical-1661",
+    "canonical-1662",
+    "canonical-1663",
+    "canonical-1673",
+    "canonical-1674",
+    "canonical-1680",
+    "canonical-1684",
+    "canonical-1687",
+    "canonical-1690",
+    "canonical-1692",
+    "canonical-1693",
+    "canonical-1696",
+    "canonical-1699",
+    "canonical-1706",
+    "canonical-1707",
+    "canonical-1710",
+    "canonical-1714",
+    "canonical-1723",
+    "canonical-1726",
+    "canonical-1727",
+    "canonical-1740",
+    "canonical-1748",
+    "canonical-1757",
+    "canonical-1759",
+    "canonical-1760",
+    "canonical-1761",
+    "canonical-1763",
+    "canonical-1765",
+    "canonical-1769",
+    "canonical-1771",
+    "canonical-1780",
+    "canonical-1783",
+    "canonical-1786",
+    "canonical-1789",
+    "canonical-1796",
+    "canonical-1797",
+    "canonical-1799",
+    "canonical-1805",
+    "canonical-1807",
+    "canonical-1809"
+  ],
+  "only_in_b2": [],
+  "settings": {
+    "coverage": 0.5,
+    "draws": 1000,
+    "bootstrap": 1000,
+    "seed": 0
+  },
+  "levels": [
+    {
+      "k": 1,
+      "budget_tokens": 9920.645092460882,
+      "pipeline": {
+        "accuracy": 0.8947368421052632,
+        "accuracy_ci": [
+          0.8775068537995436,
+          0.9102961976045534
+        ],
+        "wrong_accept_rate": 0.05547652916073969,
+        "coverage": 0.5,
+        "mean_tokens": 9920.645092460882,
+        "mean_calls": 4.147937411095306
+      },
+      "b2": {
+        "accuracy": 0.9118065433854907,
+        "accuracy_ci": [
+          0.8957539689938643,
+          0.9261122643089654
+        ],
+        "wrong_accept_rate": 0.031647226173541966,
+        "coverage": 0.5,
+        "mean_tokens": 9913.27240398293,
+        "mean_calls": 5.007823613086771,
+        "budget_ratio": 0.9992568337634057,
+        "within_budget_tolerance": true,
+        "mean_samples": 4.9025604551920345
+      },
+      "paired": {
+        "mcnemar_p": 0.004903382516355933,
+        "accuracy_difference_ci": [
+          -0.028449502133712667,
+          -0.005689900426742556
+        ],
+        "wrong_accept_difference_ci": [
+          0.011437096520059545,
+          0.03893200328909856
+        ]
+      }
+    },
+    {
+      "k": 2,
+      "budget_tokens": 13537.135135135135,
+      "pipeline": {
+        "accuracy": 0.8947368421052632,
+        "accuracy_ci": [
+          0.8775068537995436,
+          0.9102961976045534
+        ],
+        "wrong_accept_rate": 0.051209103840682786,
+        "coverage": 0.5,
+        "mean_tokens": 13537.135135135135,
+        "mean_calls": 6.1891891891891895
+      },
+      "b2": {
+        "accuracy": 0.9132290184921764,
+        "accuracy_ci": [
+          0.8972814930657684,
+          0.9274232694390996
+        ],
+        "wrong_accept_rate": 0.026177809388335704,
+        "coverage": 0.5,
+        "mean_tokens": 13557.605263157895,
+        "mean_calls": 6.820056899004268,
+        "budget_ratio": 1.001512146242053,
+        "within_budget_tolerance": true,
+        "mean_samples": 6.660739687055477
+      },
+      "paired": {
+        "mcnemar_p": 0.0012990027709550095,
+        "accuracy_difference_ci": [
+          -0.029871977240398362,
+          -0.00782361308677093
+        ],
+        "wrong_accept_difference_ci": [
+          0.01384900292546767,
+          0.03704166442196045
+        ]
+      }
+    },
+    {
+      "k": 3,
+      "budget_tokens": 17172.090327169273,
+      "pipeline": {
+        "accuracy": 0.8947368421052632,
+        "accuracy_ci": [
+          0.8775068537995436,
+          0.9102961976045534
+        ],
+        "wrong_accept_rate": 0.051209103840682786,
+        "coverage": 0.5,
+        "mean_tokens": 17172.090327169273,
+        "mean_calls": 8.230440967283073
+      },
+      "b2": {
+        "accuracy": 0.9196301564722618,
+        "accuracy_ci": [
+          0.904170265621538,
+          0.9333077137154444
+        ],
+        "wrong_accept_rate": 0.024694167852062587,
+        "coverage": 0.5,
+        "mean_tokens": 17144.185633001423,
+        "mean_calls": 8.625889046941678,
+        "budget_ratio": 0.9983749972405107,
+        "within_budget_tolerance": true,
+        "mean_samples": 8.42176386913229
+      },
+      "paired": {
+        "mcnemar_p": 1.5717029852739474e-05,
+        "accuracy_difference_ci": [
+          -0.03556187766714092,
+          -0.013513513513513487
+        ],
+        "wrong_accept_difference_ci": [
+          0.0149433209661099,
+          0.03765348865668726
+        ]
+      }
+    }
+  ],
+  "h3": {
+    "k": 3,
+    "wrong_accept_difference_ci": [
+      0.0149433209661099,
+      0.03765348865668726
+    ],
+    "supported": false
+  },
+  "skipped": {
+    "classes": [
+      "Pollution"
+    ],
+    "problems": [
+      "canonical-0648"
+    ]
+  }
+}

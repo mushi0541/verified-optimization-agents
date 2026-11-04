@@ -45,12 +45,20 @@ def main() -> None:
     parser.add_argument("--bootstrap", type=int, default=1000, help="bootstrap resamples")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--out", help="folder for e3.json and accuracy_cost.csv")
+    parser.add_argument("--skip-class", nargs="*", default=[], help="sensitivity analysis without these classes")
+    parser.add_argument("--skip-problem", nargs="*", default=[], help="sensitivity analysis without these problem IDs")
     args = parser.parse_args()
 
-    baseline = load_records(args.baseline) if args.baseline else None
+    def kept(records: dict[str, dict]) -> dict[str, dict]:
+        return {i: r for i, r in records.items()
+                if r["problem_class"] not in args.skip_class and i not in args.skip_problem}
+
+    baseline = kept(load_records(args.baseline)) if args.baseline else None
     result = analyze(
-        load_records(args.pipeline), load_records(args.b2), baseline, args.coverage, args.draws, args.bootstrap, args.seed
+        kept(load_records(args.pipeline)), kept(load_records(args.b2)), baseline, args.coverage, args.draws,
+        args.bootstrap, args.seed
     )
+    result["skipped"] = {"classes": args.skip_class, "problems": args.skip_problem}
     print(json.dumps(result, indent=2))
     if args.out:
         out_dir = Path(args.out)

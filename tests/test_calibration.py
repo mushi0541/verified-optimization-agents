@@ -39,6 +39,14 @@ def test_exact_bounds_match_known_values():
     assert upper_bound(4, 4) == 1.0
 
 
+def test_exact_bounds_work_for_more_than_a_thousand_problems():
+    # Plain float terms overflowed near n = 1,030; canonical_unused has 1,070 problems.
+    assert upper_bound(0, 1070) == pytest.approx(1 - 0.05 ** (1 / 1070), abs=1e-9)
+    low, high = exact_interval(99, 1070)
+    assert low < 99 / 1070 < high and high - low < 0.04
+    assert binomial_cdf(1070, 1070, 0.3) == pytest.approx(1.0, abs=1e-9)
+
+
 def test_threshold_is_the_most_lenient_one_within_alpha():
     scored = [(1.0, True)] * 40 + [(0.75, True)] * 10 + [(0.75, False)] * 10
     assert calibrate_threshold(scored, alpha=0.10) == 1.0

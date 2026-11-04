@@ -1,0 +1,1239 @@
+{
+  "records": [
+    "results/pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_unused_r1_20261102-1255/records.jsonl"
+  ],
+  "settings": {
+    "alphas": [
+      0.05,
+      0.1,
+      0.2
+    ],
+    "fixed_threshold": 0.8,
+    "subset": null,
+    "h2_alpha": 0.1,
+    "min_coverage": 0.5,
+    "excluded_classes": [
+      "Pollution"
+    ],
+    "sample": null,
+    "shift": "results/pipeline_bedrock-openai.gpt-oss-120b-1-0_opsor_r1_20261101-2119/records.jsonl"
+  },
+  "runs": [
+    {
+      "problems": 1060,
+      "failed_problems": 0,
+      "by_alpha": {
+        "0.05": {
+          "test": {
+            "alpha": 0.05,
+            "confidence": 0.95,
+            "problems": 1060,
+            "failed_problems": 0,
+            "pooled": {
+              "answered": 182,
+              "wrong_accepted": 15,
+              "coverage": 0.17169811320754716,
+              "wrong_accept_rate": 0.08241758241758242,
+              "exact_interval": [
+                0.04686234991117566,
+                0.13229145477013327
+              ]
+            },
+            "folds": [
+              {
+                "held_out_class": "BinPacking",
+                "threshold": null,
+                "problems": 550,
+                "answered": 0,
+                "wrong_accepted": 0
+              },
+              {
+                "held_out_class": "Inventory",
+                "threshold": null,
+                "problems": 60,
+                "answered": 0,
+                "wrong_accepted": 0
+              },
+              {
+                "held_out_class": "JobShop",
+                "threshold": null,
+                "problems": 90,
+                "answered": 0,
+                "wrong_accepted": 0
+              },
+              {
+                "held_out_class": "Knapsack",
+                "threshold": 0.9916666666666667,
+                "problems": 190,
+                "answered": 182,
+                "wrong_accepted": 15
+              },
+              {
+                "held_out_class": "Portfolio",
+                "threshold": null,
+                "problems": 90,
+                "answered": 0,
+                "wrong_accepted": 0
+              },
+              {
+                "held_out_class": "Production",
+                "threshold": null,
+                "problems": 10,
+                "answered": 0,
+                "wrong_accepted": 0
+              },
+              {
+                "held_out_class": "TSP",
+                "threshold": null,
+                "problems": 60,
+                "answered": 0,
+                "wrong_accepted": 0
+              },
+              {
+                "held_out_class": "Transportation",
+                "threshold": null,
+                "problems": 10,
+                "answered": 0,
+                "wrong_accepted": 0
+              }
+            ],
+            "threshold": null
+          },
+          "h2": {
+            "rate_ok": false,
+            "coverage_ok": false,
+            "one_sided_upper_bound": 0.12407154304891344,
+            "upper_bound_ok": false,
+            "supported": false
+          }
+        },
+        "0.1": {
+          "test": {
+            "alpha": 0.1,
+            "confidence": 0.95,
+            "problems": 1060,
+            "failed_problems": 0,
+            "pooled": {
+              "answered": 498,
+              "wrong_accepted": 71,
+              "coverage": 0.469811320754717,
+              "wrong_accept_rate": 0.142570281124498,
+              "exact_interval": [
+                0.11305668505209587,
+                0.17640259388339413
+              ]
+            },
+            "folds": [
+              {
+                "held_out_class": "BinPacking",
+                "threshold": null,
+                "problems": 550,
+                "answered": 0,
+                "wrong_accepted": 0
+              },
+              {
+                "held_out_class": "Inventory",
+                "threshold": 0.4895833333333333,
+                "problems": 60,
+                "answered": 58,
+                "wrong_accepted": 37
+              },
+              {
+                "held_out_class": "JobShop",
+                "threshold": 0.4895833333333333,
+                "problems": 90,
+                "answered": 90,
+                "wrong_accepted": 7
+              },
+              {
+                "held_out_class": "Knapsack",
+                "threshold": 0.5,
+                "problems": 190,
+                "answered": 189,
+                "wrong_accepted": 17
+              },
+              {
+                "held_out_class": "Portfolio",
+                "threshold": 0.4895833333333333,
+                "problems": 90,
+                "answered": 87,
+                "wrong_accepted": 8
+              },
+              {
+                "held_out_class": "Production",
+                "threshold": 0.4895833333333333,
+                "problems": 10,
+                "answered": 10,
+                "wrong_accepted": 1
+              },
+              {
+                "held_out_class": "TSP",
+                "threshold": 0.4895833333333333,
+                "problems": 60,
+                "answered": 54,
+                "wrong_accepted": 1
+              },
+              {
+                "held_out_class": "Transportation",
+                "threshold": 0.4895833333333333,
+                "problems": 10,
+                "answered": 10,
+                "wrong_accepted": 0
+              }
+            ],
+            "threshold": 0.4895833333333333
+          },
+          "h2": {
+            "rate_ok": false,
+            "coverage_ok": false,
+            "one_sided_upper_bound": 0.17092577832452116,
+            "upper_bound_ok": false,
+            "supported": false
+          }
+        },
+        "0.2": {
+          "test": {
+            "alpha": 0.2,
+            "confidence": 0.95,
+            "problems": 1060,
+            "failed_problems": 0,
+            "pooled": {
+              "answered": 1044,
+              "wrong_accepted": 73,
+              "coverage": 0.9849056603773585,
+              "wrong_accept_rate": 0.06992337164750957,
+              "exact_interval": [
+                0.05520586929973326,
+                0.0871181702269508
+              ]
+            },
+            "folds": [
+              {
+                "held_out_class": "BinPacking",
+                "threshold": 0.4895833333333333,
+                "problems": 550,
+                "answered": 546,
+                "wrong_accepted": 2
+              },
+              {
+                "held_out_class": "Inventory",
+                "threshold": 0.4895833333333333,
+                "problems": 60,
+                "answered": 58,
+                "wrong_accepted": 37
+              },
+              {
+                "held_out_class": "JobShop",
+                "threshold": 0.4895833333333333,
+                "problems": 90,
+                "answered": 90,
+                "wrong_accepted": 7
+              },
+              {
+                "held_out_class": "Knapsack",
+                "threshold": 0.5,
+                "problems": 190,
+                "answered": 189,
+                "wrong_accepted": 17
+              },
+              {
+                "held_out_class": "Portfolio",
+                "threshold": 0.4895833333333333,
+                "problems": 90,
+                "answered": 87,
+                "wrong_accepted": 8
+              },
+              {
+                "held_out_class": "Production",
+                "threshold": 0.4895833333333333,
+                "problems": 10,
+                "answered": 10,
+                "wrong_accepted": 1
+              },
+              {
+                "held_out_class": "TSP",
+                "threshold": 0.4895833333333333,
+                "problems": 60,
+                "answered": 54,
+                "wrong_accepted": 1
+              },
+              {
+                "held_out_class": "Transportation",
+                "threshold": 0.4895833333333333,
+                "problems": 10,
+                "answered": 10,
+                "wrong_accepted": 0
+              }
+            ],
+            "threshold": 0.4895833333333333
+          },
+          "h2": {
+            "rate_ok": true,
+            "coverage_ok": true,
+            "one_sided_upper_bound": 0.0843103990548047,
+            "upper_bound_ok": true,
+            "supported": true
+          }
+        }
+      },
+      "fixed": {
+        "threshold": 0.8,
+        "answered": 983,
+        "wrong_accepted": 30,
+        "coverage": 0.9273584905660377,
+        "wrong_accept_rate": 0.030518819938962362,
+        "exact_interval": [
+          0.020683675165288018,
+          0.043282425537144516
+        ]
+      },
+      "risk_coverage": [
+        {
+          "threshold": 1.0,
+          "coverage": 0.4047169811320755,
+          "wrong_accept_rate": 0.04428904428904429
+        },
+        {
+          "threshold": 0.9976689976689976,
+          "coverage": 0.4056603773584906,
+          "wrong_accept_rate": 0.044186046511627906
+        },
+        {
+          "threshold": 0.9957805907172995,
+          "coverage": 0.4075471698113208,
+          "wrong_accept_rate": 0.046296296296296294
+        },
+        {
+          "threshold": 0.9955555555555556,
+          "coverage": 0.40849056603773587,
+          "wrong_accept_rate": 0.046189376443418015
+        },
+        {
+          "threshold": 0.9954954954954954,
+          "coverage": 0.40943396226415096,
+          "wrong_accept_rate": 0.04608294930875576
+        },
+        {
+          "threshold": 0.9953703703703703,
+          "coverage": 0.41132075471698115,
+          "wrong_accept_rate": 0.045871559633027525
+        },
+        {
+          "threshold": 0.9953051643192489,
+          "coverage": 0.41226415094339625,
+          "wrong_accept_rate": 0.04576659038901602
+        },
+        {
+          "threshold": 0.9952380952380953,
+          "coverage": 0.41320754716981134,
+          "wrong_accept_rate": 0.045662100456621
+        },
+        {
+          "threshold": 0.9950980392156863,
+          "coverage": 0.41415094339622643,
+          "wrong_accept_rate": 0.04555808656036447
+        },
+        {
+          "threshold": 0.9950248756218905,
+          "coverage": 0.4160377358490566,
+          "wrong_accept_rate": 0.045351473922902494
+        },
+        {
+          "threshold": 0.9949494949494949,
+          "coverage": 0.419811320754717,
+          "wrong_accept_rate": 0.0449438202247191
+        },
+        {
+          "threshold": 0.9948717948717949,
+          "coverage": 0.4226415094339623,
+          "wrong_accept_rate": 0.044642857142857144
+        },
+        {
+          "threshold": 0.9947916666666666,
+          "coverage": 0.42452830188679247,
+          "wrong_accept_rate": 0.044444444444444446
+        },
+        {
+          "threshold": 0.9947089947089948,
+          "coverage": 0.42547169811320756,
+          "wrong_accept_rate": 0.04434589800443459
+        },
+        {
+          "threshold": 0.9946236559139785,
+          "coverage": 0.42641509433962266,
+          "wrong_accept_rate": 0.04424778761061947
+        },
+        {
+          "threshold": 0.9944444444444445,
+          "coverage": 0.42830188679245285,
+          "wrong_accept_rate": 0.046255506607929514
+        },
+        {
+          "threshold": 0.9943502824858758,
+          "coverage": 0.43018867924528303,
+          "wrong_accept_rate": 0.046052631578947366
+        },
+        {
+          "threshold": 0.9941520467836257,
+          "coverage": 0.4349056603773585,
+          "wrong_accept_rate": 0.0455531453362256
+        },
+        {
+          "threshold": 0.993939393939394,
+          "coverage": 0.4358490566037736,
+          "wrong_accept_rate": 0.045454545454545456
+        },
+        {
+          "threshold": 0.9937106918238993,
+          "coverage": 0.4367924528301887,
+          "wrong_accept_rate": 0.04535637149028078
+        },
+        {
+          "threshold": 0.9934640522875817,
+          "coverage": 0.44056603773584907,
+          "wrong_accept_rate": 0.044967880085653104
+        },
+        {
+          "threshold": 0.9933333333333333,
+          "coverage": 0.44245283018867926,
+          "wrong_accept_rate": 0.04477611940298507
+        },
+        {
+          "threshold": 0.9932432432432432,
+          "coverage": 0.44339622641509435,
+          "wrong_accept_rate": 0.04680851063829787
+        },
+        {
+          "threshold": 0.9931972789115647,
+          "coverage": 0.44433962264150945,
+          "wrong_accept_rate": 0.04670912951167728
+        },
+        {
+          "threshold": 0.9931506849315068,
+          "coverage": 0.44528301886792454,
+          "wrong_accept_rate": 0.048728813559322036
+        },
+        {
+          "threshold": 0.9929078014184397,
+          "coverage": 0.44622641509433963,
+          "wrong_accept_rate": 0.048625792811839326
+        },
+        {
+          "threshold": 0.9925925925925926,
+          "coverage": 0.4490566037735849,
+          "wrong_accept_rate": 0.04831932773109244
+        },
+        {
+          "threshold": 0.9924242424242425,
+          "coverage": 0.4509433962264151,
+          "wrong_accept_rate": 0.04811715481171548
+        },
+        {
+          "threshold": 0.9922480620155039,
+          "coverage": 0.4528301886792453,
+          "wrong_accept_rate": 0.04791666666666667
+        },
+        {
+          "threshold": 0.9920634920634921,
+          "coverage": 0.4556603773584906,
+          "wrong_accept_rate": 0.047619047619047616
+        },
+        {
+          "threshold": 0.9916666666666667,
+          "coverage": 0.45754716981132076,
+          "wrong_accept_rate": 0.04742268041237113
+        },
+        {
+          "threshold": 0.9912280701754387,
+          "coverage": 0.45849056603773586,
+          "wrong_accept_rate": 0.04938271604938271
+        },
+        {
+          "threshold": 0.990990990990991,
+          "coverage": 0.46037735849056605,
+          "wrong_accept_rate": 0.04918032786885246
+        },
+        {
+          "threshold": 0.9907407407407408,
+          "coverage": 0.46132075471698114,
+          "wrong_accept_rate": 0.049079754601226995
+        },
+        {
+          "threshold": 0.9904761904761905,
+          "coverage": 0.46226415094339623,
+          "wrong_accept_rate": 0.04897959183673469
+        },
+        {
+          "threshold": 0.9901960784313726,
+          "coverage": 0.46320754716981133,
+          "wrong_accept_rate": 0.048879837067209775
+        },
+        {
+          "threshold": 0.98989898989899,
+          "coverage": 0.4660377358490566,
+          "wrong_accept_rate": 0.05060728744939271
+        },
+        {
+          "threshold": 0.9895833333333334,
+          "coverage": 0.4688679245283019,
+          "wrong_accept_rate": 0.05030181086519115
+        },
+        {
+          "threshold": 0.989247311827957,
+          "coverage": 0.4716981132075472,
+          "wrong_accept_rate": 0.052
+        },
+        {
+          "threshold": 0.9888888888888889,
+          "coverage": 0.47264150943396227,
+          "wrong_accept_rate": 0.05189620758483034
+        },
+        {
+          "threshold": 0.9885057471264368,
+          "coverage": 0.47358490566037736,
+          "wrong_accept_rate": 0.05179282868525897
+        },
+        {
+          "threshold": 0.9880952380952381,
+          "coverage": 0.47452830188679246,
+          "wrong_accept_rate": 0.05168986083499006
+        },
+        {
+          "threshold": 0.9871794871794872,
+          "coverage": 0.47547169811320755,
+          "wrong_accept_rate": 0.051587301587301584
+        },
+        {
+          "threshold": 0.9861111111111112,
+          "coverage": 0.47641509433962265,
+          "wrong_accept_rate": 0.05148514851485148
+        },
+        {
+          "threshold": 0.9855072463768115,
+          "coverage": 0.47735849056603774,
+          "wrong_accept_rate": 0.05138339920948617
+        },
+        {
+          "threshold": 0.9848484848484849,
+          "coverage": 0.47830188679245284,
+          "wrong_accept_rate": 0.05128205128205128
+        },
+        {
+          "threshold": 0.9833333333333334,
+          "coverage": 0.47924528301886793,
+          "wrong_accept_rate": 0.051181102362204724
+        },
+        {
+          "threshold": 0.9696969696969697,
+          "coverage": 0.480188679245283,
+          "wrong_accept_rate": 0.05304518664047151
+        },
+        {
+          "threshold": 0.9583333333333334,
+          "coverage": 0.4811320754716981,
+          "wrong_accept_rate": 0.052941176470588235
+        },
+        {
+          "threshold": 0.9523809523809524,
+          "coverage": 0.4849056603773585,
+          "wrong_accept_rate": 0.054474708171206226
+        },
+        {
+          "threshold": 0.9444444444444445,
+          "coverage": 0.5028301886792453,
+          "wrong_accept_rate": 0.0525328330206379
+        },
+        {
+          "threshold": 0.9401709401709403,
+          "coverage": 0.5037735849056604,
+          "wrong_accept_rate": 0.052434456928838954
+        },
+        {
+          "threshold": 0.937037037037037,
+          "coverage": 0.5047169811320755,
+          "wrong_accept_rate": 0.052336448598130844
+        },
+        {
+          "threshold": 0.9333333333333332,
+          "coverage": 0.5358490566037736,
+          "wrong_accept_rate": 0.04929577464788732
+        },
+        {
+          "threshold": 0.9166666666666666,
+          "coverage": 0.8386792452830188,
+          "wrong_accept_rate": 0.031496062992125984
+        },
+        {
+          "threshold": 0.9047619047619048,
+          "coverage": 0.8424528301886792,
+          "wrong_accept_rate": 0.03135498320268757
+        },
+        {
+          "threshold": 0.8916666666666666,
+          "coverage": 0.8433962264150944,
+          "wrong_accept_rate": 0.03131991051454139
+        },
+        {
+          "threshold": 0.888888888888889,
+          "coverage": 0.8613207547169811,
+          "wrong_accept_rate": 0.03066812705366922
+        },
+        {
+          "threshold": 0.8888888888888888,
+          "coverage": 0.8669811320754717,
+          "wrong_accept_rate": 0.030467899891186073
+        },
+        {
+          "threshold": 0.8827160493827161,
+          "coverage": 0.8679245283018868,
+          "wrong_accept_rate": 0.030434782608695653
+        },
+        {
+          "threshold": 0.8666666666666667,
+          "coverage": 0.9113207547169812,
+          "wrong_accept_rate": 0.028985507246376812
+        },
+        {
+          "threshold": 0.8633986928104576,
+          "coverage": 0.9122641509433962,
+          "wrong_accept_rate": 0.028955532574974147
+        },
+        {
+          "threshold": 0.8571428571428571,
+          "coverage": 0.9141509433962264,
+          "wrong_accept_rate": 0.02889576883384933
+        },
+        {
+          "threshold": 0.8412698412698413,
+          "coverage": 0.9150943396226415,
+          "wrong_accept_rate": 0.0288659793814433
+        },
+        {
+          "threshold": 0.8333333333333334,
+          "coverage": 0.9198113207547169,
+          "wrong_accept_rate": 0.029743589743589743
+        },
+        {
+          "threshold": 0.8333333333333333,
+          "coverage": 0.9207547169811321,
+          "wrong_accept_rate": 0.02971311475409836
+        },
+        {
+          "threshold": 0.8307692307692308,
+          "coverage": 0.9216981132075471,
+          "wrong_accept_rate": 0.02968270214943705
+        },
+        {
+          "threshold": 0.8222222222222223,
+          "coverage": 0.9226415094339623,
+          "wrong_accept_rate": 0.02965235173824131
+        },
+        {
+          "threshold": 0.8181818181818182,
+          "coverage": 0.9235849056603773,
+          "wrong_accept_rate": 0.0296220633299285
+        },
+        {
+          "threshold": 0.8095238095238096,
+          "coverage": 0.9245283018867925,
+          "wrong_accept_rate": 0.02959183673469388
+        },
+        {
+          "threshold": 0.8055555555555555,
+          "coverage": 0.9273584905660377,
+          "wrong_accept_rate": 0.030518819938962362
+        },
+        {
+          "threshold": 0.7916666666666666,
+          "coverage": 0.9283018867924528,
+          "wrong_accept_rate": 0.03048780487804878
+        },
+        {
+          "threshold": 0.7777777777777778,
+          "coverage": 0.9377358490566038,
+          "wrong_accept_rate": 0.03420523138832998
+        },
+        {
+          "threshold": 0.7638888888888888,
+          "coverage": 0.9386792452830188,
+          "wrong_accept_rate": 0.035175879396984924
+        },
+        {
+          "threshold": 0.7361111111111112,
+          "coverage": 0.9433962264150944,
+          "wrong_accept_rate": 0.038
+        },
+        {
+          "threshold": 0.7301587301587302,
+          "coverage": 0.9452830188679245,
+          "wrong_accept_rate": 0.03992015968063872
+        },
+        {
+          "threshold": 0.7222222222222222,
+          "coverage": 0.9462264150943396,
+          "wrong_accept_rate": 0.040877367896311065
+        },
+        {
+          "threshold": 0.7111111111111111,
+          "coverage": 0.9481132075471698,
+          "wrong_accept_rate": 0.04079601990049751
+        },
+        {
+          "threshold": 0.6944444444444445,
+          "coverage": 0.9490566037735849,
+          "wrong_accept_rate": 0.041749502982107355
+        },
+        {
+          "threshold": 0.6825396825396824,
+          "coverage": 0.9509433962264151,
+          "wrong_accept_rate": 0.041666666666666664
+        },
+        {
+          "threshold": 0.6666666666666666,
+          "coverage": 0.9688679245283018,
+          "wrong_accept_rate": 0.05842259006815969
+        },
+        {
+          "threshold": 0.625,
+          "coverage": 0.9726415094339622,
+          "wrong_accept_rate": 0.06013579049466537
+        },
+        {
+          "threshold": 0.6190476190476191,
+          "coverage": 0.9745283018867924,
+          "wrong_accept_rate": 0.061955469506292354
+        },
+        {
+          "threshold": 0.6111111111111112,
+          "coverage": 0.9754716981132076,
+          "wrong_accept_rate": 0.06286266924564797
+        },
+        {
+          "threshold": 0.6,
+          "coverage": 0.9773584905660377,
+          "wrong_accept_rate": 0.06467181467181467
+        },
+        {
+          "threshold": 0.5833333333333334,
+          "coverage": 0.9783018867924528,
+          "wrong_accept_rate": 0.06557377049180328
+        },
+        {
+          "threshold": 0.5714285714285715,
+          "coverage": 0.980188679245283,
+          "wrong_accept_rate": 0.06641000962463908
+        },
+        {
+          "threshold": 0.5416666666666666,
+          "coverage": 0.9811320754716981,
+          "wrong_accept_rate": 0.0673076923076923
+        },
+        {
+          "threshold": 0.5396825396825397,
+          "coverage": 0.9820754716981132,
+          "wrong_accept_rate": 0.06724303554274735
+        },
+        {
+          "threshold": 0.5333333333333333,
+          "coverage": 0.9839622641509433,
+          "wrong_accept_rate": 0.06903163950143816
+        },
+        {
+          "threshold": 0.5,
+          "coverage": 0.9849056603773585,
+          "wrong_accept_rate": 0.06992337164750957
+        },
+        {
+          "threshold": 0.4895833333333333,
+          "coverage": 0.9858490566037735,
+          "wrong_accept_rate": 0.0708133971291866
+        }
+      ],
+      "alpha_scan": {
+        "points": [
+          {
+            "alpha": 0.05,
+            "coverage": 0.17169811320754716,
+            "wrong_accept_rate": 0.08241758241758242,
+            "rate_ok": false,
+            "coverage_ok": false,
+            "one_sided_upper_bound": 0.12407154304891344,
+            "upper_bound_ok": false,
+            "supported": false
+          },
+          {
+            "alpha": 0.06,
+            "coverage": 0.17641509433962263,
+            "wrong_accept_rate": 0.09090909090909091,
+            "rate_ok": false,
+            "coverage_ok": false,
+            "one_sided_upper_bound": 0.1332410664081872,
+            "upper_bound_ok": false,
+            "supported": false
+          },
+          {
+            "alpha": 0.07,
+            "coverage": 0.37830188679245286,
+            "wrong_accept_rate": 0.1571072319201995,
+            "rate_ok": false,
+            "coverage_ok": false,
+            "one_sided_upper_bound": 0.19012090905518847,
+            "upper_bound_ok": false,
+            "supported": false
+          },
+          {
+            "alpha": 0.08,
+            "coverage": 0.4641509433962264,
+            "wrong_accept_rate": 0.13414634146341464,
+            "rate_ok": false,
+            "coverage_ok": false,
+            "one_sided_upper_bound": 0.16207950128061704,
+            "upper_bound_ok": false,
+            "supported": false
+          },
+          {
+            "alpha": 0.09,
+            "coverage": 0.469811320754717,
+            "wrong_accept_rate": 0.142570281124498,
+            "rate_ok": false,
+            "coverage_ok": false,
+            "one_sided_upper_bound": 0.17092577832452116,
+            "upper_bound_ok": false,
+            "supported": false
+          },
+          {
+            "alpha": 0.1,
+            "coverage": 0.469811320754717,
+            "wrong_accept_rate": 0.142570281124498,
+            "rate_ok": false,
+            "coverage_ok": false,
+            "one_sided_upper_bound": 0.17092577832452116,
+            "upper_bound_ok": false,
+            "supported": false
+          },
+          {
+            "alpha": 0.11,
+            "coverage": 0.9830188679245283,
+            "wrong_accept_rate": 0.06813819577735125,
+            "rate_ok": true,
+            "coverage_ok": true,
+            "one_sided_upper_bound": 0.08239059292106148,
+            "upper_bound_ok": true,
+            "supported": true
+          },
+          {
+            "alpha": 0.12,
+            "coverage": 0.9830188679245283,
+            "wrong_accept_rate": 0.06813819577735125,
+            "rate_ok": true,
+            "coverage_ok": true,
+            "one_sided_upper_bound": 0.08239059292106148,
+            "upper_bound_ok": true,
+            "supported": true
+          },
+          {
+            "alpha": 0.13,
+            "coverage": 0.9830188679245283,
+            "wrong_accept_rate": 0.06813819577735125,
+            "rate_ok": true,
+            "coverage_ok": true,
+            "one_sided_upper_bound": 0.08239059292106148,
+            "upper_bound_ok": true,
+            "supported": true
+          },
+          {
+            "alpha": 0.14,
+            "coverage": 0.9830188679245283,
+            "wrong_accept_rate": 0.06813819577735125,
+            "rate_ok": true,
+            "coverage_ok": true,
+            "one_sided_upper_bound": 0.08239059292106148,
+            "upper_bound_ok": true,
+            "supported": true
+          },
+          {
+            "alpha": 0.15,
+            "coverage": 0.9830188679245283,
+            "wrong_accept_rate": 0.06813819577735125,
+            "rate_ok": true,
+            "coverage_ok": true,
+            "one_sided_upper_bound": 0.08239059292106148,
+            "upper_bound_ok": true,
+            "supported": true
+          },
+          {
+            "alpha": 0.16,
+            "coverage": 0.9830188679245283,
+            "wrong_accept_rate": 0.06813819577735125,
+            "rate_ok": true,
+            "coverage_ok": true,
+            "one_sided_upper_bound": 0.08239059292106148,
+            "upper_bound_ok": true,
+            "supported": true
+          },
+          {
+            "alpha": 0.17,
+            "coverage": 0.9830188679245283,
+            "wrong_accept_rate": 0.06813819577735125,
+            "rate_ok": true,
+            "coverage_ok": true,
+            "one_sided_upper_bound": 0.08239059292106148,
+            "upper_bound_ok": true,
+            "supported": true
+          },
+          {
+            "alpha": 0.18,
+            "coverage": 0.9849056603773585,
+            "wrong_accept_rate": 0.06992337164750957,
+            "rate_ok": true,
+            "coverage_ok": true,
+            "one_sided_upper_bound": 0.0843103990548047,
+            "upper_bound_ok": true,
+            "supported": true
+          },
+          {
+            "alpha": 0.19,
+            "coverage": 0.9849056603773585,
+            "wrong_accept_rate": 0.06992337164750957,
+            "rate_ok": true,
+            "coverage_ok": true,
+            "one_sided_upper_bound": 0.0843103990548047,
+            "upper_bound_ok": true,
+            "supported": true
+          },
+          {
+            "alpha": 0.2,
+            "coverage": 0.9849056603773585,
+            "wrong_accept_rate": 0.06992337164750957,
+            "rate_ok": true,
+            "coverage_ok": true,
+            "one_sided_upper_bound": 0.0843103990548047,
+            "upper_bound_ok": true,
+            "supported": true
+          },
+          {
+            "alpha": 0.21,
+            "coverage": 0.9849056603773585,
+            "wrong_accept_rate": 0.06992337164750957,
+            "rate_ok": true,
+            "coverage_ok": true,
+            "one_sided_upper_bound": 0.0843103990548047,
+            "upper_bound_ok": true,
+            "supported": true
+          },
+          {
+            "alpha": 0.22,
+            "coverage": 0.9849056603773585,
+            "wrong_accept_rate": 0.06992337164750957,
+            "rate_ok": true,
+            "coverage_ok": true,
+            "one_sided_upper_bound": 0.0843103990548047,
+            "upper_bound_ok": true,
+            "supported": true
+          },
+          {
+            "alpha": 0.23,
+            "coverage": 0.9849056603773585,
+            "wrong_accept_rate": 0.06992337164750957,
+            "rate_ok": true,
+            "coverage_ok": true,
+            "one_sided_upper_bound": 0.0843103990548047,
+            "upper_bound_ok": true,
+            "supported": true
+          },
+          {
+            "alpha": 0.24,
+            "coverage": 0.9849056603773585,
+            "wrong_accept_rate": 0.06992337164750957,
+            "rate_ok": true,
+            "coverage_ok": true,
+            "one_sided_upper_bound": 0.0843103990548047,
+            "upper_bound_ok": true,
+            "supported": true
+          },
+          {
+            "alpha": 0.25,
+            "coverage": 0.9849056603773585,
+            "wrong_accept_rate": 0.06992337164750957,
+            "rate_ok": true,
+            "coverage_ok": true,
+            "one_sided_upper_bound": 0.0843103990548047,
+            "upper_bound_ok": true,
+            "supported": true
+          },
+          {
+            "alpha": 0.26,
+            "coverage": 0.9849056603773585,
+            "wrong_accept_rate": 0.06992337164750957,
+            "rate_ok": true,
+            "coverage_ok": true,
+            "one_sided_upper_bound": 0.0843103990548047,
+            "upper_bound_ok": true,
+            "supported": true
+          },
+          {
+            "alpha": 0.27,
+            "coverage": 0.9849056603773585,
+            "wrong_accept_rate": 0.06992337164750957,
+            "rate_ok": true,
+            "coverage_ok": true,
+            "one_sided_upper_bound": 0.0843103990548047,
+            "upper_bound_ok": true,
+            "supported": true
+          },
+          {
+            "alpha": 0.28,
+            "coverage": 0.9849056603773585,
+            "wrong_accept_rate": 0.06992337164750957,
+            "rate_ok": true,
+            "coverage_ok": true,
+            "one_sided_upper_bound": 0.0843103990548047,
+            "upper_bound_ok": true,
+            "supported": true
+          },
+          {
+            "alpha": 0.29,
+            "coverage": 0.9849056603773585,
+            "wrong_accept_rate": 0.06992337164750957,
+            "rate_ok": true,
+            "coverage_ok": true,
+            "one_sided_upper_bound": 0.0843103990548047,
+            "upper_bound_ok": true,
+            "supported": true
+          },
+          {
+            "alpha": 0.3,
+            "coverage": 0.9849056603773585,
+            "wrong_accept_rate": 0.06992337164750957,
+            "rate_ok": true,
+            "coverage_ok": true,
+            "one_sided_upper_bound": 0.0843103990548047,
+            "upper_bound_ok": true,
+            "supported": true
+          }
+        ],
+        "smallest_alpha_meeting_h2_rule": 0.11,
+        "smallest_alpha_meeting_the_bound_too": 0.11
+      }
+    }
+  ],
+  "summary": {
+    "by_alpha": {
+      "0.05": {
+        "wrong_accept_rate": {
+          "mean": 0.08241758241758242,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "coverage": {
+          "mean": 0.17169811320754716,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "one_sided_upper_bound": {
+          "mean": 0.12407154304891344,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "0.1": {
+        "wrong_accept_rate": {
+          "mean": 0.142570281124498,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "coverage": {
+          "mean": 0.469811320754717,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "one_sided_upper_bound": {
+          "mean": 0.17092577832452116,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "0.2": {
+        "wrong_accept_rate": {
+          "mean": 0.06992337164750957,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "coverage": {
+          "mean": 0.9849056603773585,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "one_sided_upper_bound": {
+          "mean": 0.0843103990548047,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      }
+    },
+    "fixed": {
+      "wrong_accept_rate": {
+        "mean": 0.030518819938962362,
+        "sd": null,
+        "repeats_with_value": 1
+      },
+      "coverage": {
+        "mean": 0.9273584905660377,
+        "sd": null,
+        "repeats_with_value": 1
+      }
+    },
+    "h2": "not supported"
+  },
+  "shift": [
+    {
+      "problems": 36,
+      "families": [
+        "CrewRostering",
+        "EquipmentDispatch",
+        "GateAssignment"
+      ],
+      "by_alpha": {
+        "0.05": {
+          "threshold": null,
+          "families": {
+            "CrewRostering": {
+              "problems": 12,
+              "answered": 0,
+              "wrong_accepted": 0,
+              "coverage": 0.0,
+              "wrong_accept_rate": null
+            },
+            "EquipmentDispatch": {
+              "problems": 12,
+              "answered": 0,
+              "wrong_accepted": 0,
+              "coverage": 0.0,
+              "wrong_accept_rate": null
+            },
+            "GateAssignment": {
+              "problems": 12,
+              "answered": 0,
+              "wrong_accepted": 0,
+              "coverage": 0.0,
+              "wrong_accept_rate": null
+            },
+            "all": {
+              "problems": 36,
+              "answered": 0,
+              "wrong_accepted": 0,
+              "coverage": 0.0,
+              "wrong_accept_rate": null
+            }
+          }
+        },
+        "0.1": {
+          "threshold": 0.4895833333333333,
+          "families": {
+            "CrewRostering": {
+              "problems": 12,
+              "answered": 12,
+              "wrong_accepted": 0,
+              "coverage": 1.0,
+              "wrong_accept_rate": 0.0
+            },
+            "EquipmentDispatch": {
+              "problems": 12,
+              "answered": 12,
+              "wrong_accepted": 0,
+              "coverage": 1.0,
+              "wrong_accept_rate": 0.0
+            },
+            "GateAssignment": {
+              "problems": 12,
+              "answered": 10,
+              "wrong_accepted": 0,
+              "coverage": 0.8333333333333334,
+              "wrong_accept_rate": 0.0
+            },
+            "all": {
+              "problems": 36,
+              "answered": 34,
+              "wrong_accepted": 0,
+              "coverage": 0.9444444444444444,
+              "wrong_accept_rate": 0.0
+            }
+          }
+        },
+        "0.2": {
+          "threshold": 0.4895833333333333,
+          "families": {
+            "CrewRostering": {
+              "problems": 12,
+              "answered": 12,
+              "wrong_accepted": 0,
+              "coverage": 1.0,
+              "wrong_accept_rate": 0.0
+            },
+            "EquipmentDispatch": {
+              "problems": 12,
+              "answered": 12,
+              "wrong_accepted": 0,
+              "coverage": 1.0,
+              "wrong_accept_rate": 0.0
+            },
+            "GateAssignment": {
+              "problems": 12,
+              "answered": 10,
+              "wrong_accepted": 0,
+              "coverage": 0.8333333333333334,
+              "wrong_accept_rate": 0.0
+            },
+            "all": {
+              "problems": 36,
+              "answered": 34,
+              "wrong_accepted": 0,
+              "coverage": 0.9444444444444444,
+              "wrong_accept_rate": 0.0
+            }
+          }
+        },
+        "fixed": {
+          "threshold": 0.8,
+          "families": {
+            "CrewRostering": {
+              "problems": 12,
+              "answered": 12,
+              "wrong_accepted": 0,
+              "coverage": 1.0,
+              "wrong_accept_rate": 0.0
+            },
+            "EquipmentDispatch": {
+              "problems": 12,
+              "answered": 12,
+              "wrong_accepted": 0,
+              "coverage": 1.0,
+              "wrong_accept_rate": 0.0
+            },
+            "GateAssignment": {
+              "problems": 12,
+              "answered": 10,
+              "wrong_accepted": 0,
+              "coverage": 0.8333333333333334,
+              "wrong_accept_rate": 0.0
+            },
+            "all": {
+              "problems": 36,
+              "answered": 34,
+              "wrong_accepted": 0,
+              "coverage": 0.9444444444444444,
+              "wrong_accept_rate": 0.0
+            }
+          }
+        }
+      }
+    }
+  ],
+  "b0": {
+    "problems": 1060,
+    "answered": 1013,
+    "coverage": 0.9556603773584905,
+    "wrong_accepted": 64,
+    "wrong_accept_rate": 0.0631786771964462
+  }
+}
