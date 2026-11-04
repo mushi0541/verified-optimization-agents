@@ -10,6 +10,7 @@ from scripts.efficiency import (
     record_cost,
     efficiency,
     load_run,
+    only_sample,
     run_metrics,
     solver_calls,
     tokens_by_step,
@@ -219,3 +220,30 @@ def test_step_means_skip_repeats_without_step_tokens():
     assert configuration(with_steps) == configuration(all_failed)
     group = efficiency([with_steps, all_failed])["configurations"][0]
     assert group["tokens_by_step"] == {"formalize": 100, "repair": 0}
+
+
+def test_other_prompt_versions_are_not_repeats_of_v1():
+    old = _run("old", [_baseline("a", ["optimal"])])  # saved before #95: no prompt_version
+    v1 = _run("v1", [_baseline("a", ["optimal"])])
+    v1["summary"]["config"]["prompt_version"] = "v1"
+    v3 = _run("v3", [_baseline("a", ["optimal"])])
+    v3["summary"]["config"]["prompt_version"] = "v3"
+    assert configuration(old) == configuration(v1)
+    assert "[prompts v3]" in configuration(v3)
+    assert len(efficiency([old, v1, v3])["configurations"]) == 2
+
+
+def test_the_part_of_a_larger_run_on_a_sample_is_a_repeat(tmp_path):
+    sample = tmp_path / "small.json"
+    sample.write_text(json.dumps(["a", "b"]), encoding="utf-8")
+    small = _run("small", [_baseline("a", ["optimal"]), _baseline("b", ["optimal"])], sample_file="samples/small.json")
+    large = _run("large", [_baseline(p, ["optimal"]) for p in "acd"], failed=["b"], sample_file="samples/large.json")
+
+    part = only_sample(large, sample)
+    assert [r["problem_id"] for r in part["records"]] == ["a"] and part["summary"]["failed_problems"] == ["b"]
+    assert part["name"] == "large (small part)"
+    (group,) = efficiency([only_sample(small, sample), part])["configurations"]
+    assert group["runs"] == ["small", "large (small part)"]
+
+    with pytest.raises(SystemExit, match="1 of the 2 problems"):
+        only_sample(_run("short", [_baseline("a", ["optimal"])]), sample)
