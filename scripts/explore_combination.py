@@ -78,8 +78,30 @@ def paired_risk(first: list[dict], second: list[dict], bootstrap: int, rng: rand
     return {f"{c:g}": percentile_interval(values) for c, values in differences.items()}
 
 
+def by_class(ids: list[str], classes: dict[str, str], systems: dict[str, list[dict]]) -> tuple[dict, dict]:
+    """Each system's summary within each problem class, and the mean over classes (every class weighted equally).
+
+    A report, not a test: within a class, the wrong-accept rate at a coverage answers that share of the class.
+    """
+    per_class = {}
+    for cls in sorted(set(classes[i] for i in ids)):
+        keep = [k for k, i in enumerate(ids) if classes[i] == cls]
+        per_class[cls] = {"problems": len(keep),
+                          "systems": {name: summary([out[k] for k in keep]) for name, out in systems.items()}}
+
+    def mean(values):
+        values = [v for v in values if v is not None]
+        return sum(values) / len(values) if values else None
+
+    equal_weight = {name: {"accuracy": mean(c["systems"][name]["accuracy"] for c in per_class.values()),
+                           "wrong_accept_rate": {f"{cov:g}": mean(c["systems"][name]["wrong_accept_rate"][f"{cov:g}"]
+                                                                  for c in per_class.values()) for cov in COVERAGES}}
+                    for name in systems}
+    return per_class, equal_weight
+
+
 def explore(pipeline: dict[str, dict], b2: dict[str, dict], skip_classes: tuple[str, ...] = (),
-            bootstrap: int = 1000, seed: int = 0) -> dict:
+            bootstrap: int = 1000, seed: int = 0, per_class: bool = False) -> dict:
     ids = sorted(i for i in set(pipeline) & set(b2) if pipeline[i]["problem_class"] not in skip_classes)
     full = [pipeline_at(pipeline[i], 3) for i in ids]
     budget = sum(o["tokens"] for o in full) / len(full)
@@ -94,6 +116,9 @@ def explore(pipeline: dict[str, dict], b2: dict[str, dict], skip_classes: tuple[
         for other in ("B2", "pipeline k=3"):
             rng = random.Random(f"{seed}-{name}-{other}")
             result["paired"][f"{name} minus {other}"] = paired_risk(systems[name], systems[other], bootstrap, rng)
+    if per_class:
+        classes = {i: pipeline[i]["problem_class"] for i in ids}
+        result["per_class"], result["equal_weight"] = by_class(ids, classes, systems)
     return result
 
 
@@ -116,6 +141,16 @@ def markdown(result: dict) -> str:
     for name, cis in result["paired"].items():
         lines.append(f"| {name} | " + " | ".join(
             "--" if ci is None else f"[{100 * ci[0]:+.1f}, {100 * ci[1]:+.1f}]" for ci in cis.values()) + " |")
+    if "per_class" in result:
+        lines += ["", "Per class and with every class weighted equally (a report, not a test): accuracy, and the "
+                  "wrong-accept rate when the top 50% of each class is answered.", "",
+                  "| Class | Problems | " + " | ".join(f"{name}: acc / WAR" for name in result["systems"]) + " |",
+                  "|---|---|" + "---|" * len(result["systems"])]
+        rows = [(cls, c["problems"], c["systems"]) for cls, c in result["per_class"].items()]
+        rows.append(("**equal weight**", "", result["equal_weight"]))
+        for cls, n, systems in rows:
+            lines.append(f"| {cls} | {n} | " + " | ".join(
+                rate(s["accuracy"]) + " / " + rate(s["wrong_accept_rate"]["0.5"]) for s in systems.values()) + " |")
     return "\n".join(lines) + "\n"
 
 
@@ -125,10 +160,13 @@ def main() -> None:
     parser.add_argument("--b2", nargs="+", required=True)
     parser.add_argument("--skip-class", nargs="*", default=[])
     parser.add_argument("--out", type=Path)
+    parser.add_argument("--per-class", action="store_true",
+                        help="also report each class and the mean over classes (every class weighted equally)")
     parser.add_argument("--preregistered", action="store_true",
                         help="label the output as the pre-registered test of #103 (default: exploratory)")
     args = parser.parse_args()
-    result = explore(load_records(args.pipeline), load_records(args.b2), tuple(args.skip_class))
+    result = explore(load_records(args.pipeline), load_records(args.b2), tuple(args.skip_class),
+                     per_class=args.per_class)
     result["records"] = {"pipeline": args.pipeline, "b2": args.b2}
     result["status"] = ("Pre-registered test (#103, docs/preregistration_combination.md)." if args.preregistered
                         else "Exploratory: not pre-registered.")

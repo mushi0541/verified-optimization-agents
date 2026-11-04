@@ -1,0 +1,167 @@
+{
+  "problems": 1070,
+  "only_in_pipeline": [],
+  "only_in_b2": [],
+  "settings": {
+    "coverage": 0.5,
+    "draws": 1000,
+    "bootstrap": 1000,
+    "seed": 0
+  },
+  "levels": [
+    {
+      "k": 1,
+      "budget_tokens": 9109.43925233645,
+      "pipeline": {
+        "accuracy": 0.9074766355140187,
+        "accuracy_ci": [
+          0.8885080830168395,
+          0.9241663963344113
+        ],
+        "wrong_accept_rate": 0.06355140186915888,
+        "coverage": 0.5,
+        "mean_tokens": 9109.43925233645,
+        "mean_calls": 4.140186915887851
+      },
+      "b2": {
+        "accuracy": 0.9186915887850468,
+        "accuracy_ci": [
+          0.9006717023451611,
+          0.9343652759364514
+        ],
+        "wrong_accept_rate": 0.03407476635514019,
+        "coverage": 0.5,
+        "mean_tokens": 9111.17570093458,
+        "mean_calls": 4.798130841121496,
+        "budget_ratio": 1.0001906208000328,
+        "within_budget_tolerance": true,
+        "mean_samples": 4.700934579439252
+      },
+      "paired": {
+        "mcnemar_p": 0.08842954698775429,
+        "accuracy_difference_ci": [
+          -0.02336448598130847,
+          0.0009345794392523477
+        ],
+        "wrong_accept_difference_ci": [
+          0.013131265501664519,
+          0.043123068951620644
+        ]
+      }
+    },
+    {
+      "k": 2,
+      "budget_tokens": 12520.36355140187,
+      "pipeline": {
+        "accuracy": 0.9074766355140187,
+        "accuracy_ci": [
+          0.8885080830168395,
+          0.9241663963344113
+        ],
+        "wrong_accept_rate": 0.056074766355140186,
+        "coverage": 0.5,
+        "mean_tokens": 12520.36355140187,
+        "mean_calls": 6.186915887850467
+      },
+      "b2": {
+        "accuracy": 0.922429906542056,
+        "accuracy_ci": [
+          0.9047456989942104,
+          0.9377451591421775
+        ],
+        "wrong_accept_rate": 0.03184672897196262,
+        "coverage": 0.5,
+        "mean_tokens": 12565.215887850467,
+        "mean_calls": 6.595327102803738,
+        "budget_ratio": 1.0035823509648467,
+        "within_budget_tolerance": true,
+        "mean_samples": 6.450467289719626
+      },
+      "paired": {
+        "mcnemar_p": 0.013852965261321515,
+        "accuracy_difference_ci": [
+          -0.0261682242990654,
+          -0.0037383177570093906
+        ],
+        "wrong_accept_difference_ci": [
+          0.011537994715564812,
+          0.03736420133782437
+        ]
+      }
+    },
+    {
+      "k": 3,
+      "budget_tokens": 15902.67570093458,
+      "pipeline": {
+        "accuracy": 0.9074766355140187,
+        "accuracy_ci": [
+          0.8885080830168395,
+          0.9241663963344113
+        ],
+        "wrong_accept_rate": 0.056074766355140186,
+        "coverage": 0.5,
+        "mean_tokens": 15902.67570093458,
+        "mean_calls": 8.218691588785047
+      },
+      "b2": {
+        "accuracy": 0.9242990654205607,
+        "accuracy_ci": [
+          0.9067866962757005,
+          0.9394310384960871
+        ],
+        "wrong_accept_rate": 0.02741682242990654,
+        "coverage": 0.5,
+        "mean_tokens": 15925.285046728972,
+        "mean_calls": 8.347663551401869,
+        "budget_ratio": 1.0014217321801426,
+        "within_budget_tolerance": true,
+        "mean_samples": 8.158878504672897
+      },
+      "paired": {
+        "mcnemar_p": 0.006426576095691416,
+        "accuracy_difference_ci": [
+          -0.029906542056074792,
+          -0.005607476635514086
+        ],
+        "wrong_accept_difference_ci": [
+          0.01631560395171816,
+          0.04008457557735383
+        ]
+      }
+    }
+  ],
+  "h3": {
+    "k": 3,
+    "wrong_accept_difference_ci": [
+      0.01631560395171816,
+      0.04008457557735383
+    ],
+    "supported": false
+  },
+  "reference_points": {
+    "B0": {
+      "problems": 1070,
+      "accuracy": 0.8869158878504673,
+      "accuracy_ci": [
+        0.866399628461376,
+        0.9052744787246534
+      ],
+      "coverage": 0.9551401869158879,
+      "wrong_accept_rate": 0.07142857142857142,
+      "mean_tokens": 2084.36261682243,
+      "mean_calls": 1.0
+    },
+    "B1": {
+      "problems": 1070,
+      "accuracy": 0.9158878504672897,
+      "accuracy_ci": [
+        0.897622877099971,
+        0.9318235896365599
+      ],
+      "coverage": 0.9953271028037384,
+      "wrong_accept_rate": 0.07981220657276995,
+      "mean_tokens": 2250.351401869159,
+      "mean_calls": 1.0448598130841122
+    }
+  }
+}
