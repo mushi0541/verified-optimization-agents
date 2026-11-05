@@ -147,3 +147,36 @@ def test_the_efficiency_table_has_a_row_per_model_and_system(tmp_path):
     text = (tmp_path / "tables" / "efficiency.tex").read_text(encoding="utf-8")
     assert "-- where the model has no listed price" in text
     assert "B0 was run for" not in text  # no model has a B0 run here
+
+
+def test_the_preregistered_table_applies_the_h3c_rule(tmp_path):
+    base = tmp_path / "results" / "preregistered"
+    level = {"k": 3, "pipeline": {"accuracy": 0.685, "wrong_accept_rate": 0.03},
+             "b2": {"accuracy": 0.805, "wrong_accept_rate": 0.0333}}
+    _write(base / "h1" / "canonical_200_qwen" / "gap1.json", {"summary": {
+        "auroc": {"combined": _stat(0.928)}, "gain": _stat(0.0751), "h1": "not supported (the gain is below 0.10)"}})
+    _write(base / "h3" / "canonical_200_qwen" / "e3.json", {
+        "problems": 200, "levels": [level], "h3": {"k": 3, "wrong_accept_difference_ci": [-0.0325, 0.034], "supported": False}})
+    _write(base / "h3c" / "canonical_200_qwen" / "combination.json", {
+        "problems": 200, "paired": {"pipeline k=1 + B2 minus B2": {"0.5": [-0.04, -0.001]}}})
+    _write(base / "h3" / "held_out_1457" / "e3.json", {
+        "problems": 1457, "levels": [level], "h3": {"k": 3, "wrong_accept_difference_ci": [0.016, 0.044], "supported": False}})
+    make_tables(tmp_path / "results", tmp_path / "tables")
+    rows = [line for line in (tmp_path / "tables" / "preregistered.tex").read_text(encoding="utf-8").splitlines()
+            if line.startswith(("\\texttt", "all held out"))]
+    # three digits for the gain, and H3c is "yes" because the upper end of its interval is below 0
+    assert rows[0] == ("\\texttt{canonical\\_200} & Qwen3 Next 80B & 200 & 0.928 & +0.075 & no & 68.5 / 80.5 & "
+                       "3.0 / 3.3 & [-3.2, +3.4] & no & [-4.0, -0.1] & yes \\\\")
+    assert rows[1] == "all held out & gpt-oss-120b & 1,457 & -- & -- & -- & 68.5 / 80.5 & 3.0 / 3.3 & [+1.6, +4.4] & no & -- & -- \\\\"
+    text = (tmp_path / "tables" / "preregistered.tex").read_text(encoding="utf-8")
+    assert "no verdict changes" in text  # no sensitivity folders yet
+
+    # A sensitivity result that flips H3 is named in the caption; one that does not flip is not.
+    _write(base / "h3" / "canonical_200_qwen_sensitivity" / "e3.json", {
+        "problems": 180, "levels": [level], "h3": {"k": 3, "wrong_accept_difference_ci": [-0.076, -0.003], "supported": True}})
+    _write(base / "h3" / "held_out_1457_sensitivity" / "e3.json", {
+        "problems": 1406, "levels": [level], "h3": {"k": 3, "wrong_accept_difference_ci": [0.015, 0.038], "supported": False}})
+    make_tables(tmp_path / "results", tmp_path / "tables")
+    text = (tmp_path / "tables" / "preregistered.tex").read_text(encoding="utf-8")
+    assert "the only verdicts that change are H3 for Qwen3 Next 80B on \\texttt{canonical\\_200}, now [-7.6, -0.3]" in text
+    assert "1,406" not in text and "H3 for gpt-oss-120b" not in text

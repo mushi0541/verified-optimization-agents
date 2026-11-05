@@ -13,7 +13,8 @@ Each table is built only from files that the analysis scripts wrote, so no numbe
   token budget for each k, with the paired interval and the H3 verdict, and B0 and B1 as reference points;
 - ablations.tex from results/ablations/ablations.csv (scripts/ablation_table.py): each ablation on ablation_50;
 - efficiency.tex from results/e6/canonical_200/efficiency.json (scripts/efficiency.py --sample): E6 per model and
-  system.
+  system;
+- preregistered.tex from results/preregistered/{h1,h3,h3c} (#103): H1, H3 and H3c per model and held-out sample.
 
 A table whose input files are missing is not written, so main.tex shows its \\generated note instead; the script says
 which tables it wrote and which it skipped. Rows follow fixed lists of samples, so the output does not depend on the
@@ -80,7 +81,8 @@ def verdict(text: str) -> str:
 
 
 def table(caption: str, label: str, columns: str, header: list[str], rows: list[list[str]], sources: list[str],
-          wide: bool = False) -> str:
+          wide: bool = False, tight: bool = False) -> str:
+    """A booktabs table; tight halves the space between columns, for a table with many of them."""
     env = "table*" if wide else "table"
     lines = [
         f"% Written by scripts/make_paper_tables.py from {', '.join(sources)}. Do not edit by hand.",
@@ -89,6 +91,7 @@ def table(caption: str, label: str, columns: str, header: list[str], rows: list[
         f"\\caption{{{caption}}}",
         f"\\label{{{label}}}",
         "\\footnotesize",
+        *(["\\setlength{\\tabcolsep}{3pt}"] if tight else []),
         f"\\begin{{tabular}}{{@{{}}{columns}@{{}}}}",
         "\\toprule",
         " & ".join(header) + " \\\\",
@@ -311,8 +314,101 @@ def efficiency(results: Path) -> tuple[str, list[str]] | None:
     return table(caption, "tab:efficiency", "llrrrrrrrrr", header, rows, [source], wide=True), [source]
 
 
+# (folder in results/preregistered/{h1,h3,h3c}, data label, model label); rows appear in this order when they exist.
+PREREGISTERED = (
+    # The first tests of #103: H3c on the 387 new problems (primary) and H3 on all of canonical_587 (secondary).
+    ("canonical_587_rest_387", "387 new", "gpt-oss-120b"),  # explained in the caption
+    ("canonical_587", r"\texttt{canonical\_587}", "gpt-oss-120b"),
+    ("canonical_200_deepseek", r"\texttt{canonical\_200}", "DeepSeek V3.2"),
+    ("canonical_200_qwen", r"\texttt{canonical\_200}", "Qwen3 Next 80B"),
+    ("canonical_200_mistral", r"\texttt{canonical\_200}", "Mistral Large 3"),
+    ("canonical_200_kimi", r"\texttt{canonical\_200}", "Kimi K2.5"),
+    ("canonical_200_glm", r"\texttt{canonical\_200}", "GLM 4.7"),
+    ("canonical_200_gpt-oss-20b", r"\texttt{canonical\_200}", "gpt-oss-20b"),
+    ("canonical_unused", r"\texttt{canonical\_unused}", "gpt-oss-120b"),
+    ("held_out_1457", "all held out", "gpt-oss-120b"),
+)
+SHORT_VERDICT = {"supported": "yes", "partly supported": "partly", "not supported": "no"}  # for a narrow column
+H3C_COMPARISON = "pipeline k=1 + B2 minus B2"  # the primary test of docs/preregistration_combination.md
+
+
+def interval(low_high: list[float]) -> str:
+    low, high = low_high
+    return f"[{100 * low:+.1f}, {100 * high:+.1f}]"
+
+
+def sensitivity_changes(base: Path) -> list[str]:
+    """The verdicts that change in the sensitivity analysis of Addendum 3 (without Pollution and the reference_wrong
+    problem): h3/<folder>_sensitivity, and for H3c the _sensitivity folder or, where no reference_wrong problem is in
+    the sample, the _without_pollution one."""
+    changes = []
+    for folder, data_label, model in PREREGISTERED:
+        main, sens = read(base / "h3" / folder / "e3.json"), read(base / "h3" / f"{folder}_sensitivity" / "e3.json")
+        if main and sens and main["h3"]["supported"] != sens["h3"]["supported"]:
+            changes.append(f"H3 for {model} on {data_label}, now " + interval(sens["h3"]["wrong_accept_difference_ci"]))
+        main = read(base / "h3c" / folder / "combination.json")
+        sens = read(base / "h3c" / f"{folder}_sensitivity" / "combination.json") or read(
+            base / "h3c" / f"{folder}_without_pollution" / "combination.json")
+        if main and sens and (main["paired"][H3C_COMPARISON]["0.5"][1] < 0) != (sens["paired"][H3C_COMPARISON]["0.5"][1] < 0):
+            changes.append(f"H3c for {model} on {data_label}, now " + interval(sens["paired"][H3C_COMPARISON]["0.5"]))
+    return changes
+
+
+def preregistered(results: Path) -> tuple[str, list[str]] | None:
+    """The pre-registered tests of #103 (main analysis, not the sensitivity folders): H1 per model, H3 (pipeline
+    against B2 at k = 3) and H3c (the pipeline combined with B2, against B2). H3c is supported only when the upper end
+    of its paired interval at 50% coverage is below 0, the rule fixed in docs/preregistration_combination.md."""
+    rows, sources = [], []
+    for folder, data_label, model in PREREGISTERED:
+        base = results / "preregistered"
+        h1, h3 = read(base / "h1" / folder / "gap1.json"), read(base / "h3" / folder / "e3.json")
+        h3c = read(base / "h3c" / folder / "combination.json")
+        if h1 is None and h3 is None and h3c is None:
+            continue
+        problems = (h3 or h3c or {}).get("problems")
+        cells = [data_label, model, DASH if problems is None else f"{problems:,}"]
+        if h1:
+            summary = h1["summary"]
+            # three digits: the H1 rule is a gain of 0.10, and gpt-oss-20b's 0.075 would round to 0.07 or 0.08
+            cells += [number(summary["auroc"]["combined"]["mean"], digits=3),
+                      number(summary["gain"]["mean"], digits=3, sign=True), SHORT_VERDICT[verdict(summary["h1"])]]
+            sources.append(f"results/preregistered/h1/{folder}/gap1.json")
+        else:
+            cells += [DASH] * 3
+        if h3:
+            level = next(level for level in h3["levels"] if level["k"] == h3["h3"]["k"])
+            cells += [f"{percent(level['pipeline']['accuracy'])} / {percent(level['b2']['accuracy'])}",
+                      f"{percent(level['pipeline']['wrong_accept_rate'])} / {percent(level['b2']['wrong_accept_rate'])}",
+                      interval(h3["h3"]["wrong_accept_difference_ci"]),
+                      "yes" if h3["h3"]["supported"] else "no"]
+            sources.append(f"results/preregistered/h3/{folder}/e3.json")
+        else:
+            cells += [DASH] * 4
+        if h3c:
+            ci = h3c["paired"][H3C_COMPARISON]["0.5"]
+            cells += [interval(ci), "yes" if ci[1] < 0 else "no"]
+            sources.append(f"results/preregistered/h3c/{folder}/combination.json")
+        else:
+            cells += [DASH] * 2
+        rows.append(cells)
+    if not rows:
+        return None
+    changes = sensitivity_changes(results / "preregistered")
+    header = ["Data", "Model", "Prob.", "AUROC", "Gain", "H1", "Acc., pipe.\\ / B2", "WAR, pipe.\\ / B2",
+              "H3 interval", "H3", "H3c interval", "H3c"]
+    caption = ("Pre-registered tests (\\#103) on problems and models not used to design the system: H1 (AUROC of the "
+               "combined score and its gain over feasibility), H3 (pipeline against B2 at an equal budget, $k=3$) and "
+               "H3c (the pipeline at $k=1$ combined with B2, against B2). Accuracy and WAR in \\%; WAR and the "
+               "intervals (points, paired 95\\% bootstrap, first minus B2) at 50\\% coverage. Verdicts: yes "
+               "(supported), partly (partly supported), no (not supported). 387 new: the problems of "
+               "\\texttt{canonical\\_587} outside \\texttt{canonical\\_200}. Main analysis; in the sensitivity "
+               "analysis (without Pollution and the one reference\\_wrong problem) "
+               + (("the only verdicts that change are " + "; ".join(changes)) if changes else "no verdict changes"))
+    return table(caption, "tab:preregistered", "llrrrlrrrlrl", header, rows, sources, wide=True, tight=True), sources
+
+
 BUILDERS = {"baselines.tex": baselines, "gap1.tex": gap1, "gap2.tex": gap2, "gap3.tex": gap3,
-            "ablations.tex": ablations, "efficiency.tex": efficiency}
+            "ablations.tex": ablations, "efficiency.tex": efficiency, "preregistered.tex": preregistered}
 
 
 def make_tables(results: Path, out: Path) -> dict[str, list[str] | None]:
