@@ -17,6 +17,8 @@
 \usepackage{xcolor}
 \usepackage{cite}
 \usepackage{url}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
 \usepackage[hidelinks]{hyperref}
 
 \newcommand{\plan}[1]{\textcolor{gray}{\textit{[Plan: #1]}}}
@@ -253,8 +255,36 @@ wrong-accept rate than B2 at 50\% coverage, again with the whole paired interval
 \label{sec:system}
 
 \subsection{Agent Roles and Modeling Pipeline}
-The system takes a question $Q$ and returns an optimal value with its evidence, an escalation with reasons, or an
-abstention. Five roles exchange structured data:
+Five roles exchange structured data (Fig.~\ref{fig:architecture}):
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[font=\scriptsize, node distance=3mm and 2.2mm,
+  box/.style={draw, rounded corners=1pt, align=center, inner sep=2pt, minimum height=7mm},
+  result/.style={align=left, inner sep=1pt}, >={Stealth[length=1.6mm]}]
+\node[box] (q) {Question\\$Q$};
+\node[box, right=of q] (parse) {Parser\\spec, $R_1..R_m$};
+\node[box, right=of parse] (form) {Formalizer\\PuLP code};
+\node[box, right=of form] (solve) {Solver-runner\\HiGHS, sandbox};
+\node[box, below=5mm of solve] (para) {Paraphraser\\$k$ rewordings};
+\node[box, left=of para] (ver) {Verifier (Gap 1)\\$S_{\text{num}}, S_{\text{req}}, S_{\text{para}}$};
+\node[box, left=of ver] (gate) {Gate (Gap 2)\\$S \ge \tau$?};
+\node[result, left=of gate] (dec) {answer\\escalate\\abstain};
+\draw[->] (q) -- (parse);
+\draw[->] (parse) -- (form);
+\draw[->] (form) -- (solve);
+\draw[->] (solve.north) -- ++(0,2.5mm) -| node[pos=0.25, above, inner sep=1pt] {repair, $r = 1$} (form.north);
+\draw[->] (solve) -- node[right, inner sep=1pt] {optimal} (para);
+\draw[->] (solve.south west) -- (ver.north east);
+\draw[->] (para) -- (ver);
+\draw[->] (ver) -- (gate);
+\draw[->] (gate) -- (dec);
+\node[draw, dashed, rounded corners=1pt, inner sep=2pt, below=2.5mm of ver] {token meter on every LLM call, per step (Gap 3)};
+\end{tikzpicture}
+\caption{The pipeline. Each rewording is formalized and solved on its own; B2 instead resamples B1 up to the same
+token budget.}
+\label{fig:architecture}
+\end{figure}
 
 \textbf{1. Structured Parser.} The parser writes a solver-independent specification without solving: the objective
 sense and statement, the decision variables with their domains, the parameters with values and units, and a checklist
@@ -284,7 +314,7 @@ S_{\text{num}} = \frac{|\mathcal{N}_Q \cap \mathcal{N}_C|}{|\mathcal{N}_Q|}.
 S_{\text{req}} = \frac{|\mathcal{R}_{\text{linked}}|}{|\mathcal{R}|}.
 \end{equation}
 
-\textbf{Paraphrase Agreement ($S_{\text{para}}$).} A correct model's optimum should not change when the question is reworded. For each rewording with an optimal status (one that fails twice is left out and recorded), we evaluate agreement against the primary objective $v^*$ within a relative tolerance of 0.2\% ($|v^{(j)} - v^*| \le 0.002 \cdot \max(|v^*|, |v^{(j)}|)$). Let $k_{\text{solved}} \le k$ be the number of solved rewordings. Paraphrase agreement $S_{\text{para}}$ is the share of solved rewordings that agree with $v^*$. When no rewording solves (or $k=0$), the signal is unavailable and omitted from the composite mean.
+\textbf{Paraphrase Agreement ($S_{\text{para}}$).} A correct model's optimum should not change when the question is reworded. For each rewording with an optimal status (one that fails twice is left out and recorded), we evaluate agreement against the primary objective $v^*$ within a relative tolerance of 0.2\% ($|v^{(j)} - v^*| \le 0.002 \cdot \max(|v^*|, |v^{(j)}|)$). $S_{\text{para}}$ is the share of solved rewordings that agree; when none solves (or $k = 0$), it is left out.
 
 \textbf{Combined Verification Score ($S$).} For an optimal model, $S \in [0, 1]$ is the mean of the available signals, $(S_{\text{num}} + S_{\text{req}} + S_{\text{para}})/3$ in the full pipeline; without the parser or the rewordings that signal is left out. Without an optimal model, $S = 0$.
 
@@ -307,7 +337,7 @@ A token meter records the input and output tokens, latency and role of every LLM
 \label{sec:setup}
 
 \subsection{Benchmarks and Problem Splits}
-\textbf{1. OPT-Engine (\cthree{}).} The primary testbed is OPT-Engine~\cite{chen2026optengine}, an open benchmark covering ten canonical operations research problem families: BinPacking, Inventory, JobShop, Knapsack, NetworkFlow, Pollution, Portfolio, Production, TSP, and Transportation. We evaluate on fixed evaluation subsets:
+\textbf{1. OPT-Engine (\cthree{}).} OPT-Engine~\cite{chen2026optengine} has ten problem classes: BinPacking, Inventory, JobShop, Knapsack, NetworkFlow, Pollution, Portfolio, Production, TSP and Transportation. We use fixed samples:
 \begin{itemize}
 \item \texttt{canonical\_200}: 20 problems per class, for the main repeats and the baselines.
 \item \texttt{canonical\_587}: \texttt{canonical\_200} plus up to 40 more problems per class, a larger calibration
@@ -317,7 +347,7 @@ varied wording.
 \item \texttt{canonical\_587\_rest\_387} and \texttt{canonical\_unused}: the 387 problems of \texttt{canonical\_587}
 outside \texttt{canonical\_200}, and the 1,070 canonical problems in no other sample (half of them BinPacking), used
 only for the pre-registered tests (1,457 held-out problems together).
-\item \texttt{ablation\_50}: 5 problems per class of \texttt{canonical\_200}, for the ablations.
+\item \texttt{ablation\_50}: for the ablations, 5 of the 20 problems per class of \texttt{canonical\_200}.
 \item \texttt{dev\_30} and \texttt{dev\_93}: development splits (3 and about 10 per class) used only for prompt design and error analysis, never for reported results.
 \end{itemize}
 
@@ -338,7 +368,7 @@ We evaluate the proposed pipeline against three reference systems:
 \begin{itemize}
 \item \textbf{Baseline B0 (Direct SIR):} the base paper's single-turn SIR. The model writes PuLP code for $Q$, and an optimal objective is the answer; otherwise the problem fails.
 \item \textbf{Baseline B1 (SIR with Self-Repair):} Extends B0 with up to $r=1$ self-repair rounds driven by solver error tracebacks and non-optimal status codes.
-\item \textbf{Baseline B2 (Budget-Matched Single Agent):} Formulates problem $Q$ under B1, then continues drawing independent candidate solutions at temperature $T=0.7$ until consuming the identical mean token budget used by the $k=3$ multi-agent pipeline (about 20,800 tokens per problem; for the six other models 1.25 times their pipeline's mean, and the analysis keeps only the samples that fit the pipeline's tokens). B2 clusters candidate optima and returns the modal solution with consensus agreement.
+\item \textbf{Baseline B2 (Budget-Matched Single Agent):} B1, then new samples at $T = 0.7$ until it has used the pipeline's mean tokens at $k = 3$ (about 20,800 per problem; for the six other models 1.25 times their pipeline's mean, cut back to the pipeline's tokens in the analysis). It returns the most common optimum, scored by the share of samples that agree with it.
 \end{itemize}
 
 Formalizer calls use $T = 0$ and the paraphraser $T = 0.7$. Where there are several repeats we report their mean and
