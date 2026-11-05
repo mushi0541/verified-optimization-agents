@@ -260,6 +260,13 @@ def ablations(results: Path) -> tuple[str, list[str]] | None:
 
 
 SYSTEMS = (("baseline_r0", "B0"), ("baseline_r1", "B1"), ("pipeline_p3", "Pipeline"), ("b2_r1", "B2"))
+# Readable names for the Bedrock model IDs, the same names as in the pre-registered table.
+MODEL_NAMES = {
+    "openai.gpt-oss-120b-1:0": "gpt-oss-120b", "openai.gpt-oss-20b-1:0": "gpt-oss-20b",
+    "deepseek.v3.2": "DeepSeek V3.2", "qwen.qwen3-next-80b-a3b": "Qwen3 Next 80B",
+    "mistral.mistral-large-3-675b-instruct": "Mistral Large 3", "moonshotai.kimi-k2.5": "Kimi K2.5",
+    "zai.glm-4.7": "GLM 4.7",
+}
 
 
 def efficiency(results: Path) -> tuple[str, list[str]] | None:
@@ -284,19 +291,23 @@ def efficiency(results: Path) -> tuple[str, list[str]] | None:
             cost = metric("mean_cost_usd")
             unpriced |= cost is None
             tokens = metric("mean_input_tokens") + metric("mean_output_tokens")
-            rows.append([tex(model) if first else "", label,
+            rows.append([tex(MODEL_NAMES.get(model, model)) if first else "", label,
                          str(len(group["runs"])), f"{tokens:,.0f}", f"{metric('mean_llm_calls'):.1f}",
                          f"{metric('mean_solver_calls'):.1f}", f"{metric('mean_latency_s'):.0f}",
                          DASH if cost is None else f"{1000 * cost:.2f}", percent(metric("failed_run_rate")),
                          percent(metric("solver_error_rate")), percent(metric("repair_success_rate"))])
             first = False
+    with_b0 = [tex(MODEL_NAMES.get(model, model)) for model, groups in by_model.items() if "baseline_r0" in groups]
     dates = sorted({price["date"] for price in data["prices_usd_per_million_tokens"].values()})
     header = ["Model", "System", "Rep.", "Tokens", "LLM", "Solver", "Time (s)", "US\\$/1k", "Failed", "Sol.\\ err.",
               "Repair"]
     caption = ("Efficiency and reliability on \\texttt{canonical\\_200} per problem, mean over the repeats: tokens, "
                "LLM and solver calls, latency, cost in US\\$ per 1,000 problems (" + tex(data["price_source"])
                + " prices read on " + ", ".join(dates) + "), and the failed-run, solver-error and repair-success "
-               "rates (\\%)" + ("; -- where the model has no listed price" if unpriced else ""))
+               "rates (\\%)" + ("; -- where the model has no listed price" if unpriced else "")
+               + (f". B0 was run for {', '.join(with_b0)} only" if with_b0 else "")
+               + ". B2 is shown as run, with a budget of 1.25 times the pipeline's mean tokens for the models "
+               "added in \\#103; the H3 tests hold it to the pipeline's tokens")
     return table(caption, "tab:efficiency", "llrrrrrrrrr", header, rows, [source], wide=True), [source]
 
 

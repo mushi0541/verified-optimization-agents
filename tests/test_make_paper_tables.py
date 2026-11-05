@@ -141,7 +141,9 @@ def test_the_efficiency_table_has_a_row_per_model_and_system(tmp_path):
     make_tables(tmp_path / "results", tmp_path / "tables")
     lines = [line for line in (tmp_path / "tables" / "efficiency.tex").read_text(encoding="utf-8").splitlines()
              if " & " in line and not line.startswith("Model")]
-    assert lines[0].startswith("openai.gpt-oss-120b-1:0 & B1 & 1 & 2,664 &")  # B1 before the pipeline
+    assert lines[0].startswith("gpt-oss-120b & B1 & 1 & 2,664 &")  # B1 before the pipeline; readable model names
     assert lines[1].startswith(" & Pipeline & 3 & 21,274 & 8.2 & 4.2 & 92 & 8.77 & 0.0 & 3.8 & -- ")
-    assert lines[2].startswith("openai.gpt-oss-20b-1:0 & B1 & 1 & 4,271 &") and " & -- & 0.0 & " in lines[2]
-    assert "-- where the model has no listed price" in (tmp_path / "tables" / "efficiency.tex").read_text(encoding="utf-8")
+    assert lines[2].startswith("gpt-oss-20b & B1 & 1 & 4,271 &") and " & -- & 0.0 & " in lines[2]
+    text = (tmp_path / "tables" / "efficiency.tex").read_text(encoding="utf-8")
+    assert "-- where the model has no listed price" in text
+    assert "B0 was run for" not in text  # no model has a B0 run here
