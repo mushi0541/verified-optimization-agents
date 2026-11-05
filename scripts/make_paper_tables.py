@@ -11,7 +11,9 @@ Each table is built only from files that the analysis scripts wrote, so no numbe
   alpha and at the fixed threshold, the smallest alpha the data supports and the H2 verdict, per sample;
 - gap3.tex from results/gap3/canonical_200/e3.json (scripts/analyze_e3.py): the pipeline against B2 at an equal
   token budget for each k, with the paired interval and the H3 verdict, and B0 and B1 as reference points;
-- ablations.tex from results/ablations/ablations.csv (scripts/ablation_table.py): each ablation on ablation_50.
+- ablations.tex from results/ablations/ablations.csv (scripts/ablation_table.py): each ablation on ablation_50;
+- efficiency.tex from results/e6/canonical_200/efficiency.json (scripts/efficiency.py --sample): E6 per model and
+  system.
 
 A table whose input files are missing is not written, so main.tex shows its \\generated note instead; the script says
 which tables it wrote and which it skipped. Rows follow fixed lists of samples, so the output does not depend on the
@@ -257,8 +259,60 @@ def ablations(results: Path) -> tuple[str, list[str]] | None:
     return table(caption, "tab:ablations", "p{5.2cm}rrrrrr", header, rows, [source], wide=True), [source]
 
 
+SYSTEMS = (("baseline_r0", "B0"), ("baseline_r1", "B1"), ("pipeline_p3", "Pipeline"), ("b2_r1", "B2"))
+# Readable names for the Bedrock model IDs, the same names as in the pre-registered table.
+MODEL_NAMES = {
+    "openai.gpt-oss-120b-1:0": "gpt-oss-120b", "openai.gpt-oss-20b-1:0": "gpt-oss-20b",
+    "deepseek.v3.2": "DeepSeek V3.2", "qwen.qwen3-next-80b-a3b": "Qwen3 Next 80B",
+    "mistral.mistral-large-3-675b-instruct": "Mistral Large 3", "moonshotai.kimi-k2.5": "Kimi K2.5",
+    "zai.glm-4.7": "GLM 4.7",
+}
+
+
+def efficiency(results: Path) -> tuple[str, list[str]] | None:
+    """E6 on canonical_200: cost, latency, calls and reliability per model and system, mean over the repeats (only
+    gpt-oss-120b's pipeline has more than one). Rows follow the model order of the file, then B0, B1, pipeline, B2."""
+    source = "results/e6/canonical_200/efficiency.json"
+    data = read(results / "e6" / "canonical_200" / "efficiency.json")
+    if data is None:
+        return None
+    by_model: dict[str, dict[str, dict]] = {}
+    for group in data["configurations"]:
+        system, model = [part.strip() for part in group["configuration"].split("|")[:2]]
+        by_model.setdefault(model, {})[system] = group
+    rows, unpriced = [], False
+    for model, groups in by_model.items():
+        first = True  # the model name only on its first row
+        for system, label in SYSTEMS:
+            group = groups.get(system)
+            if group is None:
+                continue
+            metric = lambda name: group["metrics"][name]["mean"]  # noqa: E731
+            cost = metric("mean_cost_usd")
+            unpriced |= cost is None
+            tokens = metric("mean_input_tokens") + metric("mean_output_tokens")
+            rows.append([tex(MODEL_NAMES.get(model, model)) if first else "", label,
+                         str(len(group["runs"])), f"{tokens:,.0f}", f"{metric('mean_llm_calls'):.1f}",
+                         f"{metric('mean_solver_calls'):.1f}", f"{metric('mean_latency_s'):.0f}",
+                         DASH if cost is None else f"{1000 * cost:.2f}", percent(metric("failed_run_rate")),
+                         percent(metric("solver_error_rate")), percent(metric("repair_success_rate"))])
+            first = False
+    with_b0 = [tex(MODEL_NAMES.get(model, model)) for model, groups in by_model.items() if "baseline_r0" in groups]
+    dates = sorted({price["date"] for price in data["prices_usd_per_million_tokens"].values()})
+    header = ["Model", "System", "Rep.", "Tokens", "LLM", "Solver", "Time (s)", "US\\$/1k", "Failed", "Sol.\\ err.",
+              "Repair"]
+    caption = ("Efficiency and reliability on \\texttt{canonical\\_200} per problem, mean over the repeats: tokens, "
+               "LLM and solver calls, latency, cost in US\\$ per 1,000 problems (" + tex(data["price_source"])
+               + " prices read on " + ", ".join(dates) + "), and the failed-run, solver-error and repair-success "
+               "rates (\\%)" + ("; -- where the model has no listed price" if unpriced else "")
+               + (f". B0 was run for {', '.join(with_b0)} only" if with_b0 else "")
+               + ". B2 is shown as run, with a budget of 1.25 times the pipeline's mean tokens for the models "
+               "added in \\#103; the H3 tests hold it to the pipeline's tokens")
+    return table(caption, "tab:efficiency", "llrrrrrrrrr", header, rows, [source], wide=True), [source]
+
+
 BUILDERS = {"baselines.tex": baselines, "gap1.tex": gap1, "gap2.tex": gap2, "gap3.tex": gap3,
-            "ablations.tex": ablations}
+            "ablations.tex": ablations, "efficiency.tex": efficiency}
 
 
 def make_tables(results: Path, out: Path) -> dict[str, list[str] | None]:

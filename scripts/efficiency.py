@@ -23,11 +23,14 @@ Counting rules, so the numbers match the records:
 - a measure a repeat cannot have (the repair success rate when nothing needed repair) is left out of the mean, and
   the output says how many repeats had a value;
 - runs saved before Phase 2 have no endpoint in their config and no per-step tokens, and are labelled as such;
-- repeats must come from the same code; pass --runs to choose the runs for a table.
+- runs with other prompt versions (#95, v2 and v3) are never repeats of v1 runs;
+- repeats must come from the same code; pass --runs to choose the runs for a table, and --sample to keep only the
+  problems of one sample in every run (the canonical_200 part of the canonical_587 run is a canonical_200 repeat).
 
 Example:
     python scripts/efficiency.py --out-dir results/e6
     python scripts/efficiency.py --runs results/<run 1> results/<run 2> --out-dir results/e6
+    python scripts/efficiency.py --runs results/<run 1> results/<canonical_587 run> --sample samples/canonical_200.json
 """
 
 import argparse
@@ -42,6 +45,11 @@ RESULTS_DIR = Path(__file__).resolve().parent.parent / "results"
 PRICES = {
     "openai.gpt-oss-120b-1:0": {"input": 0.15, "output": 0.60, "date": "2026-10-20"},
     "deepseek.v3.2": {"input": 0.62, "output": 1.85, "date": "2026-11-02"},  # the second paraphrase model (#56)
+    # The other models of #103 (Addendum 2). gpt-oss-20b has no us-east-1 price on the page, so it has no cost.
+    "qwen.qwen3-next-80b-a3b": {"input": 0.15, "output": 1.20, "date": "2026-11-05"},
+    "mistral.mistral-large-3-675b-instruct": {"input": 0.50, "output": 1.50, "date": "2026-11-05"},
+    "zai.glm-4.7": {"input": 0.60, "output": 2.20, "date": "2026-11-05"},
+    "moonshotai.kimi-k2.5": {"input": 0.60, "output": 3.00, "date": "2026-11-05"},
 }
 FAILED_RUN_TARGET = 0.05  # report objective D1
 DEFAULT_SIGNALS = ("number", "requirement", "paraphrase")  # every Gap 1 signal on, the main configuration
@@ -63,10 +71,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="E6: efficiency and reliability from saved runs (no API calls).")
     parser.add_argument("--runs", nargs="+", help="run folders (default: every folder in results/ with a summary.json)")
     parser.add_argument("--out-dir", help="folder for efficiency.csv, tokens_by_step.csv and efficiency.json")
+    parser.add_argument("--sample", type=Path, help="only the problems of this sample file, in every run (--runs)")
     args = parser.parse_args()
 
     folders = [Path(folder) for folder in args.runs] if args.runs else sorted(p.parent for p in RESULTS_DIR.glob("*/summary.json"))
-    result = efficiency([load_run(folder) for folder in folders])
+    runs = [load_run(folder) for folder in folders]
+    result = efficiency([only_sample(run, args.sample) for run in runs] if args.sample else runs)
     if args.out_dir:
         write_tables(result, Path(args.out_dir))
     print(json.dumps({group["configuration"]: group["metrics"] for group in result["configurations"]}, indent=2))
@@ -129,7 +139,26 @@ def run_settings(config: dict) -> str:
         parts.append("signals " + ("+".join(signals) if signals else "none"))
     if config.get("no_parser"):
         parts.append("no parser")
+    if config.get("prompt_version") not in (None, "v1"):  # runs from before #95 have none and used v1
+        parts.append(f"prompts {config['prompt_version']}")
     return "".join(f" [{part}]" for part in parts)
+
+
+def only_sample(run: dict, sample_file: Path) -> dict:
+    """The run restricted to the problems of a sample file, for example the canonical_200 part of a canonical_587 run,
+    so it can be a repeat of the canonical_200 runs (as in the Gap 1 and Gap 2 analyses). Stops when a problem of the
+    sample is neither finished nor failed in the run, so a repeat never covers only part of the sample."""
+    sample = set(json.loads(Path(sample_file).read_text(encoding="utf-8")))
+    records = [record for record in run["records"] if record["problem_id"] in sample]
+    failed = [problem for problem in run["summary"].get("failed_problems", []) if problem in sample]
+    missing = sample - {record["problem_id"] for record in records} - set(failed)
+    if missing:
+        raise SystemExit(f"{run['name']} holds {len(sample) - len(missing)} of the {len(sample)} problems of "
+                         f"{Path(sample_file).as_posix()}; missing: {', '.join(sorted(missing)[:5])}")
+    config = dict(run["summary"].get("config", {}), sample_file=Path(sample_file).as_posix())
+    own = Path(str(run["summary"].get("config", {}).get("sample_file") or "").replace("\\", "/")).stem
+    name = run["name"] if own == Path(sample_file).stem else f"{run['name']} ({Path(sample_file).stem} part)"
+    return {"name": name, "summary": dict(run["summary"], config=config, failed_problems=failed), "records": records}
 
 
 def run_metrics(run: dict) -> dict:

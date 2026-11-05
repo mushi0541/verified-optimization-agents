@@ -1,0 +1,283 @@
+{
+  "prices_usd_per_million_tokens": {
+    "openai.gpt-oss-120b-1:0": {
+      "input": 0.15,
+      "output": 0.6,
+      "date": "2026-10-20"
+    },
+    "deepseek.v3.2": {
+      "input": 0.62,
+      "output": 1.85,
+      "date": "2026-11-02"
+    },
+    "qwen.qwen3-next-80b-a3b": {
+      "input": 0.15,
+      "output": 1.2,
+      "date": "2026-11-05"
+    },
+    "mistral.mistral-large-3-675b-instruct": {
+      "input": 0.5,
+      "output": 1.5,
+      "date": "2026-11-05"
+    },
+    "zai.glm-4.7": {
+      "input": 0.6,
+      "output": 2.2,
+      "date": "2026-11-05"
+    },
+    "moonshotai.kimi-k2.5": {
+      "input": 0.6,
+      "output": 3.0,
+      "date": "2026-11-05"
+    }
+  },
+  "price_source": "Amazon Bedrock on-demand, us-east-1",
+  "failed_run_target": 0.05,
+  "configurations": [
+    {
+      "configuration": "baseline_r1 | openai.gpt-oss-120b-1:0 | bedrock us-east-1 | canonical_unused | 1070 problems [f90e0d]",
+      "runs": [
+        "baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_unused_r1_20261102-1255"
+      ],
+      "problems_per_run": [
+        1070
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 733.1570093457943,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_output_tokens": {
+          "mean": 1517.1943925233645,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_llm_calls": {
+          "mean": 1.0448598130841122,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_solver_calls": {
+          "mean": 1.0448598130841122,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_latency_s": {
+          "mean": 24.656294450747843,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_cost_usd": {
+          "mean": 0.0010202901869158878,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_error_rate": {
+          "mean": 0.023255813953488372,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_timeout_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "repair_success_rate": {
+          "mean": 0.8958333333333334,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "price": {
+        "model": "openai.gpt-oss-120b-1:0",
+        "input": 0.15,
+        "output": 0.6,
+        "date": "2026-10-20"
+      },
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "formalize": 2084.36261682243,
+        "repair": 165.98878504672896
+      }
+    },
+    {
+      "configuration": "pipeline_p3 | openai.gpt-oss-120b-1:0 | bedrock us-east-1 | canonical_unused | 1070 problems [f90e0d]",
+      "runs": [
+        "pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_unused_r1_20261102-1255"
+      ],
+      "problems_per_run": [
+        1070
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 6322.84953271028,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_output_tokens": {
+          "mean": 9579.8261682243,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_llm_calls": {
+          "mean": 8.218691588785047,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_solver_calls": {
+          "mean": 4.128971962616823,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_latency_s": {
+          "mean": 121.03837383831753,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_cost_usd": {
+          "mean": 0.0066963231308411215,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_error_rate": {
+          "mean": 0.03259911894273128,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_timeout_rate": {
+          "mean": 0.000881057268722467,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "repair_success_rate": {
+          "mean": 0.7692307692307693,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "price": {
+        "model": "openai.gpt-oss-120b-1:0",
+        "input": 0.15,
+        "output": 0.6,
+        "date": "2026-10-20"
+      },
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "parse": 2004.4205607476636,
+        "formalize": 3415.951401869159,
+        "repair": 256.8542056074766,
+        "paraphrase_1": 3432.2130841121493,
+        "paraphrase_2": 3410.9242990654207,
+        "paraphrase_3": 3382.3121495327105
+      }
+    },
+    {
+      "configuration": "b2_r1 | openai.gpt-oss-120b-1:0 | bedrock us-east-1 | canonical_unused | 1070 problems [f90e0d]",
+      "runs": [
+        "b2_bedrock-openai.gpt-oss-120b-1-0_canonical_unused_r1_20261103-1522"
+      ],
+      "problems_per_run": [
+        1070
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 8521.13738317757,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_output_tokens": {
+          "mean": 17473.329906542058,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_llm_calls": {
+          "mean": 13.602803738317757,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_solver_calls": {
+          "mean": 13.602803738317757,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_latency_s": {
+          "mean": 322.7383964870094,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_cost_usd": {
+          "mean": 0.011762168551401869,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_error_rate": {
+          "mean": 0.012985228443833733,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_timeout_rate": {
+          "mean": 0.00013740982480247338,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "repair_success_rate": {
+          "mean": 0.7954545454545454,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "price": {
+        "model": "openai.gpt-oss-120b-1:0",
+        "input": 0.15,
+        "output": 0.6,
+        "date": "2026-10-20"
+      },
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "sample_1": 2200.1504672897195,
+        "sample_2": 2204.9420560747662,
+        "sample_3": 2194.7691588785046,
+        "sample_4": 2182.13738317757,
+        "sample_5": 2105.2252336448596,
+        "sample_6": 2057.881308411215,
+        "sample_7": 1984.96261682243,
+        "sample_8": 1774.1046728971962,
+        "sample_9": 1566.582242990654,
+        "sample_10": 1476.411214953271,
+        "sample_11": 1321.0439252336448,
+        "sample_12": 1213.0196261682242,
+        "sample_13": 1012.6018691588785,
+        "sample_14": 806.5794392523364,
+        "sample_15": 671.5953271028037,
+        "sample_16": 508.0084112149533,
+        "sample_17": 328.69158878504675,
+        "sample_18": 169.50841121495327,
+        "sample_19": 86.56448598130841,
+        "sample_20": 59.88598130841122,
+        "sample_21": 32.5803738317757,
+        "sample_22": 22.22056074766355,
+        "sample_23": 10.69158878504673,
+        "sample_24": 4.309345794392524
+      }
+    }
+  ]
+}

@@ -121,3 +121,29 @@ def test_an_ablation_rate_from_fewer_than_two_repeats_is_marked(tmp_path):
     assert r"(vi) Calibrated & 3 & 82.0 $\pm$ 2.0 & 3.3 $\pm$ 5.8 & 20.0$^\dagger$ & 0.91 $\pm$ 0.07" in text
     assert "(iv) Without the parser & 1 & 82.0 & 84.0 & 4.8 & 0.93 & 16,594 \\\\" in text  # one repeat: no sd, no mark
     assert r"$^\dagger$ from fewer than two of the repeats" in text
+
+
+def test_the_efficiency_table_has_a_row_per_model_and_system(tmp_path):
+    def group(system, model, runs, tokens, cost):
+        metrics = {name: _stat(value) for name, value in {
+            "mean_input_tokens": tokens / 2, "mean_output_tokens": tokens / 2, "mean_llm_calls": 8.25,
+            "mean_solver_calls": 4.2, "mean_latency_s": 91.7, "mean_cost_usd": cost, "failed_run_rate": 0.0,
+            "solver_error_rate": 0.038, "repair_success_rate": None}.items()}
+        return {"configuration": f"{system} | {model} | bedrock us-east-1 | canonical_200 | 200 problems [abc123]",
+                "runs": ["run"] * runs, "metrics": metrics}
+
+    _write(tmp_path / "results" / "e6" / "canonical_200" / "efficiency.json", {
+        "price_source": "Amazon Bedrock on-demand, us-east-1",
+        "prices_usd_per_million_tokens": {"openai.gpt-oss-120b-1:0": {"date": "2026-10-20"}},
+        "configurations": [group("pipeline_p3", "openai.gpt-oss-120b-1:0", 3, 21274.0, 0.00877),
+                           group("baseline_r1", "openai.gpt-oss-120b-1:0", 1, 2664.0, 0.00119),
+                           group("baseline_r1", "openai.gpt-oss-20b-1:0", 1, 4271.0, None)]})
+    make_tables(tmp_path / "results", tmp_path / "tables")
+    lines = [line for line in (tmp_path / "tables" / "efficiency.tex").read_text(encoding="utf-8").splitlines()
+             if " & " in line and not line.startswith("Model")]
+    assert lines[0].startswith("gpt-oss-120b & B1 & 1 & 2,664 &")  # B1 before the pipeline; readable model names
+    assert lines[1].startswith(" & Pipeline & 3 & 21,274 & 8.2 & 4.2 & 92 & 8.77 & 0.0 & 3.8 & -- ")
+    assert lines[2].startswith("gpt-oss-20b & B1 & 1 & 4,271 &") and " & -- & 0.0 & " in lines[2]
+    text = (tmp_path / "tables" / "efficiency.tex").read_text(encoding="utf-8")
+    assert "-- where the model has no listed price" in text
+    assert "B0 was run for" not in text  # no model has a B0 run here

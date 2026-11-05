@@ -428,12 +428,23 @@ input and output tokens, LLM calls, solver calls, latency and cost per problem, 
 report objective D1), solver error and timeout rates, and the repair success rate. A repeat without a measure (such
 as the repair success rate when nothing needed repair) is left out of that mean, and the output says how many repeats
 had a value. Cost uses the price of each run's model from the `PRICES` table in the script, with the date the price
-was read (Bedrock, us-east-1: `openai.gpt-oss-120b-1:0` at US$0.15 and US$0.60 per million input and output tokens,
-2026-10-20). A model without a price gets an empty cost cell. When a record splits its tokens by model (a
+was read (Bedrock list prices, us-east-1; `gpt-oss-20b` has no listed price there). A model without a price gets an
+empty cost cell. When a record splits its tokens by model (a
 second paraphrase model), each model is priced on its own. Runs with a second paraphraser or other verifier switches
 are never averaged with the main runs. Tokens and cost cover finished problems only, because no
 usage is saved for a failed problem, so the cost is a lower bound when runs fail. It writes `efficiency.csv`,
 `tokens_by_step.csv` (where each system spends its tokens, from `usage_by_step`) and `efficiency.json`.
+
+The two folders in `results/e6` were made with these commands (the `canonical_200` one leaves out the v3-prompt and
+second-paraphraser runs, and adds the `canonical_200` part of the `canonical_587` run as a pipeline repeat):
+
+```bash
+python scripts/efficiency.py --sample samples/canonical_200.json --out-dir results/e6/canonical_200 \
+    --runs $(ls -d results/*canonical_200_r* | grep -v -e prompts-v3 -e para-bedrock) \
+    results/pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_587_r1_20261101-2254
+python scripts/efficiency.py --out-dir results/e6/canonical_unused --runs results/baseline_*canonical_unused_r1* \
+    results/pipeline_*canonical_unused_r1* results/b2_*canonical_unused_r1*
+```
 
 ## Evaluation rule
 
