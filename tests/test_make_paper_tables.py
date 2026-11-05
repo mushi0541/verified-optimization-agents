@@ -213,3 +213,16 @@ def test_the_gap_resolution_table_counts_the_preregistered_runs(tmp_path):
     # one supported H3 run makes the verdict "partly"; no H3c run has its interval below 0
     assert "[-5.0, +4.3]" in rows[2] and "supported in 1 of 2 pre-registered runs & partly \\\\" in rows[2]
     assert rows[3].endswith("supported in 0 of 2 pre-registered runs & not supported \\\\")
+
+
+def test_the_failures_table_sorts_categories_and_drops_empty_ones(tmp_path):
+    cells = lambda accepted, refused: {"wrong accept": accepted, "correct refusal": refused}  # noqa: E731
+    data = {"outcomes": {"canonical_200": {"problems": 200}, "linguistic_60": {"problems": 60}}, "pending_rows": 0,
+            "wrong_by_label": {"code error": cells(0, 9), "wrong constraint": cells(14, 39), "wrong data value": cells(0, 0),
+                               "other": cells(2, 7)}}
+    _write(tmp_path / "results" / "failures" / "failures.json", data)
+    make_tables(tmp_path / "results", tmp_path / "tables")
+    text = (tmp_path / "tables" / "failures.tex").read_text(encoding="utf-8")
+    body = [line for line in text.splitlines() if line.endswith("\\\\") and not line.startswith("Category")]
+    assert body == ["Wrong constraint & 14 & 39 & 53 \\\\", "Code error & 0 & 9 & 9 \\\\", "Other & 2 & 7 & 9 \\\\"]
+    assert "(260 problems)" in text and "Pending" not in text
