@@ -168,3 +168,15 @@ def test_the_preregistered_table_applies_the_h3c_rule(tmp_path):
     assert rows[0] == ("\\texttt{canonical\\_200} & Qwen3 Next 80B & 200 & 0.928 & +0.075 & no & 68.5 / 80.5 & "
                        "3.0 / 3.3 & [-3.2, +3.4] & no & [-4.0, -0.1] & yes \\\\")
     assert rows[1] == "all held out & gpt-oss-120b & 1,457 & -- & -- & -- & 68.5 / 80.5 & 3.0 / 3.3 & [+1.6, +4.4] & no & -- & -- \\\\"
+    text = (tmp_path / "tables" / "preregistered.tex").read_text(encoding="utf-8")
+    assert "no verdict changes" in text  # no sensitivity folders yet
+
+    # A sensitivity result that flips H3 is named in the caption; one that does not flip is not.
+    _write(base / "h3" / "canonical_200_qwen_sensitivity" / "e3.json", {
+        "problems": 180, "levels": [level], "h3": {"k": 3, "wrong_accept_difference_ci": [-0.076, -0.003], "supported": True}})
+    _write(base / "h3" / "held_out_1457_sensitivity" / "e3.json", {
+        "problems": 1406, "levels": [level], "h3": {"k": 3, "wrong_accept_difference_ci": [0.015, 0.038], "supported": False}})
+    make_tables(tmp_path / "results", tmp_path / "tables")
+    text = (tmp_path / "tables" / "preregistered.tex").read_text(encoding="utf-8")
+    assert "the only verdicts that change are H3 for Qwen3 Next 80B on \\texttt{canonical\\_200}, now [-7.6, -0.3]" in text
+    assert "1,406" not in text and "H3 for gpt-oss-120b" not in text
