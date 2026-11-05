@@ -373,7 +373,7 @@ cannot reproduce (Section~\ref{sec:references}).
 \subsection{Gap 1: do the signals detect wrong models? (H1)}
 \generated{tables/gap1.tex}{scripts/analyze\_gap1.py}
 The combined score separates correct from wrong answers with an AUROC of 0.87 over three repeats, against 0.54 for
-feasibility alone (Table~\ref{tab:gap1}), and the gain of at least 0.28 holds on every sample. Paraphrase agreement
+feasibility alone (Table~\ref{tab:gap1}), and the mean gain is at least 0.28 on every sample of that table. Paraphrase agreement
 carries most of it (0.85 alone); number coverage is saturated (0.55) and requirement coverage adds little (0.64). H1
 is therefore partly supported: the gain holds, but removing a signal does not always lower the AUROC
 (Section~\ref{sec:ablations}). In the pre-registered runs the gain is 0.19 to 0.31 for six of seven, and 0.075 for
