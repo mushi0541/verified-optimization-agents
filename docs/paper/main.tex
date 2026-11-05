@@ -373,7 +373,7 @@ cannot reproduce (Section~\ref{sec:references}).
 \subsection{Gap 1: do the signals detect wrong models? (H1)}
 \generated{tables/gap1.tex}{scripts/analyze\_gap1.py}
 The combined score separates correct from wrong answers with an AUROC of 0.87 over three repeats, against 0.54 for
-feasibility alone (Table~\ref{tab:gap1}), and the gain of at least 0.27 holds on every sample. Paraphrase agreement
+feasibility alone (Table~\ref{tab:gap1}), and the mean gain is at least 0.28 on every sample of that table. Paraphrase agreement
 carries most of it (0.85 alone); number coverage is saturated (0.55) and requirement coverage adds little (0.64). H1
 is therefore partly supported: the gain holds, but removing a signal does not always lower the AUROC
 (Section~\ref{sec:ablations}). In the pre-registered runs the gain is 0.19 to 0.31 for six of seven, and 0.075 for
@@ -524,7 +524,9 @@ what one fold of \texttt{canonical\_200} provides. We therefore added \texttt{ca
 from the Phase~1 plan, made after H2 failed on \texttt{canonical\_200}, and both results are reported. The main
 configuration uses one model (gpt-oss-120b); the six other models have one run each on 200 problems, so their
 intervals are wide. Repeats differ only in provider nondeterminism and the paraphraser's sampling temperature.
-The pipeline has three evaluation repeats on \texttt{canonical\_200}, while B0, B1 and B2 have one each.
+The pipeline has three repeats on \texttt{canonical\_200}, \texttt{constraint\_pairs\_60} and
+\texttt{linguistic\_60} (the third repeat of the last two ran in another AWS region), while B0, B1 and B2 have one
+each.
 A second paraphrase model (DeepSeek V3.2) caught two misreadings that same-model rewordings shared (canonical-1653
 and 1643), but did not raise the AUROC (0.815 against 0.866 on \texttt{dev\_93}, 0.876 against 0.883 on
 \texttt{canonical\_200}) and raised false alarms.
