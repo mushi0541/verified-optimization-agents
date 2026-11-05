@@ -714,3 +714,35 @@ holds. The verifier signals rank answers well (H1), but at an equal token budget
 and, for gpt-oss-120b, has a lower wrong-accept rate. Combining the two helps the pipeline but does not beat B2. For
 other models the wrong-accept rates are close, and the direction often favours the pipeline (GLM most clearly), so
 "B2 is safer" is a gpt-oss-120b result, while "B2 is at least as accurate" holds for every model.
+
+
+## 22. Third E3 repeat on constraint_pairs_60 and linguistic_60, and one extra model
+
+**Date.** 2026-11-05 (#34, #116, #118, #119).
+
+**Repeat 3.** Rauf ran the third repeat of the main configuration on both sets (gpt-oss-120b, k = 3, r = 1,
+threshold 0.8, all signals, parser on, v1 prompts), with 0 failed problems:
+- `constraint_pairs_60` (`results/pipeline_..._constraint_pairs_60_r1_20261105-2035`): 74 of 120 correct, 69 answered,
+  4 of them wrong (5.8%).
+- `linguistic_60` (`results/pipeline_..._linguistic_60_r1_20261105-2152`): 44 of 60 correct, 43 answered, 3 of them
+  wrong (7.0%).
+- **One difference from repeats 1 and 2:** the endpoint. His AWS organization allows Bedrock only in ap-southeast-2,
+  so these runs used Sydney instead of us-east-1. It is the same model and the same settings, so we count them as
+  repeat 3; `config.json` records the endpoint.
+
+**Gap 1 over three repeats** (`results/gap1/constraint_pairs_60/`, `results/gap1/linguistic_60/`). Correct answers
+per repeat: 74, 76 and 74 of 120 for the pairs, and 48, 41 and 44 of 60 for the linguistic set. The combined AUROC
+is 0.95 and 0.91, and the gain over feasibility is +0.28 and +0.34. H1 stays partly supported on both. Rebuilt with:
+
+```bash
+python scripts/analyze_gap1.py --records results/pipeline_bedrock-openai.gpt-oss-120b-1-0_constraint_pairs_60_r1_{20261101-1430,20261101-2337,20261105-2035}/records.jsonl --out results/gap1/constraint_pairs_60
+python scripts/analyze_gap1.py --records results/pipeline_bedrock-openai.gpt-oss-120b-1-0_linguistic_60_r1_{20261101-1431,20261102-0045,20261105-2152}/records.jsonl --out results/gap1/linguistic_60
+```
+
+The two-repeat files rebuilt exactly before the third repeat was added, apart from a `"sample": null` setting that
+the script has written since #86.
+
+**An extra model, not a repeat** (#116). Claude Sonnet 4.5 (Sydney) ran the same pipeline on `linguistic_60`: 46 of
+60 correct, 57 answered, 13 of them wrong (22.8%). All 14 wrong answers are Inventory, and the checks escalated only
+one of them, because every rewording repeats the same misreading. It is not in the pre-registered model list, so it is
+reported here as an exploratory run only.
