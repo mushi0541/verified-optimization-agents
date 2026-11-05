@@ -14,7 +14,8 @@ Each table is built only from files that the analysis scripts wrote, so no numbe
 - ablations.tex from results/ablations/ablations.csv (scripts/ablation_table.py): each ablation on ablation_50;
 - efficiency.tex from results/e6/canonical_200/efficiency.json (scripts/efficiency.py --sample): E6 per model and
   system;
-- preregistered.tex from results/preregistered/{h1,h3,h3c} (#103): H1, H3 and H3c per model and held-out sample.
+- preregistered.tex from results/preregistered/{h1,h3,h3c} (#103): H1, H3 and H3c per model and held-out sample;
+- gap_resolution.tex from the same files: one row per hypothesis with its main-analysis result and verdict.
 
 A table whose input files are missing is not written, so main.tex shows its \\generated note instead; the script says
 which tables it wrote and which it skipped. Rows follow fixed lists of samples, so the output does not depend on the
@@ -407,8 +408,58 @@ def preregistered(results: Path) -> tuple[str, list[str]] | None:
     return table(caption, "tab:preregistered", "llrrrlrrrlrl", header, rows, sources, wide=True, tight=True), sources
 
 
+def gap_resolution(results: Path) -> tuple[str, list[str]] | None:
+    """One row per hypothesis: what was tested and the verdict, from the same files as the gap tables and the
+    pre-registered table (main analysis only). Each test counts the held-out runs that support it."""
+    g1 = read(results / "gap1" / "canonical_200" / "gap1.json")
+    g2 = {name: read(results / path / "gap2.json") for name, path in (
+        ("canonical_200", "gap2/canonical_200"), ("canonical_587", "gap2/canonical_587"),
+        ("canonical_unused", "preregistered/h2/canonical_unused"))}
+    g3 = read(results / "gap3" / "canonical_200" / "e3.json")
+    base = results / "preregistered"
+    h1 = [d for folder, _, _ in PREREGISTERED if (d := read(base / "h1" / folder / "gap1.json"))]
+    h3 = [d for folder, _, _ in PREREGISTERED if (d := read(base / "h3" / folder / "e3.json"))]
+    h3c = [d for folder, _, _ in PREREGISTERED if (d := read(base / "h3c" / folder / "combination.json"))]
+    if g1 is None or g3 is None or None in g2.values() or not (h1 and h3 and h3c):
+        return None
+
+    def count(items: list[bool]) -> str:
+        return f"{sum(items)} of {len(items)}"
+
+    s1 = g1["summary"]
+    h1_partly = [verdict(d["summary"]["h1"]) != "not supported" for d in h1]
+    alphas = sorted({run["alpha_scan"]["smallest_alpha_meeting_h2_rule"] for d in g2.values() for run in d["runs"]
+                     if run.get("alpha_scan")})
+    h2_any = [verdict(d["summary"]["h2"]) == "supported" for d in g2.values()]
+    low, high = g3["h3"]["wrong_accept_difference_ci"]
+    rows = [
+        ["1", "H1: AUROC gain $\\ge$ 0.10 over feasibility",
+         f"{number(s1['auroc']['feasibility']['mean'], digits=2)} to {number(s1['auroc']['combined']['mean'], digits=2)}; "
+         f"partly in {count(h1_partly)} pre-registered runs",
+         verdict(s1["h1"])],
+        ["2", "H2: WAR $\\le$ 10\\% on unseen classes, half answered",
+         f"met in {count(h2_any)} samples; smallest $\\alpha$ met: {100 * alphas[0]:.0f}--{100 * alphas[-1]:.0f}\\%",
+         "not supported" if not any(h2_any) else "supported"],
+        ["3", "H3: lower WAR than B2 at an equal budget",
+         f"[{100 * low:+.1f}, {100 * high:+.1f}] on \\texttt{{canonical\\_200}}; supported in "
+         f"{count([d['h3']['supported'] for d in h3])} pre-registered runs",
+         "not supported" if not any(d["h3"]["supported"] for d in h3) and not g3["h3"]["supported"] else "partly"],
+        ["3", "H3c: the pipeline with B2 beats B2",
+         f"supported in {count([d['paired'][H3C_COMPARISON]['0.5'][1] < 0 for d in h3c])} pre-registered runs",
+         "not supported" if not any(d["paired"][H3C_COMPARISON]["0.5"][1] < 0 for d in h3c) else "partly"],
+    ]
+    sources = ["results/gap1/canonical_200/gap1.json", "results/gap2", "results/gap3/canonical_200/e3.json",
+               "results/preregistered"]
+    caption = ("Gap resolution: each hypothesis, its main-analysis result and verdict (sensitivity results in "
+               "Table~\\ref{tab:preregistered})")
+    ragged = r">{\raggedright\arraybackslash}p"  # array package: no stretched spaces in narrow columns
+    return table(caption, "tab:gap_resolution", f"l{ragged}{{2.55cm}}{ragged}{{3.75cm}}{ragged}{{1.35cm}}",
+                 ["Gap", "Hypothesis", "Main-analysis result", "Verdict"], rows, sources, tight=True), sources
+
+
 BUILDERS = {"baselines.tex": baselines, "gap1.tex": gap1, "gap2.tex": gap2, "gap3.tex": gap3,
-            "ablations.tex": ablations, "efficiency.tex": efficiency, "preregistered.tex": preregistered}
+            "ablations.tex": ablations, "efficiency.tex": efficiency, "preregistered.tex": preregistered,
+            "gap_resolution.tex": gap_resolution}
 
 
 def make_tables(results: Path, out: Path) -> dict[str, list[str] | None]:
