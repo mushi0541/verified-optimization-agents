@@ -13,10 +13,11 @@ operations questions into optimization models, verify those models, and answer, 
 
 ## Gap resolution
 
-The same table as the paper's Table "Gap resolution" (`docs/paper/tables/gap_resolution.tex`, written by
-`scripts/make_paper_tables.py`). Main model gpt-oss-120b; "pre-registered runs" are the tests on new problems and six
-more models (#103, #104). The base paper, OPT-Engine, has no check, no abstention and no token report, so its column
-says what it does.
+A hand copy of the paper's Table "Gap resolution" (`docs/paper/tables/gap_resolution.tex`, written by
+`scripts/make_paper_tables.py`); after a rebuild, check it against that file. Main model gpt-oss-120b; "pre-registered
+runs" are the tests on new problems and six more models (#103, #104). The base paper, OPT-Engine, has no check, no
+abstention and no token report, so its column says what it does. "Addressed?" says whether our component met its
+hypothesis, that is, whether it improved on the base paper: Gap 3's question is answered, but the answer is no.
 
 | Gap | Method / component | Metric | Base paper result | Our result | Addressed? |
 |---|---|---|---|---|---|

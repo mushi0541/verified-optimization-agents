@@ -461,8 +461,8 @@ def gap_resolution(results: Path) -> tuple[str, list[str]] | None:
     ]
     sources = ["results/gap1/canonical_200/gap1.json", "results/gap2", "results/gap3/canonical_200/e3.json",
                "results/preregistered"]
-    caption = ("Gap resolution: the component and metric of each gap, the base paper (OPT-Engine) and our main-analysis "
-               "result (sensitivity results in Table~\\ref{tab:preregistered})")
+    caption = ("Gap resolution, main analysis (sensitivity: Table~\\ref{tab:preregistered}); ``Addressed?'': did the "
+               "component meet its hypothesis")
     ragged = r">{\raggedright\arraybackslash}p"  # array package: no stretched spaces in narrow columns
     return table(caption, "tab:gap_resolution",
                  f"l{ragged}{{1.5cm}}{ragged}{{1.5cm}}{ragged}{{1.15cm}}{ragged}{{1.75cm}}l",
