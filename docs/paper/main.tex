@@ -356,16 +356,20 @@ To test H3 (comparing the multi-agent pipeline against B2 at matched token budge
 
 \subsection{Gap 2: calibrated abstention and the shift test (H2)}
 \generated{tables/gap2.tex}{scripts/analyze\_gap2.py}
+Figure~\ref{fig:gap2_risk} shows the wrong-accept rate of each repeat at every coverage.
 \generatedfigure{../../results/gap2/canonical_200/risk_coverage.pdf}{Wrong-accept rate against coverage of the
-pipeline on \texttt{canonical\_200}, one curve per repeat, with the fixed threshold 0.8 and the leave-one-class-out
+pipeline (gpt-oss-120b) on \texttt{canonical\_200}, one curve per repeat, with the fixed threshold 0.8 and the leave-one-class-out
 result at $\alpha = 10\%$ (a repeat that answers nothing has no point); the dashed line is $\alpha$}{fig:gap2_risk}{scripts/analyze\_gap2.py}
 
 \subsection{Gap 3: the pipeline against a single agent at an equal token budget (H3)}
 \generated{tables/gap3.tex}{scripts/analyze\_e3.py}
+Figures~\ref{fig:gap3_cost} and~\ref{fig:gap3_risk} show accuracy against cost and the wrong-accept rate against
+coverage for one run of each system.
 \generatedfigure{../../results/gap3/canonical_200/accuracy_cost.pdf}{Accuracy against mean tokens per problem for
-the pipeline and B2 at $k = 1, 2, 3$, with B0 and B1}{fig:gap3_cost}{scripts/plot\_e3.py}
+the pipeline and B2 at $k = 1, 2, 3$, with B0 and B1, on \texttt{canonical\_200} with
+gpt-oss-120b}{fig:gap3_cost}{scripts/plot\_e3.py}
 \generatedfigure{../../results/gap3/canonical_200/risk_coverage_k3.pdf}{Wrong-accept rate against coverage for the
-pipeline and B2 at $k = 3$ on \texttt{canonical\_200}; the dashed line is the 50\% coverage of H3}{fig:gap3_risk}{scripts/plot\_e3.py}
+pipeline and B2 (gpt-oss-120b) at $k = 3$ on \texttt{canonical\_200}; the dashed line is the 50\% coverage of H3}{fig:gap3_risk}{scripts/plot\_e3.py}
 
 \subsection{Gap-resolution table}
 \generated{tables/gap_resolution.tex}{the results scripts}
