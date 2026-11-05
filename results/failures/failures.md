@@ -24,5 +24,5 @@
 | Signal | Count |
 |---|---|
 | paraphrase disagreement | 19 |
-| requirement not linked | 1 |
-| number not used | 0 |
+| requirement not linked | 0 |
+| number not used | 1 |
