@@ -31,6 +31,7 @@ Add an entry for each fix that answers a failure, newest last, and link it in th
 | 21 | 2026-11-04 | Addenda 1 to 3: 1,070 unused problems, six more models, sensitivity analysis | #104 |
 | 22 | 2026-11-05 | E6 would have averaged a v3-prompt run with a v1 run as repeats | #112 |
 | 23 | 2026-11-05 | Third E3 repeat on the pairs and linguistic samples in another region; one extra model | #116, #118, #119 |
+| 24 | 2026-11-05 | B0 and B1 repeats 2 and 3 on canonical_200, in another region | #123 |
 
 ## 1. Provider limits: request pacing, fitted output cap, then Amazon Bedrock
 
@@ -774,3 +775,24 @@ the script has written since #86.
 60 correct, 57 answered, 13 of them wrong (22.8%). All 14 wrong answers are Inventory, and the checks escalated only
 one of them, because every rewording repeats the same misreading. It is not in the pre-registered model list, so it is
 reported here as an exploratory run only.
+
+
+## 24. B0 and B1 repeats 2 and 3 on canonical_200
+
+**Date.** 2026-11-05 (#33, #123). The baselines had one repeat; #33 asks for three, like the pipeline.
+
+**Runs.** Two more B1 runs of gpt-oss-120b on `canonical_200` with the settings of the first one (r = 1), each with
+200 records and 0 failed problems: `results/baseline_..._canonical_200_r1_20261105-1852` and `..._20261105-1907`. B0 is
+read from the first attempt of each B1 run. Our own Bedrock keys were blocked on 2026-11-05, so these runs used Rauf's
+key, which his organization allows only in ap-southeast-2, as for the third E3 repeat (devlog 23).
+
+**Effect.** Over the three repeats, B0 is 78.5% (sd 1.5) and B1 79.5% (sd 1.3) (one run: 77.0% and 78.0%), in
+`results/e1_e2/` and the paper's baseline table. Rebuilt with:
+
+```bash
+python scripts/compare_baselines.py --repeat results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261102-0223/records.jsonl     --repeat results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261105-1852/records.jsonl     --repeat results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261105-1907/records.jsonl     --repeat results/baseline_bedrock-deepseek.v3.2_canonical_200_r0_20261102-0247/records.jsonl     --paper docs/paper_sir.json --out-dir results/e1_e2
+```
+
+The one-repeat files rebuilt exactly before the new runs were added. Two results stay on the first B1 run on purpose:
+the B0 and B1 points of the Gap 3 table (the run B2 was compared with), and E6, which keeps one endpoint per row; the
+README's E6 command now leaves out the two Sydney runs, and `results/e6/` is unchanged.

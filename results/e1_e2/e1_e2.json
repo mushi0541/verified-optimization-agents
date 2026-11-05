@@ -8,7 +8,7 @@
     {
       "model": "openai.gpt-oss-120b-1:0",
       "label": "reproduced (openai.gpt-oss-120b-1:0, our runs)",
-      "repeats": 1,
+      "repeats": 3,
       "with_repair": true,
       "tolerances": {
         "accuracy": 0.002,
@@ -18,64 +18,64 @@
         "problems": 200,
         "B0": {
           "accuracy": {
-            "mean": 0.77,
-            "sd": null
+            "mean": 0.785,
+            "sd": 0.015000000000000013
           },
           "accuracy_strict": {
-            "mean": 0.76,
-            "sd": null
+            "mean": 0.775,
+            "sd": 0.015000000000000013
           },
           "solved_rate": {
             "mean": 0.97,
-            "sd": null
+            "sd": 0.010000000000000009
           },
           "silent_failures": {
-            "mean": 40,
-            "sd": null
+            "mean": 37,
+            "sd": 2.6457513110645907
           },
           "mean_tokens": {
-            "mean": 2555.13,
-            "sd": null
+            "mean": 2557.0816666666665,
+            "sd": 17.559036372572717
           },
           "mean_calls": {
             "mean": 1.0,
-            "sd": null
+            "sd": 0.0
           }
         },
         "B1": {
           "accuracy": {
-            "mean": 0.78,
-            "sd": null
+            "mean": 0.795,
+            "sd": 0.013228756555322964
           },
           "accuracy_strict": {
-            "mean": 0.77,
-            "sd": null
+            "mean": 0.785,
+            "sd": 0.013228756555322964
           },
           "solved_rate": {
-            "mean": 0.995,
-            "sd": null
+            "mean": 0.9983333333333333,
+            "sd": 0.0028867513459481316
           },
           "silent_failures": {
-            "mean": 43,
-            "sd": null
+            "mean": 40.666666666666664,
+            "sd": 2.0816659994661326
           },
           "mean_tokens": {
-            "mean": 2664.465,
-            "sd": null
+            "mean": 2692.5183333333334,
+            "sd": 36.8522215522122
           },
           "mean_calls": {
             "mean": 1.03,
-            "sd": null
+            "sd": 0.010000000000000009
           }
         },
         "repair": {
           "fixed": {
             "mean": 2,
-            "sd": null
+            "sd": 1.0
           },
           "broken": {
             "mean": 0,
-            "sd": null
+            "sd": 0.0
           }
         }
       },
@@ -85,63 +85,63 @@
           "B0": {
             "accuracy": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             },
             "accuracy_strict": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             },
             "solved_rate": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             },
             "silent_failures": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             },
             "mean_tokens": {
-              "mean": 1688.8,
-              "sd": null
+              "mean": 1715.0,
+              "sd": 23.212927432790583
             },
             "mean_calls": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             }
           },
           "B1": {
             "accuracy": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             },
             "accuracy_strict": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             },
             "solved_rate": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             },
             "silent_failures": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             },
             "mean_tokens": {
-              "mean": 1688.8,
-              "sd": null
+              "mean": 1715.0,
+              "sd": 23.212927432790583
             },
             "mean_calls": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             }
           },
           "repair": {
             "fixed": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             },
             "broken": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             }
           }
         },
@@ -149,64 +149,64 @@
           "problems": 20,
           "B0": {
             "accuracy": {
-              "mean": 0.35,
-              "sd": null
+              "mean": 0.36666666666666664,
+              "sd": 0.028867513459481315
             },
             "accuracy_strict": {
-              "mean": 0.35,
-              "sd": null
+              "mean": 0.36666666666666664,
+              "sd": 0.028867513459481315
             },
             "solved_rate": {
-              "mean": 0.9,
-              "sd": null
+              "mean": 0.9166666666666666,
+              "sd": 0.02886751345948125
             },
             "silent_failures": {
               "mean": 11,
-              "sd": null
+              "sd": 0.0
             },
             "mean_tokens": {
-              "mean": 2956.25,
-              "sd": null
+              "mean": 2956.2000000000003,
+              "sd": 96.37500972762597
             },
             "mean_calls": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             }
           },
           "B1": {
             "accuracy": {
-              "mean": 0.35,
-              "sd": null
+              "mean": 0.36666666666666664,
+              "sd": 0.028867513459481315
             },
             "accuracy_strict": {
-              "mean": 0.35,
-              "sd": null
+              "mean": 0.36666666666666664,
+              "sd": 0.028867513459481315
             },
             "solved_rate": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             },
             "silent_failures": {
-              "mean": 13,
-              "sd": null
+              "mean": 12.666666666666666,
+              "sd": 0.5773502691896257
             },
             "mean_tokens": {
-              "mean": 3255.95,
-              "sd": null
+              "mean": 3245.7,
+              "sd": 30.447701062641823
             },
             "mean_calls": {
-              "mean": 1.1,
-              "sd": null
+              "mean": 1.0833333333333335,
+              "sd": 0.028867513459481315
             }
           },
           "repair": {
             "fixed": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             },
             "broken": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             }
           }
         },
@@ -214,64 +214,64 @@
           "problems": 20,
           "B0": {
             "accuracy": {
-              "mean": 0.8,
-              "sd": null
+              "mean": 0.9333333333333333,
+              "sd": 0.11547005383792512
             },
             "accuracy_strict": {
-              "mean": 0.8,
-              "sd": null
+              "mean": 0.9333333333333333,
+              "sd": 0.11547005383792512
             },
             "solved_rate": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             },
             "silent_failures": {
-              "mean": 4,
-              "sd": null
+              "mean": 1.3333333333333333,
+              "sd": 2.309401076758503
             },
             "mean_tokens": {
-              "mean": 2839.2,
-              "sd": null
+              "mean": 2905.0,
+              "sd": 92.92357074499468
             },
             "mean_calls": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             }
           },
           "B1": {
             "accuracy": {
-              "mean": 0.8,
-              "sd": null
+              "mean": 0.9333333333333333,
+              "sd": 0.11547005383792512
             },
             "accuracy_strict": {
-              "mean": 0.8,
-              "sd": null
+              "mean": 0.9333333333333333,
+              "sd": 0.11547005383792512
             },
             "solved_rate": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             },
             "silent_failures": {
-              "mean": 4,
-              "sd": null
+              "mean": 1.3333333333333333,
+              "sd": 2.309401076758503
             },
             "mean_tokens": {
-              "mean": 2839.2,
-              "sd": null
+              "mean": 2905.0,
+              "sd": 92.92357074499468
             },
             "mean_calls": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             }
           },
           "repair": {
             "fixed": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             },
             "broken": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             }
           }
         },
@@ -279,204 +279,204 @@
           "problems": 20,
           "B0": {
             "accuracy": {
-              "mean": 0.95,
-              "sd": null
+              "mean": 0.9833333333333333,
+              "sd": 0.028867513459481315
             },
             "accuracy_strict": {
-              "mean": 0.95,
-              "sd": null
+              "mean": 0.9833333333333333,
+              "sd": 0.028867513459481315
             },
             "solved_rate": {
-              "mean": 0.95,
-              "sd": null
+              "mean": 0.9833333333333333,
+              "sd": 0.028867513459481315
             },
             "silent_failures": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             },
             "mean_tokens": {
-              "mean": 1427.0,
-              "sd": null
+              "mean": 1448.5833333333333,
+              "sd": 19.74894511950786
             },
             "mean_calls": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             }
           },
           "B1": {
             "accuracy": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             },
             "accuracy_strict": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             },
             "solved_rate": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             },
             "silent_failures": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             },
             "mean_tokens": {
-              "mean": 1575.0,
-              "sd": null
+              "mean": 1497.9166666666667,
+              "sd": 67.05983025130121
             },
             "mean_calls": {
-              "mean": 1.05,
-              "sd": null
+              "mean": 1.0166666666666666,
+              "sd": 0.028867513459481315
             }
           },
           "repair": {
             "fixed": {
-              "mean": 1,
-              "sd": null
+              "mean": 0.3333333333333333,
+              "sd": 0.5773502691896257
             },
             "broken": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             }
           },
           "reported": {
             "accuracy": 0.932,
             "source": "OPT-Engine Table 2, DeepSeek-V3.2, SIR: mean of Easy 92.3%, Medium 91.7%, Hard 95.7%"
           },
-          "b0_strict_minus_reported": 0.017999999999999905
+          "b0_strict_minus_reported": 0.05133333333333323
         },
         "NetworkFlow": {
           "problems": 20,
           "B0": {
             "accuracy": {
-              "mean": 0.95,
-              "sd": null
+              "mean": 0.9666666666666667,
+              "sd": 0.028867513459481315
             },
             "accuracy_strict": {
-              "mean": 0.95,
-              "sd": null
+              "mean": 0.9666666666666667,
+              "sd": 0.028867513459481315
             },
             "solved_rate": {
-              "mean": 0.95,
-              "sd": null
+              "mean": 0.9666666666666667,
+              "sd": 0.028867513459481315
             },
             "silent_failures": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             },
             "mean_tokens": {
-              "mean": 3527.1,
-              "sd": null
+              "mean": 3480.133333333333,
+              "sd": 49.01452165770181
             },
             "mean_calls": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             }
           },
           "B1": {
             "accuracy": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             },
             "accuracy_strict": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             },
             "solved_rate": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             },
             "silent_failures": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             },
             "mean_tokens": {
-              "mean": 3742.15,
-              "sd": null
+              "mean": 3609.616666666667,
+              "sd": 129.21391501434104
             },
             "mean_calls": {
-              "mean": 1.05,
-              "sd": null
+              "mean": 1.0333333333333334,
+              "sd": 0.028867513459481315
             }
           },
           "repair": {
             "fixed": {
-              "mean": 1,
-              "sd": null
+              "mean": 0.6666666666666666,
+              "sd": 0.5773502691896257
             },
             "broken": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             }
           },
           "reported": {
             "accuracy": 1.0,
             "source": "OPT-Engine Table 2 (Netflow), DeepSeek-V3.2, SIR: 100% at Easy, Medium and Hard"
           },
-          "b0_strict_minus_reported": -0.050000000000000044
+          "b0_strict_minus_reported": -0.033333333333333326
         },
         "Pollution": {
           "problems": 20,
           "B0": {
             "accuracy": {
               "mean": 0.0,
-              "sd": null
+              "sd": 0.0
             },
             "accuracy_strict": {
               "mean": 0.0,
-              "sd": null
+              "sd": 0.0
             },
             "solved_rate": {
-              "mean": 0.95,
-              "sd": null
+              "mean": 0.9333333333333333,
+              "sd": 0.02886751345948125
             },
             "silent_failures": {
-              "mean": 19,
-              "sd": null
+              "mean": 18.666666666666668,
+              "sd": 0.5773502691896257
             },
             "mean_tokens": {
-              "mean": 2953.0,
-              "sd": null
+              "mean": 3025.3166666666666,
+              "sd": 62.78774429244393
             },
             "mean_calls": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             }
           },
           "B1": {
             "accuracy": {
               "mean": 0.0,
-              "sd": null
+              "sd": 0.0
             },
             "accuracy_strict": {
               "mean": 0.0,
-              "sd": null
+              "sd": 0.0
             },
             "solved_rate": {
-              "mean": 0.95,
-              "sd": null
+              "mean": 0.9833333333333333,
+              "sd": 0.028867513459481315
             },
             "silent_failures": {
-              "mean": 19,
-              "sd": null
+              "mean": 19.666666666666668,
+              "sd": 0.5773502691896257
             },
             "mean_tokens": {
-              "mean": 3101.5,
-              "sd": null
+              "mean": 3256.5,
+              "sd": 174.95025007127015
             },
             "mean_calls": {
-              "mean": 1.05,
-              "sd": null
+              "mean": 1.0666666666666667,
+              "sd": 0.028867513459481315
             }
           },
           "repair": {
             "fixed": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             },
             "broken": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             }
           }
         },
@@ -485,63 +485,63 @@
           "B0": {
             "accuracy": {
               "mean": 0.85,
-              "sd": null
+              "sd": 0.0
             },
             "accuracy_strict": {
               "mean": 0.75,
-              "sd": null
+              "sd": 0.0
             },
             "solved_rate": {
               "mean": 0.95,
-              "sd": null
+              "sd": 0.0
             },
             "silent_failures": {
               "mean": 2,
-              "sd": null
+              "sd": 0.0
             },
             "mean_tokens": {
-              "mean": 2558.75,
-              "sd": null
+              "mean": 2445.4333333333334,
+              "sd": 98.98914502779242
             },
             "mean_calls": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             }
           },
           "B1": {
             "accuracy": {
               "mean": 0.85,
-              "sd": null
+              "sd": 0.0
             },
             "accuracy_strict": {
               "mean": 0.75,
-              "sd": null
+              "sd": 0.0
             },
             "solved_rate": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             },
             "silent_failures": {
               "mean": 3,
-              "sd": null
+              "sd": 0.0
             },
             "mean_tokens": {
-              "mean": 2840.85,
-              "sd": null
+              "mean": 2720.45,
+              "sd": 105.65425926104444
             },
             "mean_calls": {
               "mean": 1.05,
-              "sd": null
+              "sd": 0.0
             }
           },
           "repair": {
             "fixed": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             },
             "broken": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             }
           }
         },
@@ -550,63 +550,63 @@
           "B0": {
             "accuracy": {
               "mean": 0.85,
-              "sd": null
+              "sd": 0.0
             },
             "accuracy_strict": {
               "mean": 0.85,
-              "sd": null
+              "sd": 0.0
             },
             "solved_rate": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             },
             "silent_failures": {
               "mean": 3,
-              "sd": null
+              "sd": 0.0
             },
             "mean_tokens": {
-              "mean": 2528.35,
-              "sd": null
+              "mean": 2567.2166666666667,
+              "sd": 36.59078891378728
             },
             "mean_calls": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             }
           },
           "B1": {
             "accuracy": {
               "mean": 0.85,
-              "sd": null
+              "sd": 0.0
             },
             "accuracy_strict": {
               "mean": 0.85,
-              "sd": null
+              "sd": 0.0
             },
             "solved_rate": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             },
             "silent_failures": {
               "mean": 3,
-              "sd": null
+              "sd": 0.0
             },
             "mean_tokens": {
-              "mean": 2528.35,
-              "sd": null
+              "mean": 2567.2166666666667,
+              "sd": 36.59078891378728
             },
             "mean_calls": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             }
           },
           "repair": {
             "fixed": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             },
             "broken": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             }
           }
         },
@@ -614,134 +614,134 @@
           "problems": 20,
           "B0": {
             "accuracy": {
-              "mean": 1.0,
-              "sd": null
+              "mean": 0.95,
+              "sd": 0.04999999999999999
             },
             "accuracy_strict": {
-              "mean": 1.0,
-              "sd": null
+              "mean": 0.95,
+              "sd": 0.04999999999999999
             },
             "solved_rate": {
-              "mean": 1.0,
-              "sd": null
+              "mean": 0.95,
+              "sd": 0.04999999999999999
             },
             "silent_failures": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             },
             "mean_tokens": {
-              "mean": 2737.05,
-              "sd": null
+              "mean": 2688.4666666666667,
+              "sd": 42.11182533841705
             },
             "mean_calls": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             }
           },
           "B1": {
             "accuracy": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             },
             "accuracy_strict": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             },
             "solved_rate": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             },
             "silent_failures": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             },
             "mean_tokens": {
-              "mean": 2737.05,
-              "sd": null
+              "mean": 3068.3166666666666,
+              "sd": 362.74950493878447
             },
             "mean_calls": {
-              "mean": 1.0,
-              "sd": null
+              "mean": 1.05,
+              "sd": 0.050000000000000044
             }
           },
           "repair": {
             "fixed": {
-              "mean": 0,
-              "sd": null
+              "mean": 1,
+              "sd": 1.0
             },
             "broken": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             }
           },
           "reported": {
             "accuracy": 0.859,
             "source": "OPT-Engine Table 2, DeepSeek-V3.2, SIR: mean of Easy 91.7%, Medium 86.0%, Hard 80.0%"
           },
-          "b0_strict_minus_reported": 0.14100000000000001
+          "b0_strict_minus_reported": 0.09099999999999997
         },
         "Transportation": {
           "problems": 20,
           "B0": {
             "accuracy": {
               "mean": 0.95,
-              "sd": null
+              "sd": 0.0
             },
             "accuracy_strict": {
               "mean": 0.95,
-              "sd": null
+              "sd": 0.0
             },
             "solved_rate": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             },
             "silent_failures": {
               "mean": 1,
-              "sd": null
+              "sd": 0.0
             },
             "mean_tokens": {
-              "mean": 2335.8,
-              "sd": null
+              "mean": 2339.4666666666667,
+              "sd": 13.090963804599479
             },
             "mean_calls": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             }
           },
           "B1": {
             "accuracy": {
               "mean": 0.95,
-              "sd": null
+              "sd": 0.0
             },
             "accuracy_strict": {
               "mean": 0.95,
-              "sd": null
+              "sd": 0.0
             },
             "solved_rate": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             },
             "silent_failures": {
               "mean": 1,
-              "sd": null
+              "sd": 0.0
             },
             "mean_tokens": {
-              "mean": 2335.8,
-              "sd": null
+              "mean": 2339.4666666666667,
+              "sd": 13.090963804599479
             },
             "mean_calls": {
               "mean": 1.0,
-              "sd": null
+              "sd": 0.0
             }
           },
           "repair": {
             "fixed": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             },
             "broken": {
               "mean": 0,
-              "sd": null
+              "sd": 0.0
             }
           }
         }
@@ -1200,6 +1200,932 @@
                 "solved_rate": 1.0,
                 "silent_failures": 1,
                 "mean_tokens": 2335.8,
+                "mean_calls": 1.0
+              },
+              "repair": {
+                "fixed": 0,
+                "broken": 0,
+                "mcnemar_p": 1.0
+              }
+            }
+          }
+        },
+        {
+          "tolerances": {
+            "accuracy": 0.002,
+            "accuracy_strict": 0.001
+          },
+          "overall": {
+            "problems": 200,
+            "B0": {
+              "accuracy": 0.8,
+              "accuracy_ci": [
+                0.7377736354104003,
+                0.853105511784241
+              ],
+              "accuracy_strict": 0.79,
+              "accuracy_strict_ci": [
+                0.7269312953862013,
+                0.8442602432758712
+              ],
+              "solved_rate": 0.98,
+              "silent_failures": 36,
+              "mean_tokens": 2575.535,
+              "mean_calls": 1.0
+            },
+            "B1": {
+              "accuracy": 0.805,
+              "accuracy_ci": [
+                0.7432143124734414,
+                0.8575081252209409
+              ],
+              "accuracy_strict": 0.795,
+              "accuracy_strict_ci": [
+                0.7323460792147154,
+                0.8486894280044801
+              ],
+              "solved_rate": 1.0,
+              "silent_failures": 39,
+              "mean_tokens": 2678.835,
+              "mean_calls": 1.02
+            },
+            "repair": {
+              "fixed": 1,
+              "broken": 0,
+              "mcnemar_p": 1.0
+            }
+          },
+          "classes": {
+            "BinPacking": {
+              "problems": 20,
+              "B0": {
+                "accuracy": 1.0,
+                "accuracy_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "accuracy_strict": 1.0,
+                "accuracy_strict_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 0,
+                "mean_tokens": 1733.0,
+                "mean_calls": 1.0
+              },
+              "B1": {
+                "accuracy": 1.0,
+                "accuracy_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "accuracy_strict": 1.0,
+                "accuracy_strict_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 0,
+                "mean_tokens": 1733.0,
+                "mean_calls": 1.0
+              },
+              "repair": {
+                "fixed": 0,
+                "broken": 0,
+                "mcnemar_p": 1.0
+              }
+            },
+            "Inventory": {
+              "problems": 20,
+              "B0": {
+                "accuracy": 0.4,
+                "accuracy_ci": [
+                  0.19119006072530714,
+                  0.6394574126925103
+                ],
+                "accuracy_strict": 0.4,
+                "accuracy_strict_ci": [
+                  0.19119006072530714,
+                  0.6394574126925103
+                ],
+                "solved_rate": 0.95,
+                "silent_failures": 11,
+                "mean_tokens": 3052.55,
+                "mean_calls": 1.0
+              },
+              "B1": {
+                "accuracy": 0.4,
+                "accuracy_ci": [
+                  0.19119006072530714,
+                  0.6394574126925103
+                ],
+                "accuracy_strict": 0.4,
+                "accuracy_strict_ci": [
+                  0.19119006072530714,
+                  0.6394574126925103
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 12,
+                "mean_tokens": 3269.7,
+                "mean_calls": 1.05
+              },
+              "repair": {
+                "fixed": 0,
+                "broken": 0,
+                "mcnemar_p": 1.0
+              }
+            },
+            "JobShop": {
+              "problems": 20,
+              "B0": {
+                "accuracy": 1.0,
+                "accuracy_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "accuracy_strict": 1.0,
+                "accuracy_strict_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 0,
+                "mean_tokens": 3011.3,
+                "mean_calls": 1.0
+              },
+              "B1": {
+                "accuracy": 1.0,
+                "accuracy_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "accuracy_strict": 1.0,
+                "accuracy_strict_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 0,
+                "mean_tokens": 3011.3,
+                "mean_calls": 1.0
+              },
+              "repair": {
+                "fixed": 0,
+                "broken": 0,
+                "mcnemar_p": 1.0
+              }
+            },
+            "Knapsack": {
+              "problems": 20,
+              "B0": {
+                "accuracy": 1.0,
+                "accuracy_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "accuracy_strict": 1.0,
+                "accuracy_strict_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 0,
+                "mean_tokens": 1453.0,
+                "mean_calls": 1.0
+              },
+              "B1": {
+                "accuracy": 1.0,
+                "accuracy_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "accuracy_strict": 1.0,
+                "accuracy_strict_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 0,
+                "mean_tokens": 1453.0,
+                "mean_calls": 1.0
+              },
+              "repair": {
+                "fixed": 0,
+                "broken": 0,
+                "mcnemar_p": 1.0
+              },
+              "paper_sir": {
+                "accuracy": 0.932,
+                "source": "OPT-Engine Table 2, DeepSeek-V3.2, SIR: mean of Easy 92.3%, Medium 91.7%, Hard 95.7%",
+                "b0_minus_paper": 0.06799999999999995
+              }
+            },
+            "NetworkFlow": {
+              "problems": 20,
+              "B0": {
+                "accuracy": 1.0,
+                "accuracy_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "accuracy_strict": 1.0,
+                "accuracy_strict_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 0,
+                "mean_tokens": 3484.0,
+                "mean_calls": 1.0
+              },
+              "B1": {
+                "accuracy": 1.0,
+                "accuracy_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "accuracy_strict": 1.0,
+                "accuracy_strict_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 0,
+                "mean_tokens": 3484.0,
+                "mean_calls": 1.0
+              },
+              "repair": {
+                "fixed": 0,
+                "broken": 0,
+                "mcnemar_p": 1.0
+              },
+              "paper_sir": {
+                "accuracy": 1.0,
+                "source": "OPT-Engine Table 2 (Netflow), DeepSeek-V3.2, SIR: 100% at Easy, Medium and Hard",
+                "b0_minus_paper": 0.0
+              }
+            },
+            "Pollution": {
+              "problems": 20,
+              "B0": {
+                "accuracy": 0.0,
+                "accuracy_ci": [
+                  0.0,
+                  0.1684334709830853
+                ],
+                "accuracy_strict": 0.0,
+                "accuracy_strict_ci": [
+                  0.0,
+                  0.1684334709830853
+                ],
+                "solved_rate": 0.95,
+                "silent_failures": 19,
+                "mean_tokens": 3057.0,
+                "mean_calls": 1.0
+              },
+              "B1": {
+                "accuracy": 0.0,
+                "accuracy_ci": [
+                  0.0,
+                  0.1684334709830853
+                ],
+                "accuracy_strict": 0.0,
+                "accuracy_strict_ci": [
+                  0.0,
+                  0.1684334709830853
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 20,
+                "mean_tokens": 3221.8,
+                "mean_calls": 1.05
+              },
+              "repair": {
+                "fixed": 0,
+                "broken": 0,
+                "mcnemar_p": 1.0
+              }
+            },
+            "Portfolio": {
+              "problems": 20,
+              "B0": {
+                "accuracy": 0.85,
+                "accuracy_ci": [
+                  0.6210731734546862,
+                  0.9679290628145363
+                ],
+                "accuracy_strict": 0.75,
+                "accuracy_strict_ci": [
+                  0.5089541282920425,
+                  0.9134285308985655
+                ],
+                "solved_rate": 0.95,
+                "silent_failures": 2,
+                "mean_tokens": 2375.8,
+                "mean_calls": 1.0
+              },
+              "B1": {
+                "accuracy": 0.85,
+                "accuracy_ci": [
+                  0.6210731734546862,
+                  0.9679290628145363
+                ],
+                "accuracy_strict": 0.75,
+                "accuracy_strict_ci": [
+                  0.5089541282920425,
+                  0.9134285308985655
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 3,
+                "mean_tokens": 2677.3,
+                "mean_calls": 1.05
+              },
+              "repair": {
+                "fixed": 0,
+                "broken": 0,
+                "mcnemar_p": 1.0
+              }
+            },
+            "Production": {
+              "problems": 20,
+              "B0": {
+                "accuracy": 0.85,
+                "accuracy_ci": [
+                  0.6210731734546862,
+                  0.9679290628145363
+                ],
+                "accuracy_strict": 0.85,
+                "accuracy_strict_ci": [
+                  0.6210731734546862,
+                  0.9679290628145363
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 3,
+                "mean_tokens": 2572.3,
+                "mean_calls": 1.0
+              },
+              "B1": {
+                "accuracy": 0.85,
+                "accuracy_ci": [
+                  0.6210731734546862,
+                  0.9679290628145363
+                ],
+                "accuracy_strict": 0.85,
+                "accuracy_strict_ci": [
+                  0.6210731734546862,
+                  0.9679290628145363
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 3,
+                "mean_tokens": 2572.3,
+                "mean_calls": 1.0
+              },
+              "repair": {
+                "fixed": 0,
+                "broken": 0,
+                "mcnemar_p": 1.0
+              }
+            },
+            "TSP": {
+              "problems": 20,
+              "B0": {
+                "accuracy": 0.95,
+                "accuracy_ci": [
+                  0.7512672372279723,
+                  0.9987349105020502
+                ],
+                "accuracy_strict": 0.95,
+                "accuracy_strict_ci": [
+                  0.7512672372279723,
+                  0.9987349105020502
+                ],
+                "solved_rate": 0.95,
+                "silent_failures": 0,
+                "mean_tokens": 2662.4,
+                "mean_calls": 1.0
+              },
+              "B1": {
+                "accuracy": 1.0,
+                "accuracy_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "accuracy_strict": 1.0,
+                "accuracy_strict_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 0,
+                "mean_tokens": 3011.95,
+                "mean_calls": 1.05
+              },
+              "repair": {
+                "fixed": 1,
+                "broken": 0,
+                "mcnemar_p": 1.0
+              },
+              "paper_sir": {
+                "accuracy": 0.859,
+                "source": "OPT-Engine Table 2, DeepSeek-V3.2, SIR: mean of Easy 91.7%, Medium 86.0%, Hard 80.0%",
+                "b0_minus_paper": 0.09099999999999997
+              }
+            },
+            "Transportation": {
+              "problems": 20,
+              "B0": {
+                "accuracy": 0.95,
+                "accuracy_ci": [
+                  0.7512672372279723,
+                  0.9987349105020502
+                ],
+                "accuracy_strict": 0.95,
+                "accuracy_strict_ci": [
+                  0.7512672372279723,
+                  0.9987349105020502
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 1,
+                "mean_tokens": 2354.0,
+                "mean_calls": 1.0
+              },
+              "B1": {
+                "accuracy": 0.95,
+                "accuracy_ci": [
+                  0.7512672372279723,
+                  0.9987349105020502
+                ],
+                "accuracy_strict": 0.95,
+                "accuracy_strict_ci": [
+                  0.7512672372279723,
+                  0.9987349105020502
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 1,
+                "mean_tokens": 2354.0,
+                "mean_calls": 1.0
+              },
+              "repair": {
+                "fixed": 0,
+                "broken": 0,
+                "mcnemar_p": 1.0
+              }
+            }
+          }
+        },
+        {
+          "tolerances": {
+            "accuracy": 0.002,
+            "accuracy_strict": 0.001
+          },
+          "overall": {
+            "problems": 200,
+            "B0": {
+              "accuracy": 0.785,
+              "accuracy_ci": [
+                0.7215289561159435,
+                0.8398183046676626
+              ],
+              "accuracy_strict": 0.775,
+              "accuracy_strict_ci": [
+                0.7107603940312359,
+                0.8308974528701738
+              ],
+              "solved_rate": 0.96,
+              "silent_failures": 35,
+              "mean_tokens": 2540.58,
+              "mean_calls": 1.0
+            },
+            "B1": {
+              "accuracy": 0.8,
+              "accuracy_ci": [
+                0.7377736354104003,
+                0.853105511784241
+              ],
+              "accuracy_strict": 0.79,
+              "accuracy_strict_ci": [
+                0.7269312953862013,
+                0.8442602432758712
+              ],
+              "solved_rate": 1.0,
+              "silent_failures": 40,
+              "mean_tokens": 2734.255,
+              "mean_calls": 1.04
+            },
+            "repair": {
+              "fixed": 3,
+              "broken": 0,
+              "mcnemar_p": 0.25
+            }
+          },
+          "classes": {
+            "BinPacking": {
+              "problems": 20,
+              "B0": {
+                "accuracy": 1.0,
+                "accuracy_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "accuracy_strict": 1.0,
+                "accuracy_strict_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 0,
+                "mean_tokens": 1723.2,
+                "mean_calls": 1.0
+              },
+              "B1": {
+                "accuracy": 1.0,
+                "accuracy_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "accuracy_strict": 1.0,
+                "accuracy_strict_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 0,
+                "mean_tokens": 1723.2,
+                "mean_calls": 1.0
+              },
+              "repair": {
+                "fixed": 0,
+                "broken": 0,
+                "mcnemar_p": 1.0
+              }
+            },
+            "Inventory": {
+              "problems": 20,
+              "B0": {
+                "accuracy": 0.35,
+                "accuracy_ci": [
+                  0.15390920478454112,
+                  0.5921885345328282
+                ],
+                "accuracy_strict": 0.35,
+                "accuracy_strict_ci": [
+                  0.15390920478454112,
+                  0.5921885345328282
+                ],
+                "solved_rate": 0.9,
+                "silent_failures": 11,
+                "mean_tokens": 2859.8,
+                "mean_calls": 1.0
+              },
+              "B1": {
+                "accuracy": 0.35,
+                "accuracy_ci": [
+                  0.15390920478454112,
+                  0.5921885345328282
+                ],
+                "accuracy_strict": 0.35,
+                "accuracy_strict_ci": [
+                  0.15390920478454112,
+                  0.5921885345328282
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 13,
+                "mean_tokens": 3211.45,
+                "mean_calls": 1.1
+              },
+              "repair": {
+                "fixed": 0,
+                "broken": 0,
+                "mcnemar_p": 1.0
+              }
+            },
+            "JobShop": {
+              "problems": 20,
+              "B0": {
+                "accuracy": 1.0,
+                "accuracy_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "accuracy_strict": 1.0,
+                "accuracy_strict_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 0,
+                "mean_tokens": 2864.5,
+                "mean_calls": 1.0
+              },
+              "B1": {
+                "accuracy": 1.0,
+                "accuracy_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "accuracy_strict": 1.0,
+                "accuracy_strict_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 0,
+                "mean_tokens": 2864.5,
+                "mean_calls": 1.0
+              },
+              "repair": {
+                "fixed": 0,
+                "broken": 0,
+                "mcnemar_p": 1.0
+              }
+            },
+            "Knapsack": {
+              "problems": 20,
+              "B0": {
+                "accuracy": 1.0,
+                "accuracy_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "accuracy_strict": 1.0,
+                "accuracy_strict_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 0,
+                "mean_tokens": 1465.75,
+                "mean_calls": 1.0
+              },
+              "B1": {
+                "accuracy": 1.0,
+                "accuracy_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "accuracy_strict": 1.0,
+                "accuracy_strict_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 0,
+                "mean_tokens": 1465.75,
+                "mean_calls": 1.0
+              },
+              "repair": {
+                "fixed": 0,
+                "broken": 0,
+                "mcnemar_p": 1.0
+              },
+              "paper_sir": {
+                "accuracy": 0.932,
+                "source": "OPT-Engine Table 2, DeepSeek-V3.2, SIR: mean of Easy 92.3%, Medium 91.7%, Hard 95.7%",
+                "b0_minus_paper": 0.06799999999999995
+              }
+            },
+            "NetworkFlow": {
+              "problems": 20,
+              "B0": {
+                "accuracy": 0.95,
+                "accuracy_ci": [
+                  0.7512672372279723,
+                  0.9987349105020502
+                ],
+                "accuracy_strict": 0.95,
+                "accuracy_strict_ci": [
+                  0.7512672372279723,
+                  0.9987349105020502
+                ],
+                "solved_rate": 0.95,
+                "silent_failures": 0,
+                "mean_tokens": 3429.3,
+                "mean_calls": 1.0
+              },
+              "B1": {
+                "accuracy": 1.0,
+                "accuracy_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "accuracy_strict": 1.0,
+                "accuracy_strict_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 0,
+                "mean_tokens": 3602.7,
+                "mean_calls": 1.05
+              },
+              "repair": {
+                "fixed": 1,
+                "broken": 0,
+                "mcnemar_p": 1.0
+              },
+              "paper_sir": {
+                "accuracy": 1.0,
+                "source": "OPT-Engine Table 2 (Netflow), DeepSeek-V3.2, SIR: 100% at Easy, Medium and Hard",
+                "b0_minus_paper": -0.050000000000000044
+              }
+            },
+            "Pollution": {
+              "problems": 20,
+              "B0": {
+                "accuracy": 0.0,
+                "accuracy_ci": [
+                  0.0,
+                  0.1684334709830853
+                ],
+                "accuracy_strict": 0.0,
+                "accuracy_strict_ci": [
+                  0.0,
+                  0.1684334709830853
+                ],
+                "solved_rate": 0.9,
+                "silent_failures": 18,
+                "mean_tokens": 3065.95,
+                "mean_calls": 1.0
+              },
+              "B1": {
+                "accuracy": 0.0,
+                "accuracy_ci": [
+                  0.0,
+                  0.1684334709830853
+                ],
+                "accuracy_strict": 0.0,
+                "accuracy_strict_ci": [
+                  0.0,
+                  0.1684334709830853
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 20,
+                "mean_tokens": 3446.2,
+                "mean_calls": 1.1
+              },
+              "repair": {
+                "fixed": 0,
+                "broken": 0,
+                "mcnemar_p": 1.0
+              }
+            },
+            "Portfolio": {
+              "problems": 20,
+              "B0": {
+                "accuracy": 0.85,
+                "accuracy_ci": [
+                  0.6210731734546862,
+                  0.9679290628145363
+                ],
+                "accuracy_strict": 0.75,
+                "accuracy_strict_ci": [
+                  0.5089541282920425,
+                  0.9134285308985655
+                ],
+                "solved_rate": 0.95,
+                "silent_failures": 2,
+                "mean_tokens": 2401.75,
+                "mean_calls": 1.0
+              },
+              "B1": {
+                "accuracy": 0.85,
+                "accuracy_ci": [
+                  0.6210731734546862,
+                  0.9679290628145363
+                ],
+                "accuracy_strict": 0.75,
+                "accuracy_strict_ci": [
+                  0.5089541282920425,
+                  0.9134285308985655
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 3,
+                "mean_tokens": 2643.2,
+                "mean_calls": 1.05
+              },
+              "repair": {
+                "fixed": 0,
+                "broken": 0,
+                "mcnemar_p": 1.0
+              }
+            },
+            "Production": {
+              "problems": 20,
+              "B0": {
+                "accuracy": 0.85,
+                "accuracy_ci": [
+                  0.6210731734546862,
+                  0.9679290628145363
+                ],
+                "accuracy_strict": 0.85,
+                "accuracy_strict_ci": [
+                  0.6210731734546862,
+                  0.9679290628145363
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 3,
+                "mean_tokens": 2601.0,
+                "mean_calls": 1.0
+              },
+              "B1": {
+                "accuracy": 0.85,
+                "accuracy_ci": [
+                  0.6210731734546862,
+                  0.9679290628145363
+                ],
+                "accuracy_strict": 0.85,
+                "accuracy_strict_ci": [
+                  0.6210731734546862,
+                  0.9679290628145363
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 3,
+                "mean_tokens": 2601.0,
+                "mean_calls": 1.0
+              },
+              "repair": {
+                "fixed": 0,
+                "broken": 0,
+                "mcnemar_p": 1.0
+              }
+            },
+            "TSP": {
+              "problems": 20,
+              "B0": {
+                "accuracy": 0.9,
+                "accuracy_ci": [
+                  0.6830172859809176,
+                  0.9876514728297052
+                ],
+                "accuracy_strict": 0.9,
+                "accuracy_strict_ci": [
+                  0.6830172859809176,
+                  0.9876514728297052
+                ],
+                "solved_rate": 0.9,
+                "silent_failures": 0,
+                "mean_tokens": 2665.95,
+                "mean_calls": 1.0
+              },
+              "B1": {
+                "accuracy": 1.0,
+                "accuracy_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "accuracy_strict": 1.0,
+                "accuracy_strict_ci": [
+                  0.8315665290169147,
+                  1.0
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 0,
+                "mean_tokens": 3455.95,
+                "mean_calls": 1.1
+              },
+              "repair": {
+                "fixed": 2,
+                "broken": 0,
+                "mcnemar_p": 0.5
+              },
+              "paper_sir": {
+                "accuracy": 0.859,
+                "source": "OPT-Engine Table 2, DeepSeek-V3.2, SIR: mean of Easy 91.7%, Medium 86.0%, Hard 80.0%",
+                "b0_minus_paper": 0.041000000000000036
+              }
+            },
+            "Transportation": {
+              "problems": 20,
+              "B0": {
+                "accuracy": 0.95,
+                "accuracy_ci": [
+                  0.7512672372279723,
+                  0.9987349105020502
+                ],
+                "accuracy_strict": 0.95,
+                "accuracy_strict_ci": [
+                  0.7512672372279723,
+                  0.9987349105020502
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 1,
+                "mean_tokens": 2328.6,
+                "mean_calls": 1.0
+              },
+              "B1": {
+                "accuracy": 0.95,
+                "accuracy_ci": [
+                  0.7512672372279723,
+                  0.9987349105020502
+                ],
+                "accuracy_strict": 0.95,
+                "accuracy_strict_ci": [
+                  0.7512672372279723,
+                  0.9987349105020502
+                ],
+                "solved_rate": 1.0,
+                "silent_failures": 1,
+                "mean_tokens": 2328.6,
                 "mean_calls": 1.0
               },
               "repair": {
