@@ -66,7 +66,7 @@ pre-registered runs). Error control does not transfer across problem classes: at
 threshold keeps the held-out wrong-accept rate on target while answering half of the problems (H2 not supported).
 At an equal token budget, plain majority voting over resampled answers is at least as accurate for every model, and
 on 1,457 held-out problems it wrongly accepts 3.6\% of its answers against 6.4\% for the pipeline at 50\% coverage
-(H3 not supported); combining the two improves the pipeline but not beyond voting. We release the code, every run
+(H3 not supported); combining the two does not beat voting either. We release the code, every run
 and the scripts behind every number in the paper.
 \end{abstract}
 
@@ -406,7 +406,8 @@ accurate (McNemar $p = 0.006$), and on the 1,457 held-out problems it wrongly ac
 6.4\% for the pipeline, $[+1.6, +4.4]$; its agreement rate is also the better score (AUROC 0.89 against 0.82 on the
 387 new problems). B2 is at least as accurate for every model, by 1 to 17 points. For four of the six other models
 the pipeline's WAR is the lower one, but no interval excludes zero with 200 problems. H3 is not supported. The
-combination of H3c lowers the pipeline's WAR but never beats B2, because its answer is still the pipeline's. In the
+combination of H3c lowers the pipeline's WAR for gpt-oss-120b (significantly only on the 1,070 problems) but raises
+it for four of the six other models, and no interval against B2 is below zero, as its answer is the pipeline's. In the
 sensitivity analysis only one verdict changes: H3 for GLM 4.7, which we report as a lead, not a finding.
 \generatedfigure{../../results/gap3/canonical_200/accuracy_cost.pdf}{Accuracy against mean tokens per problem for
 the pipeline and B2 at $k = 1, 2, 3$, with B0 and B1, on \texttt{canonical\_200} with
@@ -423,7 +424,7 @@ system: without it the WAR rises from 5.6\% to 14.1\% and the AUROC falls from 0
 from 21,381 to 8,389. Removing number or requirement coverage moves the WAR by at most 1.5 points, and without
 requirement coverage the AUROC is even higher (0.93), so not every signal is needed. The parser costs 22\% of the
 tokens (16,594 without it) for no gain in accuracy. One repair round raises accuracy from 77.3\% to 82.0\%, and a
-second adds nothing. Two rewordings give the same WAR as three for 80\% of the tokens. The calibrated threshold answers
+second does not help (80.0\%, WAR 9.5\%, one repeat). Two rewordings give the same WAR as three for 80\% of the tokens. The calibrated threshold answers
 only 3.3\% of the problems, the H2 result again.
 
 \generated{tables/efficiency.tex}{scripts/efficiency.py}
@@ -513,8 +514,8 @@ every Pollution reference and a few Inventory references follow a model the text
 grading therefore counts some correct models as wrong, which lowers the measured accuracy and raises the measured
 wrong-accept rate of every system alike.
 
-\textbf{Method.} Number coverage is saturated on this benchmark: 134 of 147 feasible development models (91\%) use
-every number, and so do all 30 wrong ones, because the generated questions never omit data. Paraphrase agreement
+\textbf{Method.} Number coverage is saturated on this benchmark: pooled over five development runs, 134 of 147
+feasible models (91\%) use every number, and so do all 30 wrong ones, because the generated questions never omit data. Paraphrase agreement
 cannot detect a misreading that every rewording shares (the Production cases of Section~\ref{sec:failures}).
 
 \textbf{Evaluation.} The exact bound behind the calibrated threshold needs many accepted calibration answers: at a
@@ -540,7 +541,7 @@ score in some classes keep any threshold calibrated on the other classes from me
 \item \textbf{At an equal budget, resampling is at least as good (Gap~3).} H3 and H3c are not supported. On
 \texttt{canonical\_200} the two systems cannot be told apart, but on 1,457 held-out problems majority voting (B2)
 wrongly accepts 3.6\% of its answers against 6.4\% for the pipeline, it is at least as accurate for all seven models,
-and adding its votes to the pipeline's score helps the pipeline without reaching B2.
+and adding its votes to the pipeline's score does not beat B2 for any model.
 \end{enumerate}
 The pipeline's remaining advantage is that a refusal comes with reasons (which check failed), a usability claim that
 we did not measure. Future work includes repair prompts that name the common causes of infeasibility, a second model
