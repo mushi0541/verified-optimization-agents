@@ -31,7 +31,7 @@ Add an entry for each fix that answers a failure, newest last, and link it in th
 | 21 | 2026-11-04 | Addenda 1 to 3: 1,070 unused problems, six more models, sensitivity analysis | #104 |
 | 22 | 2026-11-05 | E6 would have averaged a v3-prompt run with a v1 run as repeats | #112 |
 | 23 | 2026-11-05 | Third E3 repeat on the pairs and linguistic samples in another region; one extra model | #116, #118, #119 |
-| 24 | 2026-11-05 | B0 and B1 repeats 2 and 3 on canonical_200, in another region | (this PR) |
+| 24 | 2026-11-05 | B0 and B1 repeats 2 and 3 on canonical_200, in another region | #123 |
 
 ## 1. Provider limits: request pacing, fitted output cap, then Amazon Bedrock
 
@@ -779,7 +779,7 @@ reported here as an exploratory run only.
 
 ## 24. B0 and B1 repeats 2 and 3 on canonical_200
 
-**Date.** 2026-11-05 (#33). The baselines had one repeat; #33 asks for three, like the pipeline.
+**Date.** 2026-11-05 (#33, #123). The baselines had one repeat; #33 asks for three, like the pipeline.
 
 **Runs.** Two more B1 runs of gpt-oss-120b on `canonical_200` with the settings of the first one (r = 1), each with
 200 records and 0 failed problems: `results/baseline_..._canonical_200_r1_20261105-1852` and `..._20261105-1907`. B0 is
