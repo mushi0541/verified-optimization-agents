@@ -1,0 +1,61 @@
+[1/60] linguistic-1195 Inventory: correct=True
+[2/60] linguistic-1172 Inventory: correct=False
+[3/60] linguistic-1128 Inventory: correct=False
+[4/60] linguistic-0197 Inventory: correct=False
+[5/60] linguistic-0020 Inventory: correct=False
+[6/60] linguistic-0215 Inventory: correct=False
+[7/60] linguistic-0132 Inventory: correct=False
+[8/60] linguistic-0261 Inventory: correct=False
+[9/60] linguistic-0248 Inventory: correct=False
+[10/60] linguistic-1288 Knapsack: correct=True
+[11/60] linguistic-0207 FAILED: An error occurred (ThrottlingException) when calling the Converse operation (reached max retries: 8): Too many requests, please wait before trying again.
+[12/60] linguistic-0686 FAILED: An error occurred (ThrottlingException) when calling the Converse operation (reached max retries: 8): Too many requests, please wait before trying again.
+[13/60] linguistic-1397 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[14/60] linguistic-0462 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[15/60] linguistic-0608 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[16/60] linguistic-0463 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[17/60] linguistic-0543 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[18/60] linguistic-1316 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[19/60] linguistic-0630 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[20/60] linguistic-0868 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[21/60] linguistic-1625 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[22/60] linguistic-1569 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[23/60] linguistic-0417 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[24/60] linguistic-1521 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[25/60] linguistic-1048 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[26/60] linguistic-1012 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[27/60] linguistic-1621 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[28/60] linguistic-1181 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[29/60] linguistic-0200 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[30/60] linguistic-1136 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[31/60] linguistic-0815 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[32/60] linguistic-1574 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[33/60] linguistic-0021 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[34/60] linguistic-0134 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[35/60] linguistic-0220 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[36/60] linguistic-0254 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[37/60] linguistic-0211 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[38/60] linguistic-0636 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[39/60] linguistic-1205 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[40/60] linguistic-0268 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[41/60] linguistic-0693 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[42/60] linguistic-1296 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[43/60] linguistic-0547 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[44/60] linguistic-0465 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[45/60] linguistic-1325 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[46/60] linguistic-0466 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[47/60] linguistic-0418 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[48/60] linguistic-1481 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[49/60] linguistic-1407 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[50/60] linguistic-1056 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[51/60] linguistic-1635 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[52/60] linguistic-0870 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[53/60] linguistic-1527 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[54/60] linguistic-0613 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[55/60] linguistic-1577 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[56/60] linguistic-1631 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[57/60] linguistic-0816 FAILED: An error occurred (ThrottlingException) when calling the Converse operation: Too many requests, please wait before trying again.
+[58/60] linguistic-1015 TSP: correct=True
+[59/60] linguistic-1582 TSP: correct=True
+[60/60] linguistic-1052 TSP: correct=True
+
