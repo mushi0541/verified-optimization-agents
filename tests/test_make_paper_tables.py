@@ -180,3 +180,36 @@ def test_the_preregistered_table_applies_the_h3c_rule(tmp_path):
     text = (tmp_path / "tables" / "preregistered.tex").read_text(encoding="utf-8")
     assert "the only verdicts that change are H3 for Qwen3 Next 80B on \\texttt{canonical\\_200}, now [-7.6, -0.3]" in text
     assert "1,406" not in text and "H3 for gpt-oss-120b" not in text
+
+
+def test_the_gap_resolution_table_counts_the_preregistered_runs(tmp_path):
+    results = tmp_path / "results"
+    _write(results / "gap1" / "canonical_200" / "gap1.json", {"runs": [{}], "summary": {
+        "auroc": {"feasibility": _stat(0.54), "number": _stat(0.55), "requirement": _stat(0.64),
+                  "paraphrase": _stat(0.85), "combined": _stat(0.87)}, "gain": _stat(0.33),
+        "h1": "partly supported (not every signal is needed)"}})
+    for path, rule in (("gap2/canonical_200", 0.12), ("gap2/canonical_587", 0.21),
+                       ("preregistered/h2/canonical_unused", 0.12)):
+        _write(results / path / "gap2.json", _gap2([(rule, rule + 0.05)], _stat(0.1), _stat(0.3)))
+    level = {"k": 3, "pipeline": {"accuracy": 0.78, "wrong_accept_rate": 0.06, "mean_tokens": 20783},
+             "b2": {"accuracy": 0.8, "wrong_accept_rate": 0.064, "mean_tokens": 20881},
+             "paired": {"mcnemar_p": 0.3, "wrong_accept_difference_ci": [-0.05, 0.043]}}
+    _write(results / "gap3" / "canonical_200" / "e3.json", {"problems": 200, "levels": [level], "reference_points": {},
+           "settings": {"coverage": 0.5}, "h3": {"k": 3, "wrong_accept_difference_ci": [-0.05, 0.043], "supported": False}})
+    base = results / "preregistered"
+    for folder, h1, supported in (("canonical_200_glm", "partly supported (...)", True),
+                                  ("canonical_200_gpt-oss-20b", "not supported (the gain is below 0.10)", False)):
+        _write(base / "h1" / folder / "gap1.json", {"summary": {"auroc": {"combined": _stat(0.9)}, "gain": _stat(0.1),
+                                                                "h1": h1}})
+        _write(base / "h3" / folder / "e3.json", {"problems": 200, "levels": [level], "h3": {
+            "k": 3, "wrong_accept_difference_ci": [-0.07, -0.01] if supported else [-0.03, 0.05], "supported": supported}})
+        _write(base / "h3c" / folder / "combination.json", {"problems": 200, "paired": {
+            "pipeline k=1 + B2 minus B2": {"0.5": [-0.04, 0.02]}}})
+    make_tables(results, tmp_path / "tables")
+    rows = [line for line in (tmp_path / "tables" / "gap_resolution.tex").read_text(encoding="utf-8").splitlines()
+            if line[:2] in ("1 ", "2 ", "3 ")]
+    assert rows[0].endswith("0.54 to 0.87; partly in 1 of 2 pre-registered runs & partly supported \\\\")
+    assert r"met in 0 of 3 samples; smallest $\alpha$ met: 12--21\%" in rows[1] and rows[1].endswith("not supported \\\\")
+    # one supported H3 run makes the verdict "partly"; no H3c run has its interval below 0
+    assert "[-5.0, +4.3]" in rows[2] and "supported in 1 of 2 pre-registered runs & partly \\\\" in rows[2]
+    assert rows[3].endswith("supported in 0 of 2 pre-registered runs & not supported \\\\")
