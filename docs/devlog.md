@@ -21,6 +21,15 @@ Add an entry for each fix that answers a failure, newest last, and link it in th
 | 11 | 2026-11-01 | B2 records crashed the calibration; calibration used for another configuration | #57, #61 |
 | 12 | 2026-11-01 | Network outage during an E3 run | #64, #66 |
 | 13 | 2026-11-02 | Too little calibration data to certify alpha = 10% | #78 |
+| 14 | 2026-11-02 | The parser writes the TSP subtour constraint wrongly, and the formalizer copies it | #91 |
+| 15 | 2026-11-02 | B2 stopped at its sample cap, below the pipeline's token budget | #98 |
+| 16 | 2026-11-02 | Why no threshold meets alpha = 10% under leave-one-class-out (exploratory) | #99 |
+| 17 | 2026-11-02 | Ablations (i) to (vii) | #100 |
+| 18 | 2026-11-02 | New prompts (v2, v3): no gain, v1 stays the default | #97 |
+| 19 | 2026-11-02 | Hand check of doubtful reference answers | #105, #111 |
+| 20 | 2026-11-04 | Pre-registered tests on 387 new problems | #104 |
+| 21 | 2026-11-04 | Addenda 1 to 3: 1,070 unused problems, six more models, sensitivity analysis | #104 |
+| 22 | 2026-11-05 | E6 would have averaged a v3-prompt run with a v1 run as repeats | #112 |
 
 ## 1. Provider limits: request pacing, fitted output cap, then Amazon Bedrock
 
@@ -714,3 +723,22 @@ holds. The verifier signals rank answers well (H1), but at an equal token budget
 and, for gpt-oss-120b, has a lower wrong-accept rate. Combining the two helps the pipeline but does not beat B2. For
 other models the wrong-accept rates are close, and the direction often favours the pipeline (GLM most clearly), so
 "B2 is safer" is a gpt-oss-120b result, while "B2 is at least as accurate" holds for every model.
+
+## 22. E6 would have averaged a v3-prompt run with a v1 run as repeats
+
+**Date.** 2026-11-05 (#39, #112). Found while choosing the runs for the E6 table.
+
+**Failure.** `scripts/efficiency.py` treats runs with the same system, model, endpoint, settings and problems as
+repeats of one configuration. Its key did not include the prompt version, so the B1 run with the v3 prompts on
+`canonical_200` (`baseline_..._prompts-v3_canonical_200_r1_20261102-1109`, #97) had the same key as the v1 B1 run
+(`baseline_..._canonical_200_r1_20261102-0223`). Run over all of `results/`, the script would have reported them as
+two repeats of B1. The script also had no way to use the `canonical_200` part of the `canonical_587` run as the third
+pipeline repeat, which the Gap 1 and Gap 2 analyses already do.
+
+**Change.** The key now includes the prompt version when it is not v1 (runs from before #95 have none and count as
+v1, as in `run.py`). A new `--sample` option keeps only the problems of one sample file in every run, and stops when a
+run does not hold all of them. Tests cover both.
+
+**Effect.** `results/e6/canonical_200/` has the v1 runs only, and the gpt-oss-120b pipeline has the same three
+repeats as `results/gap1/canonical_200/`. Its B1 is one repeat of 2,664 tokens per problem, the same as in
+`results/gap3/canonical_200/e3.json`.
