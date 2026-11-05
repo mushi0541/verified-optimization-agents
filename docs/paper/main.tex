@@ -524,7 +524,7 @@ what one fold of \texttt{canonical\_200} provides. We therefore added \texttt{ca
 from the Phase~1 plan, made after H2 failed on \texttt{canonical\_200}, and both results are reported. The main
 configuration uses one model (gpt-oss-120b); the six other models have one run each on 200 problems, so their
 intervals are wide. Repeats differ only in provider nondeterminism and the paraphraser's sampling temperature.
-Every main configuration has three repeats except B2 (one); some later repeats ran in another AWS region with the
+Every main configuration has three repeats except B2 and the DeepSeek B0 reproduction (one each); some later repeats ran in another AWS region with the
 same model and settings, and Table~\ref{tab:gap3}'s B0 and B1 come from the first B1 run.
 A second paraphrase model (DeepSeek V3.2) caught two shared misreadings but did not raise the AUROC (0.876 against
 0.883 on \texttt{canonical\_200}).
