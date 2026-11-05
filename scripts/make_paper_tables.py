@@ -123,7 +123,11 @@ def baselines(results: Path) -> tuple[str, list[str]] | None:
         stat = (entry or {}).get(system, {}).get("accuracy", {})
         return percent(stat.get("mean"), stat.get("sd"))
 
-    header = ["Class", "B0", "B1"] + ([f"B0, {tex(reference['model'])}"] if reference else []) + ["SIR, reported"]
+    def name_of(block: dict) -> str:
+        return tex(MODEL_NAMES.get(block["model"], block["model"]))
+
+    # The reference model's column is named by its first word, so the one-column table fits the page width.
+    header = ["Class", "B0", "B1"] + ([f"{name_of(reference).split()[0]} B0"] if reference else []) + ["SIR, reported"]
     rows = []
     for name, entry in main["classes"].items():
         other = [accuracy(reference["classes"].get(name), "B0")] if reference else []
@@ -132,10 +136,10 @@ def baselines(results: Path) -> tuple[str, list[str]] | None:
     other = [accuracy(reference["overall"], "B0")] if reference else []
     rows.append(["All classes", accuracy(main["overall"], "B0"), accuracy(main["overall"], "B1"), *other, DASH])
     repeats = f"{main['repeats']} repeat" + ("s" if main["repeats"] != 1 else "")
-    caption = (f"Accuracy (\\%, 0.2\\% rule) of the baselines ({tex(main['model'])}) on \\texttt{{canonical\\_200}}, "
+    caption = (f"Accuracy (\\%, 0.2\\% rule) of the baselines ({name_of(main)}) on \\texttt{{canonical\\_200}}, "
                f"{repeats}, mean $\\pm$ sd where there are two or more")
     sources = ["results/e1_e2/e1_e2.json"]
-    return table(caption, "tab:baselines", "l" + "r" * (len(header) - 1), header, rows, sources), sources
+    return table(caption, "tab:baselines", "l" + "r" * (len(header) - 1), header, rows, sources, tight=True), sources
 
 
 def gap1(results: Path) -> tuple[str, list[str]] | None:

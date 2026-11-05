@@ -442,11 +442,12 @@ usage is saved for a failed problem, so the cost is a lower bound when runs fail
 `tokens_by_step.csv` (where each system spends its tokens, from `usage_by_step`) and `efficiency.json`.
 
 The two folders in `results/e6` were made with these commands (the `canonical_200` one leaves out the v3-prompt and
-second-paraphraser runs, and adds the `canonical_200` part of the `canonical_587` run as a pipeline repeat):
+second-paraphraser runs and the two B1 repeats run in ap-southeast-2, since E6 keeps one endpoint per row, and adds the
+`canonical_200` part of the `canonical_587` run as a pipeline repeat):
 
 ```bash
 python scripts/efficiency.py --sample samples/canonical_200.json --out-dir results/e6/canonical_200 \
-    --runs $(ls -d results/*canonical_200_r* | grep -v -e prompts-v3 -e para-bedrock) \
+    --runs $(ls -d results/*canonical_200_r* | grep -v -e prompts-v3 -e para-bedrock -e _20261105-1852 -e _20261105-1907) \
     results/pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_587_r1_20261101-2254
 python scripts/efficiency.py --out-dir results/e6/canonical_unused --runs results/baseline_*canonical_unused_r1* \
     results/pipeline_*canonical_unused_r1* results/b2_*canonical_unused_r1*

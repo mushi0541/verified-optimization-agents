@@ -364,9 +364,9 @@ model is gpt-oss-120b and the threshold is 0.8.
 
 \subsection{Baselines and the base paper (E1, E2)}
 \generated{tables/baselines.tex}{scripts/compare\_baselines.py}
-B0 and B1 reach 77.0\% and 78.0\% on \texttt{canonical\_200} (Table~\ref{tab:baselines}). Where the base paper reports
-SIR accuracy, our B0 is close to it or above it (Knapsack 95.0\% against 93.2\%, NetworkFlow 95.0\% against 100\%, TSP
-100\% against 85.9\%), and DeepSeek V3.2, the
+Over three repeats, B0 and B1 reach 78.5\% and 79.5\% on \texttt{canonical\_200} (Table~\ref{tab:baselines}). Where
+the base paper reports SIR accuracy, our B0 is close to it or above it (Knapsack 98.3\% against 93.2\%, NetworkFlow
+96.7\% against 100\%, TSP 95.0\% against 85.9\%), and DeepSeek V3.2, the
 base paper's model, reaches 78.0\% as B0. Every system scores 0\% on Pollution, whose references the stated model
 cannot reproduce (Section~\ref{sec:references}).
 
@@ -476,7 +476,6 @@ signal, and it falls on coverage, not on the wrong-accept rate.
 \subsection{Case Studies and Trajectories}
 \label{sec:case_studies}
 Traces of development runs (\texttt{logs/sample/}, \texttt{docs/failures/trajectories.md}) show each path. In a
-clean solve (Knapsack, canonical-1155) the model and all three rewordings reach 3,424 and every signal is 1.0. In a
 repair (Portfolio, canonical-1250) the first code raises a \texttt{KeyError}; the repair round fixes it and the
 answer is accepted with $S = 0.987$. In a correct refusal (JobShop, canonical-0890) the model reaches 265 while all
 three rewordings reach the reference 54, so $S_{\text{para}} = 0$ and the case is escalated. In a wrong accept
@@ -524,12 +523,10 @@ what one fold of \texttt{canonical\_200} provides. We therefore added \texttt{ca
 from the Phase~1 plan, made after H2 failed on \texttt{canonical\_200}, and both results are reported. The main
 configuration uses one model (gpt-oss-120b); the six other models have one run each on 200 problems, so their
 intervals are wide. Repeats differ only in provider nondeterminism and the paraphraser's sampling temperature.
-The pipeline has three repeats on \texttt{canonical\_200}, \texttt{constraint\_pairs\_60} and
-\texttt{linguistic\_60} (the third repeat of the last two ran in another AWS region), while B0, B1 and B2 have one
-each.
-A second paraphrase model (DeepSeek V3.2) caught two misreadings that same-model rewordings shared (canonical-1653
-and 1643), but did not raise the AUROC (0.815 against 0.866 on \texttt{dev\_93}, 0.876 against 0.883 on
-\texttt{canonical\_200}) and raised false alarms.
+Every main configuration has three repeats except B2 (one); some later repeats ran in another AWS region with the
+same model and settings, and Table~\ref{tab:gap3}'s B0 and B1 come from the first B1 run.
+A second paraphrase model (DeepSeek V3.2) caught two shared misreadings but did not raise the AUROC (0.876 against
+0.883 on \texttt{canonical\_200}).
 
 \section{Conclusion}
 \label{sec:conclusion}
