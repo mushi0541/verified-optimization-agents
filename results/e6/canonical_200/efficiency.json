@@ -1,0 +1,1805 @@
+{
+  "prices_usd_per_million_tokens": {
+    "openai.gpt-oss-120b-1:0": {
+      "input": 0.15,
+      "output": 0.6,
+      "date": "2026-10-20"
+    },
+    "deepseek.v3.2": {
+      "input": 0.62,
+      "output": 1.85,
+      "date": "2026-11-02"
+    },
+    "qwen.qwen3-next-80b-a3b": {
+      "input": 0.15,
+      "output": 1.2,
+      "date": "2026-11-05"
+    },
+    "mistral.mistral-large-3-675b-instruct": {
+      "input": 0.5,
+      "output": 1.5,
+      "date": "2026-11-05"
+    },
+    "zai.glm-4.7": {
+      "input": 0.6,
+      "output": 2.2,
+      "date": "2026-11-05"
+    },
+    "moonshotai.kimi-k2.5": {
+      "input": 0.6,
+      "output": 3.0,
+      "date": "2026-11-05"
+    }
+  },
+  "price_source": "Amazon Bedrock on-demand, us-east-1",
+  "failed_run_target": 0.05,
+  "configurations": [
+    {
+      "configuration": "b2_r1 | deepseek.v3.2 | bedrock us-east-1 | canonical_200 | 200 problems [4dfbc9]",
+      "runs": [
+        "b2_bedrock-deepseek.v3.2_canonical_200_r1_20261102-2036"
+      ],
+      "problems_per_run": [
+        200
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 6866.12,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_output_tokens": {
+          "mean": 12991.26,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_llm_calls": {
+          "mean": 9.14,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_solver_calls": {
+          "mean": 9.14,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_latency_s": {
+          "mean": 355.21074829050053,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_cost_usd": {
+          "mean": 0.0282908254,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_error_rate": {
+          "mean": 0.024070021881838075,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_timeout_rate": {
+          "mean": 0.015317286652078774,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "repair_success_rate": {
+          "mean": 0.4,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "price": {
+        "model": "deepseek.v3.2",
+        "input": 0.62,
+        "output": 1.85,
+        "date": "2026-11-02"
+      },
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "sample_1": 2521.585,
+        "sample_2": 2677.975,
+        "sample_3": 2589.565,
+        "sample_4": 2454.995,
+        "sample_5": 2327.545,
+        "sample_6": 2039.585,
+        "sample_7": 1563.02,
+        "sample_8": 1268.855,
+        "sample_9": 719.48,
+        "sample_10": 543.82,
+        "sample_11": 418.35,
+        "sample_12": 278.695,
+        "sample_13": 152.67,
+        "sample_14": 120.225,
+        "sample_15": 65.665,
+        "sample_16": 39.775,
+        "sample_17": 21.225,
+        "sample_18": 19.13,
+        "sample_19": 8.085,
+        "sample_20": 10.615,
+        "sample_21": 8.365,
+        "sample_22": 4.435,
+        "sample_23": 3.72
+      }
+    },
+    {
+      "configuration": "b2_r1 | mistral.mistral-large-3-675b-instruct | bedrock us-east-1 | canonical_200 | 200 problems [4dfbc9]",
+      "runs": [
+        "b2_bedrock-mistral.mistral-large-3-675b-instruct_canonical_200_r1_20261103-1042"
+      ],
+      "problems_per_run": [
+        200
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 8466.855,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_output_tokens": {
+          "mean": 13282.73,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_llm_calls": {
+          "mean": 9.92,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_solver_calls": {
+          "mean": 9.92,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_latency_s": {
+          "mean": 162.07762389749965,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_cost_usd": {
+          "mean": 0.0241575225,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_error_rate": {
+          "mean": 0.059475806451612906,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_timeout_rate": {
+          "mean": 0.007056451612903226,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "repair_success_rate": {
+          "mean": 0.47368421052631576,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "price": {
+        "model": "mistral.mistral-large-3-675b-instruct",
+        "input": 0.5,
+        "output": 1.5,
+        "date": "2026-11-05"
+      },
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "sample_1": 2649.71,
+        "sample_2": 2836.59,
+        "sample_3": 2696.055,
+        "sample_4": 2549.415,
+        "sample_5": 2351.295,
+        "sample_6": 2120.075,
+        "sample_7": 1737.58,
+        "sample_8": 1432.87,
+        "sample_9": 1076.935,
+        "sample_10": 798.96,
+        "sample_11": 550.33,
+        "sample_12": 419.72,
+        "sample_13": 221.765,
+        "sample_14": 144.86,
+        "sample_15": 56.175,
+        "sample_16": 43.16,
+        "sample_17": 33.2,
+        "sample_18": 16.445,
+        "sample_19": 10.255,
+        "sample_20": 4.19
+      }
+    },
+    {
+      "configuration": "b2_r1 | moonshotai.kimi-k2.5 | bedrock us-east-1 | canonical_200 | 200 problems [4dfbc9]",
+      "runs": [
+        "b2_bedrock-moonshotai.kimi-k2.5_canonical_200_r1_20261103-1501"
+      ],
+      "problems_per_run": [
+        200
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 7950.5,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_output_tokens": {
+          "mean": 14972.4,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_llm_calls": {
+          "mean": 10.675,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_solver_calls": {
+          "mean": 10.675,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_latency_s": {
+          "mean": 252.8911930665,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_cost_usd": {
+          "mean": 0.0496875,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_error_rate": {
+          "mean": 0.007494145199063232,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_timeout_rate": {
+          "mean": 0.001873536299765808,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "repair_success_rate": {
+          "mean": 0.75,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "price": {
+        "model": "moonshotai.kimi-k2.5",
+        "input": 0.6,
+        "output": 3.0,
+        "date": "2026-11-05"
+      },
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "sample_1": 2381.2,
+        "sample_2": 2521.625,
+        "sample_3": 2525.205,
+        "sample_4": 2450.47,
+        "sample_5": 2356.495,
+        "sample_6": 2237.465,
+        "sample_7": 1957.1,
+        "sample_8": 1716.08,
+        "sample_9": 1281.95,
+        "sample_10": 998.17,
+        "sample_11": 792.755,
+        "sample_12": 464.175,
+        "sample_13": 340.17,
+        "sample_14": 304.98,
+        "sample_15": 200.02,
+        "sample_16": 131.445,
+        "sample_17": 97.915,
+        "sample_18": 63.01,
+        "sample_19": 44.63,
+        "sample_20": 26.645,
+        "sample_21": 16.175,
+        "sample_22": 10.44,
+        "sample_23": 4.78
+      }
+    },
+    {
+      "configuration": "b2_r1 | openai.gpt-oss-120b-1:0 | bedrock us-east-1 | canonical_200 | 200 problems [4dfbc9]",
+      "runs": [
+        "b2_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261102-0231"
+      ],
+      "problems_per_run": [
+        200
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 6942.42,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_output_tokens": {
+          "mean": 13939.06,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_llm_calls": {
+          "mean": 8.805,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_solver_calls": {
+          "mean": 8.805,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_latency_s": {
+          "mean": 129.94241283299982,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_cost_usd": {
+          "mean": 0.009404798999999998,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_error_rate": {
+          "mean": 0.009653605905735378,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_timeout_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "repair_success_rate": {
+          "mean": 0.8,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "price": {
+        "model": "openai.gpt-oss-120b-1:0",
+        "input": 0.15,
+        "output": 0.6,
+        "date": "2026-10-20"
+      },
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "sample_1": 2687.36,
+        "sample_2": 2667.98,
+        "sample_3": 2692.365,
+        "sample_4": 2806.105,
+        "sample_5": 2463.605,
+        "sample_6": 2185.715,
+        "sample_7": 1689.89,
+        "sample_8": 1187.395,
+        "sample_9": 794.15,
+        "sample_10": 609.34,
+        "sample_11": 477.54,
+        "sample_12": 245.265,
+        "sample_13": 145.935,
+        "sample_14": 89.955,
+        "sample_15": 56.935,
+        "sample_16": 34.945,
+        "sample_17": 20.195,
+        "sample_18": 10.41,
+        "sample_19": 10.925,
+        "sample_20": 5.47
+      }
+    },
+    {
+      "configuration": "b2_r1 | openai.gpt-oss-20b-1:0 | bedrock us-east-1 | canonical_200 | 200 problems [4dfbc9]",
+      "runs": [
+        "b2_bedrock-openai.gpt-oss-20b-1-0_canonical_200_r1_20261103-0755"
+      ],
+      "problems_per_run": [
+        200
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 9453.78,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_output_tokens": {
+          "mean": 22965.27,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_llm_calls": {
+          "mean": 11.6,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_solver_calls": {
+          "mean": 11.6,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_latency_s": {
+          "mean": 197.56382832100084,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_cost_usd": {
+          "mean": null,
+          "sd": null,
+          "repeats_with_value": 0
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_error_rate": {
+          "mean": 0.032758620689655175,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_timeout_rate": {
+          "mean": 0.0021551724137931034,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "repair_success_rate": {
+          "mean": 0.425531914893617,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "price": null,
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "sample_1": 4207.59,
+        "sample_2": 4044.11,
+        "sample_3": 3838.53,
+        "sample_4": 3544.11,
+        "sample_5": 3108.1,
+        "sample_6": 2670.82,
+        "sample_7": 2155.66,
+        "sample_8": 1769.37,
+        "sample_9": 1501.705,
+        "sample_10": 1345.615,
+        "sample_11": 994.49,
+        "sample_12": 745.365,
+        "sample_13": 539.735,
+        "sample_14": 423.43,
+        "sample_15": 420.63,
+        "sample_16": 323.64,
+        "sample_17": 260.325,
+        "sample_18": 153.55,
+        "sample_19": 127.79,
+        "sample_20": 91.27,
+        "sample_21": 101.4,
+        "sample_22": 26.64,
+        "sample_23": 18.975,
+        "sample_24": 6.2
+      }
+    },
+    {
+      "configuration": "b2_r1 | qwen.qwen3-next-80b-a3b | bedrock us-east-1 | canonical_200 | 200 problems [4dfbc9]",
+      "runs": [
+        "b2_bedrock-qwen.qwen3-next-80b-a3b_canonical_200_r1_20261103-0420"
+      ],
+      "problems_per_run": [
+        200
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 10023.785,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_output_tokens": {
+          "mean": 19721.575,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_llm_calls": {
+          "mean": 11.345,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_solver_calls": {
+          "mean": 11.345,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_latency_s": {
+          "mean": 351.8986253580004,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_cost_usd": {
+          "mean": 0.02516945775,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_error_rate": {
+          "mean": 0.11591009255178493,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_timeout_rate": {
+          "mean": 0.0035257822829440283,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "repair_success_rate": {
+          "mean": 0.711864406779661,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "price": {
+        "model": "qwen.qwen3-next-80b-a3b",
+        "input": 0.15,
+        "output": 1.2,
+        "date": "2026-11-05"
+      },
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "sample_1": 4059.805,
+        "sample_2": 4211.17,
+        "sample_3": 3992.83,
+        "sample_4": 3968.95,
+        "sample_5": 2988.63,
+        "sample_6": 2435.705,
+        "sample_7": 1573.16,
+        "sample_8": 1284.435,
+        "sample_9": 1117.225,
+        "sample_10": 819.8,
+        "sample_11": 705.9,
+        "sample_12": 515.97,
+        "sample_13": 392.695,
+        "sample_14": 332.67,
+        "sample_15": 307.63,
+        "sample_16": 229.305,
+        "sample_17": 204.525,
+        "sample_18": 175.57,
+        "sample_19": 120.8,
+        "sample_20": 84.34,
+        "sample_21": 69.645,
+        "sample_22": 60.08,
+        "sample_23": 51.615,
+        "sample_24": 42.905
+      }
+    },
+    {
+      "configuration": "b2_r1 | zai.glm-4.7 | bedrock us-east-1 | canonical_200 | 200 problems [4dfbc9]",
+      "runs": [
+        "b2_bedrock-zai.glm-4.7_canonical_200_r1_20261103-1243"
+      ],
+      "problems_per_run": [
+        200
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 8976.41,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_output_tokens": {
+          "mean": 10664.46,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_llm_calls": {
+          "mean": 10.41,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_solver_calls": {
+          "mean": 10.41,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_latency_s": {
+          "mean": 174.38111271749978,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_cost_usd": {
+          "mean": 0.028847658,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_error_rate": {
+          "mean": 0.14601344860710855,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_timeout_rate": {
+          "mean": 0.012007684918347743,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "repair_success_rate": {
+          "mean": 0.4634146341463415,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "price": {
+        "model": "zai.glm-4.7",
+        "input": 0.6,
+        "output": 2.2,
+        "date": "2026-11-05"
+      },
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "sample_1": 2556.905,
+        "sample_2": 2626.87,
+        "sample_3": 2626.15,
+        "sample_4": 2608.78,
+        "sample_5": 2161.39,
+        "sample_6": 1739.335,
+        "sample_7": 1464.63,
+        "sample_8": 1232.235,
+        "sample_9": 773.46,
+        "sample_10": 585.38,
+        "sample_11": 352.265,
+        "sample_12": 276.1,
+        "sample_13": 188.955,
+        "sample_14": 122.695,
+        "sample_15": 85.07,
+        "sample_16": 60.735,
+        "sample_17": 44.795,
+        "sample_18": 36.69,
+        "sample_19": 28.725,
+        "sample_20": 24.915,
+        "sample_21": 11.345,
+        "sample_22": 17.4,
+        "sample_23": 12.68,
+        "sample_24": 3.365
+      }
+    },
+    {
+      "configuration": "baseline_r0 | deepseek.v3.2 | bedrock us-east-1 | canonical_200 | 200 problems [4dfbc9]",
+      "runs": [
+        "baseline_bedrock-deepseek.v3.2_canonical_200_r0_20261102-0247"
+      ],
+      "problems_per_run": [
+        200
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 793.895,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_output_tokens": {
+          "mean": 1601.985,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_llm_calls": {
+          "mean": 1.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_solver_calls": {
+          "mean": 1.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_latency_s": {
+          "mean": 47.965534875498854,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_cost_usd": {
+          "mean": 0.0034558871499999998,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_error_rate": {
+          "mean": 0.015,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_timeout_rate": {
+          "mean": 0.01,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "repair_success_rate": {
+          "mean": null,
+          "sd": null,
+          "repeats_with_value": 0
+        }
+      },
+      "price": {
+        "model": "deepseek.v3.2",
+        "input": 0.62,
+        "output": 1.85,
+        "date": "2026-11-02"
+      },
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "formalize": 2395.88,
+        "repair": 0.0
+      }
+    },
+    {
+      "configuration": "baseline_r1 | deepseek.v3.2 | bedrock us-east-1 | canonical_200 | 200 problems [4dfbc9]",
+      "runs": [
+        "baseline_bedrock-deepseek.v3.2_canonical_200_r1_20261102-1258"
+      ],
+      "problems_per_run": [
+        200
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 873.615,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_output_tokens": {
+          "mean": 1677.625,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_llm_calls": {
+          "mean": 1.04,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_solver_calls": {
+          "mean": 1.04,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_latency_s": {
+          "mean": 48.78309756849994,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_cost_usd": {
+          "mean": 0.0036452475500000003,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_error_rate": {
+          "mean": 0.028846153846153848,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_timeout_rate": {
+          "mean": 0.009615384615384616,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "repair_success_rate": {
+          "mean": 0.625,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "price": {
+        "model": "deepseek.v3.2",
+        "input": 0.62,
+        "output": 1.85,
+        "date": "2026-11-02"
+      },
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "formalize": 2405.13,
+        "repair": 146.11
+      }
+    },
+    {
+      "configuration": "baseline_r1 | mistral.mistral-large-3-675b-instruct | bedrock us-east-1 | canonical_200 | 200 problems [4dfbc9]",
+      "runs": [
+        "baseline_bedrock-mistral.mistral-large-3-675b-instruct_canonical_200_r1_20261102-1258"
+      ],
+      "problems_per_run": [
+        200
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 1110.54,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_output_tokens": {
+          "mean": 1636.95,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_llm_calls": {
+          "mean": 1.115,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_solver_calls": {
+          "mean": 1.115,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_latency_s": {
+          "mean": 29.305799085500176,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_cost_usd": {
+          "mean": 0.003010695,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_error_rate": {
+          "mean": 0.04932735426008968,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_timeout_rate": {
+          "mean": 0.008968609865470852,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "repair_success_rate": {
+          "mean": 0.6956521739130435,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "price": {
+        "model": "mistral.mistral-large-3-675b-instruct",
+        "input": 0.5,
+        "output": 1.5,
+        "date": "2026-11-05"
+      },
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "formalize": 2361.9,
+        "repair": 385.59
+      }
+    },
+    {
+      "configuration": "baseline_r1 | moonshotai.kimi-k2.5 | bedrock us-east-1 | canonical_200 | 200 problems [4dfbc9]",
+      "runs": [
+        "baseline_bedrock-moonshotai.kimi-k2.5_canonical_200_r1_20261102-1258"
+      ],
+      "problems_per_run": [
+        200
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 837.385,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_output_tokens": {
+          "mean": 1548.945,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_llm_calls": {
+          "mean": 1.015,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_solver_calls": {
+          "mean": 1.015,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_latency_s": {
+          "mean": 33.09666549399988,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_cost_usd": {
+          "mean": 0.005149266,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_error_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_timeout_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "repair_success_rate": {
+          "mean": 0.6666666666666666,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "price": {
+        "model": "moonshotai.kimi-k2.5",
+        "input": 0.6,
+        "output": 3.0,
+        "date": "2026-11-05"
+      },
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "formalize": 2321.49,
+        "repair": 64.84
+      }
+    },
+    {
+      "configuration": "baseline_r1 | openai.gpt-oss-120b-1:0 | bedrock us-east-1 | canonical_200 | 200 problems [4dfbc9]",
+      "runs": [
+        "baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261102-0223"
+      ],
+      "problems_per_run": [
+        200
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 906.93,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_output_tokens": {
+          "mean": 1757.535,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_llm_calls": {
+          "mean": 1.03,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_solver_calls": {
+          "mean": 1.03,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_latency_s": {
+          "mean": 21.30902791050408,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_cost_usd": {
+          "mean": 0.0011905605,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_error_rate": {
+          "mean": 0.019417475728155338,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_timeout_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "repair_success_rate": {
+          "mean": 0.8333333333333334,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "price": {
+        "model": "openai.gpt-oss-120b-1:0",
+        "input": 0.15,
+        "output": 0.6,
+        "date": "2026-10-20"
+      },
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "formalize": 2555.13,
+        "repair": 109.335
+      }
+    },
+    {
+      "configuration": "baseline_r1 | openai.gpt-oss-20b-1:0 | bedrock us-east-1 | canonical_200 | 200 problems [4dfbc9]",
+      "runs": [
+        "baseline_bedrock-openai.gpt-oss-20b-1-0_canonical_200_r1_20261102-1259"
+      ],
+      "problems_per_run": [
+        200
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 1151.62,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_output_tokens": {
+          "mean": 3119.29,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_llm_calls": {
+          "mean": 1.25,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_solver_calls": {
+          "mean": 1.25,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_latency_s": {
+          "mean": 28.95435029649988,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_cost_usd": {
+          "mean": null,
+          "sd": null,
+          "repeats_with_value": 0
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_error_rate": {
+          "mean": 0.024,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_timeout_rate": {
+          "mean": 0.004,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "repair_success_rate": {
+          "mean": 0.5,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "price": null,
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "formalize": 3158.88,
+        "repair": 1112.03
+      }
+    },
+    {
+      "configuration": "baseline_r1 | qwen.qwen3-next-80b-a3b | bedrock us-east-1 | canonical_200 | 200 problems [4dfbc9]",
+      "runs": [
+        "baseline_bedrock-qwen.qwen3-next-80b-a3b_canonical_200_r1_20261102-1258"
+      ],
+      "problems_per_run": [
+        200
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 1164.27,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_output_tokens": {
+          "mean": 2767.46,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_llm_calls": {
+          "mean": 1.25,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_solver_calls": {
+          "mean": 1.25,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_latency_s": {
+          "mean": 46.800640133000115,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_cost_usd": {
+          "mean": 0.0034955925,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_error_rate": {
+          "mean": 0.112,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_timeout_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "repair_success_rate": {
+          "mean": 0.7,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "price": {
+        "model": "qwen.qwen3-next-80b-a3b",
+        "input": 0.15,
+        "output": 1.2,
+        "date": "2026-11-05"
+      },
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "formalize": 3256.93,
+        "repair": 674.8
+      }
+    },
+    {
+      "configuration": "baseline_r1 | zai.glm-4.7 | bedrock us-east-1 | canonical_200 | 200 problems [4dfbc9]",
+      "runs": [
+        "baseline_bedrock-zai.glm-4.7_canonical_200_r1_20261102-1258"
+      ],
+      "problems_per_run": [
+        200
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 1200.485,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_output_tokens": {
+          "mean": 1310.455,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_llm_calls": {
+          "mean": 1.205,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_solver_calls": {
+          "mean": 1.205,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_latency_s": {
+          "mean": 30.014685563500198,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_cost_usd": {
+          "mean": 0.003603292,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_error_rate": {
+          "mean": 0.17427385892116182,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_timeout_rate": {
+          "mean": 0.008298755186721992,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "repair_success_rate": {
+          "mean": 0.2682926829268293,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "price": {
+        "model": "zai.glm-4.7",
+        "input": 0.6,
+        "output": 2.2,
+        "date": "2026-11-05"
+      },
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "formalize": 1891.9,
+        "repair": 619.04
+      }
+    },
+    {
+      "configuration": "pipeline_p3 | deepseek.v3.2 | bedrock us-east-1 | canonical_200 | 200 problems [4dfbc9]",
+      "runs": [
+        "pipeline_bedrock-deepseek.v3.2_canonical_200_r1_20261102-1257"
+      ],
+      "problems_per_run": [
+        200
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 7074.775,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_output_tokens": {
+          "mean": 8773.015,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_llm_calls": {
+          "mean": 8.23,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_solver_calls": {
+          "mean": 4.155,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_latency_s": {
+          "mean": 222.52309009900011,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_cost_usd": {
+          "mean": 0.02061643825,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_error_rate": {
+          "mean": 0.023148148148148147,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_timeout_rate": {
+          "mean": 0.023148148148148147,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "repair_success_rate": {
+          "mean": 0.5625,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "price": {
+        "model": "deepseek.v3.2",
+        "input": 0.62,
+        "output": 1.85,
+        "date": "2026-11-02"
+      },
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "parse": 1615.02,
+        "formalize": 3006.185,
+        "repair": 303.53,
+        "paraphrase_1": 3750.17,
+        "paraphrase_2": 3560.81,
+        "paraphrase_3": 3612.075
+      }
+    },
+    {
+      "configuration": "pipeline_p3 | mistral.mistral-large-3-675b-instruct | bedrock us-east-1 | canonical_200 | 200 problems [4dfbc9]",
+      "runs": [
+        "pipeline_bedrock-mistral.mistral-large-3-675b-instruct_canonical_200_r1_20261102-1258"
+      ],
+      "problems_per_run": [
+        200
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 8380.095,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_output_tokens": {
+          "mean": 9131.365,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_llm_calls": {
+          "mean": 8.55,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_solver_calls": {
+          "mean": 4.315,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_latency_s": {
+          "mean": 102.16607889449972,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_cost_usd": {
+          "mean": 0.017887095,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_error_rate": {
+          "mean": 0.05069124423963134,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_timeout_rate": {
+          "mean": 0.009216589861751152,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "repair_success_rate": {
+          "mean": 0.47058823529411764,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "price": {
+        "model": "mistral.mistral-large-3-675b-instruct",
+        "input": 0.5,
+        "output": 1.5,
+        "date": "2026-11-05"
+      },
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "parse": 2023.225,
+        "formalize": 3285.305,
+        "repair": 277.645,
+        "paraphrase_1": 3853.175,
+        "paraphrase_2": 4072.245,
+        "paraphrase_3": 3999.865
+      }
+    },
+    {
+      "configuration": "pipeline_p3 | moonshotai.kimi-k2.5 | bedrock us-east-1 | canonical_200 | 200 problems [4dfbc9]",
+      "runs": [
+        "pipeline_bedrock-moonshotai.kimi-k2.5_canonical_200_r1_20261102-1258"
+      ],
+      "problems_per_run": [
+        200
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 8444.635,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_output_tokens": {
+          "mean": 9848.695,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_llm_calls": {
+          "mean": 8.08,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_solver_calls": {
+          "mean": 4.085,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_latency_s": {
+          "mean": 148.11143807249994,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_cost_usd": {
+          "mean": 0.034612866,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_error_rate": {
+          "mean": 0.0045871559633027525,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_timeout_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "repair_success_rate": {
+          "mean": 0.7777777777777778,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "price": {
+        "model": "moonshotai.kimi-k2.5",
+        "input": 0.6,
+        "output": 3.0,
+        "date": "2026-11-05"
+      },
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "parse": 2572.82,
+        "formalize": 4582.275,
+        "repair": 374.995,
+        "paraphrase_1": 3579.375,
+        "paraphrase_2": 3569.98,
+        "paraphrase_3": 3613.885
+      }
+    },
+    {
+      "configuration": "pipeline_p3 | openai.gpt-oss-120b-1:0 | bedrock us-east-1 | canonical_200 | 200 problems [4dfbc9]",
+      "runs": [
+        "pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261101-1429",
+        "pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261102-0153",
+        "pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_587_r1_20261101-2254 (canonical_200 part)"
+      ],
+      "problems_per_run": [
+        200,
+        200,
+        200
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 8881.463333333333,
+          "sd": 151.30692790924454,
+          "repeats_with_value": 3
+        },
+        "mean_output_tokens": {
+          "mean": 12392.588333333333,
+          "sd": 325.7825285498501,
+          "repeats_with_value": 3
+        },
+        "mean_llm_calls": {
+          "mean": 8.325000000000001,
+          "sd": 0.16889345754054577,
+          "repeats_with_value": 3
+        },
+        "mean_solver_calls": {
+          "mean": 4.191666666666666,
+          "sd": 0.08460693430998041,
+          "repeats_with_value": 3
+        },
+        "mean_latency_s": {
+          "mean": 91.70709810383376,
+          "sd": 6.800674356445541,
+          "repeats_with_value": 3
+        },
+        "mean_cost_usd": {
+          "mean": 0.0087677725,
+          "sd": 0.00021700671506718412,
+          "repeats_with_value": 3
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": 0.0,
+          "repeats_with_value": 3
+        },
+        "solver_error_rate": {
+          "mean": 0.03753948753948754,
+          "sd": 0.0026191894553086376,
+          "repeats_with_value": 3
+        },
+        "solver_timeout_rate": {
+          "mean": 0.0015015015015015015,
+          "sd": 0.0026006768882415577,
+          "repeats_with_value": 3
+        },
+        "repair_success_rate": {
+          "mean": 0.8376262626262626,
+          "sd": 0.12357157517159331,
+          "repeats_with_value": 3
+        }
+      },
+      "price": {
+        "model": "openai.gpt-oss-120b-1:0",
+        "input": 0.15,
+        "output": 0.6,
+        "date": "2026-10-20"
+      },
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "parse": 3007.715,
+        "formalize": 4782.068333333334,
+        "repair": 451.61,
+        "paraphrase_1": 4376.1033333333335,
+        "paraphrase_2": 4275.088333333334,
+        "paraphrase_3": 4381.466666666667
+      }
+    },
+    {
+      "configuration": "pipeline_p3 | openai.gpt-oss-20b-1:0 | bedrock us-east-1 | canonical_200 | 200 problems [4dfbc9]",
+      "runs": [
+        "pipeline_bedrock-openai.gpt-oss-20b-1-0_canonical_200_r1_20261102-1259"
+      ],
+      "problems_per_run": [
+        200
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 8389.39,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_output_tokens": {
+          "mean": 17624.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_llm_calls": {
+          "mean": 7.975,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_solver_calls": {
+          "mean": 4.2,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_latency_s": {
+          "mean": 113.67811793800021,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_cost_usd": {
+          "mean": null,
+          "sd": null,
+          "repeats_with_value": 0
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_error_rate": {
+          "mean": 0.030100334448160536,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_timeout_rate": {
+          "mean": 0.0033444816053511705,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "repair_success_rate": {
+          "mean": 0.494949494949495,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "price": null,
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "parse": 4862.69,
+        "formalize": 5996.345,
+        "repair": 2024.715,
+        "paraphrase_1": 4456.42,
+        "paraphrase_2": 4300.655,
+        "paraphrase_3": 4372.565
+      }
+    },
+    {
+      "configuration": "pipeline_p3 | qwen.qwen3-next-80b-a3b | bedrock us-east-1 | canonical_200 | 200 problems [4dfbc9]",
+      "runs": [
+        "pipeline_bedrock-qwen.qwen3-next-80b-a3b_canonical_200_r1_20261102-1258"
+      ],
+      "problems_per_run": [
+        200
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 9420.35,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_output_tokens": {
+          "mean": 14631.37,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_llm_calls": {
+          "mean": 9.18,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_solver_calls": {
+          "mean": 4.765,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_latency_s": {
+          "mean": 208.0678832224997,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_cost_usd": {
+          "mean": 0.0189706965,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_error_rate": {
+          "mean": 0.1111111111111111,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_timeout_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "repair_success_rate": {
+          "mean": 0.7285714285714285,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "price": {
+        "model": "qwen.qwen3-next-80b-a3b",
+        "input": 0.15,
+        "output": 1.2,
+        "date": "2026-11-05"
+      },
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "parse": 2433.965,
+        "formalize": 4441.15,
+        "repair": 1412.335,
+        "paraphrase_1": 5196.2,
+        "paraphrase_2": 5316.675,
+        "paraphrase_3": 5251.395
+      }
+    },
+    {
+      "configuration": "pipeline_p3 | zai.glm-4.7 | bedrock us-east-1 | canonical_200 | 200 problems [4dfbc9]",
+      "runs": [
+        "pipeline_bedrock-zai.glm-4.7_canonical_200_r1_20261102-1258"
+      ],
+      "problems_per_run": [
+        200
+      ],
+      "metrics": {
+        "mean_input_tokens": {
+          "mean": 7789.555,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_output_tokens": {
+          "mean": 7840.15,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_llm_calls": {
+          "mean": 8.335,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_solver_calls": {
+          "mean": 4.24,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_latency_s": {
+          "mean": 146.03182877999993,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "mean_cost_usd": {
+          "mean": 0.021922063000000002,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "failed_run_rate": {
+          "mean": 0.0,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_error_rate": {
+          "mean": 0.043668122270742356,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "solver_timeout_rate": {
+          "mean": 0.008733624454148471,
+          "sd": null,
+          "repeats_with_value": 1
+        },
+        "repair_success_rate": {
+          "mean": 0.2413793103448276,
+          "sd": null,
+          "repeats_with_value": 1
+        }
+      },
+      "price": {
+        "model": "zai.glm-4.7",
+        "input": 0.6,
+        "output": 2.2,
+        "date": "2026-11-05"
+      },
+      "other_model_prices": [],
+      "meets_failed_run_target": true,
+      "tokens_by_step": {
+        "parse": 2053.375,
+        "formalize": 3338.155,
+        "repair": 411.38,
+        "paraphrase_1": 3314.37,
+        "paraphrase_2": 3307.87,
+        "paraphrase_3": 3204.555
+      }
+    }
+  ]
+}
