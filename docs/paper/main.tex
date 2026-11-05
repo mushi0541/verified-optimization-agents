@@ -444,27 +444,13 @@ the gap to the reference and its direction, the objective sense) next to a hand-
 102 final answers were wrong. The pipeline refused 78 of them (escalated or abstained) and accepted 24. It also
 escalated 20 correct answers (false alarms); 19 of these came from disagreeing rewordings.
 
-\begin{table}[t]
-\centering
-\caption{Wrong final answers of E3 repeat 1 by category. ``Pending'' rows wait for the reference check of
-Section~\ref{sec:references}.}
-\label{tab:failures}
-\footnotesize
-\begin{tabular}{@{}lccc@{}}
-\toprule
-\textbf{Category} & \textbf{Accepted} & \textbf{Refused} & \textbf{Total} \\
-\midrule
-Pending (Inventory, Pollution) & 18 & 46 & 64 \\
-Wrong constraint & 3 & 19 & 22 \\
-Code error & 0 & 9 & 9 \\
-Missing constraint & 1 & 2 & 3 \\
-Other (near misses) & 2 & 0 & 2 \\
-Integrality error & 0 & 2 & 2 \\
-\bottomrule
-\end{tabular}
-\end{table}
+\generated{tables/failures.tex}{scripts/make\_paper\_tables.py from results/failures}
 
-\textbf{Wrong constraints, mostly in TSP.} All 16 infeasible models are TSP models with a wrongly written
+\textbf{Wrong constraints, mostly in Inventory and TSP.} Table~\ref{tab:failures} counts 53 wrong constraints:
+Inventory 31, TSP 17, Production 3, BinPacking and Knapsack 1 each. Most Inventory models check the storage capacity
+only on the closing stock, while the text says it holds at any moment; adding the capacity after each arrival to the
+same code gives the reference. The 26 doubtful references are the 20 Pollution answers and 6 Inventory ones
+(Section~\ref{sec:references}). All 16 infeasible models are TSP models with a wrongly written
 Miller-Tucker-Zemlin subtour constraint. Fourteen apply it to every pair of cities, the start city included, which
 rules out every complete tour; two apply it to undirected edges, which forces $u_i < u_j$ and $u_j < u_i$ at once.
 For 10 of the 14, leaving the start city out of that one constraint makes the same code return the reference value.
@@ -484,8 +470,8 @@ reached 4,181 while all three rewordings reached the reference 4,118, so the ans
 the two Knapsack models with continuous items were refused the same way.
 
 \textbf{False alarms.} Of the 20 correct answers that were escalated, 19 failed on paraphrase agreement: a rewording
-changed a detail and so reached a different optimum. This is the cost of the agreement signal, and it falls on
-coverage, not on the wrong-accept rate.
+changed a detail and so reached a different optimum, and one on an unused number. This is the cost of the agreement
+signal, and it falls on coverage, not on the wrong-accept rate.
 
 \subsection{Case Studies and Trajectories}
 \label{sec:case_studies}
@@ -500,7 +486,7 @@ too.
 
 \subsection{Reference answers}
 \label{sec:references}
-Pollution and Inventory account for 64 of the 102 wrong answers, and for 18 of the 24 wrong answers that were
+Pollution and Inventory account for 65 of the 102 wrong answers, and for 18 of the 24 wrong answers that were
 accepted, so we checked their references. \texttt{scripts/check\_references.py} reads each question's data from its text,
 solves the model the text states with HiGHS, and compares the optimum with the reference (no LLM is used).
 \begin{itemize}

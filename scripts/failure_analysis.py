@@ -116,12 +116,15 @@ def draft_row(sample: str, record: dict) -> dict:
 
 
 def false_alarm_label(report: dict) -> str:
-    """The signal that cost a correct answer its score: paraphrase disagreement first, as it weighs the most."""
-    if report.get("paraphrase_agreement") is not None and report["paraphrase_agreement"] < 1:
-        return "paraphrase disagreement"
-    if report.get("missing_requirements"):
-        return "requirement not linked"
-    return "number not used"
+    """The signal that cost a correct answer most of its score. The score is the mean of the signals, so that is the
+    one furthest below 1; a tie goes to paraphrase disagreement, then requirement coverage. (Taking paraphrase first
+    whenever it is below 1 mislabels a case like constraint-0919: requirements 0.86 and numbers 0.47, #41.)"""
+    shortfall = {
+        "paraphrase disagreement": 1 - report["paraphrase_agreement"] if report.get("paraphrase_agreement") is not None else 0,
+        "requirement not linked": 1 - report["requirement_coverage"] if report.get("requirement_coverage") is not None else 0,
+        "number not used": 1 - report.get("number_coverage", 1),
+    }
+    return max(shortfall, key=shortfall.get)  # max keeps the first of equal values: the order above breaks ties
 
 
 def draft(record_paths: list[Path], out: Path) -> list[dict]:
