@@ -32,6 +32,7 @@ Add an entry for each fix that answers a failure, newest last, and link it in th
 | 22 | 2026-11-05 | E6 would have averaged a v3-prompt run with a v1 run as repeats | #112 |
 | 23 | 2026-11-05 | Third E3 repeat on the pairs and linguistic samples in another region; one extra model | #116, #118, #119 |
 | 24 | 2026-11-05 | B0 and B1 repeats 2 and 3 on canonical_200, in another region | #123 |
+| 25 | 2026-11-05 | DeepSeek V3.2 B0 repeats 2 and 3 on canonical_200 | #33 |
 
 ## 1. Provider limits: request pacing, fitted output cap, then Amazon Bedrock
 
@@ -796,3 +797,23 @@ python scripts/compare_baselines.py --repeat results/baseline_bedrock-openai.gpt
 The one-repeat files rebuilt exactly before the new runs were added. Two results stay on the first B1 run on purpose:
 the B0 and B1 points of the Gap 3 table (the run B2 was compared with), and E6, which keeps one endpoint per row; the
 README's E6 command now leaves out the two Sydney runs, and `results/e6/` is unchanged.
+
+## 25. DeepSeek V3.2 B0 repeats 2 and 3 on canonical_200
+
+**Date.** 2026-11-05 (#33). After devlog 24, only the DeepSeek V3.2 B0 reproduction and B2 still had one run.
+
+**Runs.** Two more B0 runs of DeepSeek V3.2 on `canonical_200` with the settings of the first one (`--repairs 0`):
+`baseline_bedrock-deepseek.v3.2_canonical_200_r0_20261105-2045` and `..._20261105-2126`, each with 200 records. In the second one, two problems
+(canonical-0755 and canonical-0678) failed with "Could not connect to the endpoint URL", a network error, so the run
+was continued once with `--resume`, which ran only those two (`resumes: 1` in its summary). Both runs used Rauf's key in
+ap-southeast-2, as in devlog 23 and 24.
+
+**Effect.** Over the three repeats, DeepSeek V3.2 B0 is 77.0% (sd 0.9) (one run: 78.0%), close to gpt-oss-120b's
+78.5%. The paper's baseline table and text now use the mean, and the limitations name only B2 as a one-run
+configuration. Rebuilt with:
+
+```bash
+python scripts/compare_baselines.py \n    --repeat results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261102-0223/records.jsonl \n    --repeat results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261105-1852/records.jsonl \n    --repeat results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261105-1907/records.jsonl \n    --repeat results/baseline_bedrock-deepseek.v3.2_canonical_200_r0_20261102-0247/records.jsonl \n    --repeat results/baseline_bedrock-deepseek.v3.2_canonical_200_r0_20261105-2045/records.jsonl \n    --repeat results/baseline_bedrock-deepseek.v3.2_canonical_200_r0_20261105-2126/records.jsonl \n    --paper docs/paper_sir.json --out-dir results/e1_e2
+```
+
+E6 only reads the gpt-oss-120b runs, so `results/e6/` is unchanged (checked by rerunning the README's E6 command).

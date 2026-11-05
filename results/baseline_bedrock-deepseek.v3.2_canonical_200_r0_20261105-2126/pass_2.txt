@@ -1,0 +1,33 @@
+Resuming baseline_bedrock-deepseek.v3.2_canonical_200_r0_20261105-2126: 198 problems already finished, 2 to run
+[1/2] canonical-0678 Inventory: correct=False
+[2/2] canonical-0755 Inventory: correct=False
+{
+  "run": "baseline_bedrock-deepseek.v3.2_canonical_200_r0_20261105-2126",
+  "resumes": 1,
+  "failed_problems": [],
+  "problems": 200,
+  "accuracy": 0.765,
+  "solved_rate": 0.945,
+  "status_counts": {
+    "error": 7,
+    "infeasible": 3,
+    "optimal": 189,
+    "timeout": 1
+  },
+  "mean_input_tokens": 793.895,
+  "mean_output_tokens": 1573.535,
+  "mean_llm_calls": 1.0,
+  "mean_latency_s": 35.76007319350203,
+  "accuracy_by_class": {
+    "BinPacking": 0.95,
+    "Inventory": 0.35,
+    "JobShop": 1.0,
+    "Knapsack": 0.95,
+    "NetworkFlow": 0.95,
+    "Pollution": 0.0,
+    "Portfolio": 0.8,
+    "Production": 0.85,
+    "TSP": 0.85,
+    "Transportation": 0.95
+  }
+}

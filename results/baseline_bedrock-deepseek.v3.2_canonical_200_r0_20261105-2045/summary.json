@@ -1,0 +1,62 @@
+{
+  "run": "baseline_bedrock-deepseek.v3.2_canonical_200_r0_20261105-2045",
+  "config": {
+    "system": "baseline",
+    "model": "bedrock:deepseek.v3.2",
+    "split": "canonical",
+    "sample_file": "samples\\canonical_200.json",
+    "per_class": null,
+    "seed": null,
+    "repairs": 0,
+    "paraphrases": 2,
+    "signals": [
+      "number",
+      "requirement",
+      "paraphrase"
+    ],
+    "no_parser": false,
+    "threshold": 0.8,
+    "calibration": null,
+    "budget_tokens": null,
+    "max_samples": 10,
+    "sample_temperature": 0.7,
+    "paraphrase_temperature": 0.7,
+    "paraphrase_model": null,
+    "workers": 3,
+    "env_file": ".env",
+    "trace": false,
+    "prompt_version": "v1",
+    "resume": null,
+    "alpha": null,
+    "endpoint": "bedrock ap-southeast-2",
+    "paraphrase_endpoint": null
+  },
+  "resumes": 0,
+  "failed_problems": [],
+  "problems": 200,
+  "accuracy": 0.765,
+  "solved_rate": 0.935,
+  "status_counts": {
+    "error": 8,
+    "infeasible": 3,
+    "no_code": 1,
+    "optimal": 187,
+    "timeout": 1
+  },
+  "mean_input_tokens": 793.895,
+  "mean_output_tokens": 1585.44,
+  "mean_llm_calls": 1.0,
+  "mean_latency_s": 37.09717843749939,
+  "accuracy_by_class": {
+    "BinPacking": 1.0,
+    "Inventory": 0.3,
+    "JobShop": 0.95,
+    "Knapsack": 1.0,
+    "NetworkFlow": 1.0,
+    "Pollution": 0.0,
+    "Portfolio": 0.85,
+    "Production": 0.8,
+    "TSP": 0.8,
+    "Transportation": 0.95
+  }
+}

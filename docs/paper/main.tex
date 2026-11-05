@@ -367,7 +367,7 @@ model is gpt-oss-120b and the threshold is 0.8.
 Over three repeats, B0 and B1 reach 78.5\% and 79.5\% on \texttt{canonical\_200} (Table~\ref{tab:baselines}). Where
 the base paper reports SIR accuracy, our B0 is close to it or above it (Knapsack 98.3\% against 93.2\%, NetworkFlow
 96.7\% against 100\%, TSP 95.0\% against 85.9\%), and DeepSeek V3.2, the
-base paper's model, reaches 78.0\% as B0. Every system scores 0\% on Pollution, whose references the stated model
+base paper's model, reaches 77.0\% as B0. Every system scores 0\% on Pollution, whose references the stated model
 cannot reproduce (Section~\ref{sec:references}).
 
 \subsection{Gap 1: do the signals detect wrong models? (H1)}
@@ -524,7 +524,7 @@ what one fold of \texttt{canonical\_200} provides. We therefore added \texttt{ca
 from the Phase~1 plan, made after H2 failed on \texttt{canonical\_200}, and both results are reported. The main
 configuration uses one model (gpt-oss-120b); the six other models have one run each on 200 problems, so their
 intervals are wide. Repeats differ only in provider nondeterminism and the paraphraser's sampling temperature.
-Every main configuration has three repeats except B2 and the DeepSeek B0 reproduction (one each); some
+Every main configuration has three repeats except B2 (one run); some
 later repeats ran in another AWS region, and Table~\ref{tab:gap3} uses the first B1 run.
 A second paraphrase model (DeepSeek V3.2) caught two shared misreadings but did not raise the AUROC (0.876 against
 0.883 on \texttt{canonical\_200}).
