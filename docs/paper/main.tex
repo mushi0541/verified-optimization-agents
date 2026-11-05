@@ -444,25 +444,7 @@ the gap to the reference and its direction, the objective sense) next to a hand-
 102 final answers were wrong. The pipeline refused 78 of them (escalated or abstained) and accepted 24. It also
 escalated 20 correct answers (false alarms); 19 of these came from disagreeing rewordings.
 
-\begin{table}[t]
-\centering
-\caption{Wrong final answers of E3 repeat 1 by category. ``Pending'' rows wait for the reference check of
-Section~\ref{sec:references}.}
-\label{tab:failures}
-\footnotesize
-\begin{tabular}{@{}lccc@{}}
-\toprule
-\textbf{Category} & \textbf{Accepted} & \textbf{Refused} & \textbf{Total} \\
-\midrule
-Pending (Inventory, Pollution) & 18 & 46 & 64 \\
-Wrong constraint & 3 & 19 & 22 \\
-Code error & 0 & 9 & 9 \\
-Missing constraint & 1 & 2 & 3 \\
-Other (near misses) & 2 & 0 & 2 \\
-Integrality error & 0 & 2 & 2 \\
-\bottomrule
-\end{tabular}
-\end{table}
+\generated{tables/failures.tex}{scripts/make\_paper\_tables.py from results/failures}
 
 \textbf{Wrong constraints, mostly in TSP.} All 16 infeasible models are TSP models with a wrongly written
 Miller-Tucker-Zemlin subtour constraint. Fourteen apply it to every pair of cities, the start city included, which
