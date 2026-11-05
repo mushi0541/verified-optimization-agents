@@ -23,7 +23,7 @@ flowchart LR
         BS --> B2["B2: more B1 samples at temperature 0.7<br/>until the token budget is used;<br/>majority answer, agreement as score"]
     end
 
-    subgraph PROP["Proposed pipeline (k = 3, r = 1)"]
+    subgraph PROP["Proposed pipeline (E3: k = 3, r = 1)"]
         P1["Parser<br/>JSON spec with requirements R1, R2, ..."] --> P2["Formalizer<br/>PuLP code, one named constraint<br/>per requirement"]
         P2 --> P3["Solver-runner tool<br/>repair on any non-optimal status"]
         P3 -- "optimal" --> PR["Paraphraser<br/>k reworded questions"]
@@ -42,6 +42,7 @@ flowchart LR
     T -.-> PROP
     ANS --> G["Grader: |pred - ref| <= 0.2% |ref|"]
     BS --> G
+    B2 --> G
 ```
 
 The roles, the data contracts and the mapping of each gap to its code are in [docs/architecture.md](docs/architecture.md).
@@ -94,7 +95,7 @@ Supervisor feedback on Phase 1 and where each point is handled: issue #23.
 | Single agent B2 at an equal token budget | Gap 3 | `optverify/systems.py` `run_single_agent`, `python -m optverify.run b2` | Done; runs in `results/b2_*` (#98, #104) |
 | E3 analysis: pipeline against B2 at k = 1, 2, 3 | Gap 3 | `scripts/analyze_e3.py` | Done; `results/gap3/canonical_200/` (#98) and `results/preregistered/h3/` (#104) |
 | B0 and B1 per class, and the base-paper comparison | Baselines | `scripts/compare_baselines.py`, paper values in `docs/paper_sir.json` | Done; `results/e1_e2/` on `canonical_200`, with B0 for gpt-oss-120b and DeepSeek-V3.2 (#90) |
-| E3 plots: accuracy-cost and risk-coverage curves | Gap 3 | `scripts/plot_e3.py` | Done (script); the plots for the paper are #44 |
+| E3 plots: accuracy-cost and risk-coverage curves | Gap 3 | `scripts/plot_e3.py` | Done; the Gap 3 figures are in the paper (#115) |
 | Offline tests for the deterministic parts, run on every pull request | All | `tests/`, `.github/workflows/tests.yml` | Done |
 | Output cap fitted to the per-minute token limit (a rejected request is sent once more) | All | `optverify/llm.py` `fitted_output_cap` | Done |
 | Failed paraphrase runs retried once and left out of the agreement; number coverage ignores item labels, accepts percentages written as fractions and reads commas in code as separators between values | Gap 1 | `optverify/systems.py`, `optverify/verifier.py` | Done; checked on the 10 Phase 1 problems (see below) |
@@ -118,6 +119,11 @@ Supervisor feedback on Phase 1 and where each point is handled: issue #23.
 | Pre-registered tests: the pipeline combined with B2, all 1,070 unused canonical problems, six more models | Gaps 1 to 3 | `docs/preregistration_combination.md`, `results/preregistered/` | Done (#103, #104, devlog 20 and 21) |
 | E6: efficiency and reliability per model and system | All | `scripts/efficiency.py`, `results/e6/` | Done (#112) |
 | Paper tables generated from `results/` | All | `scripts/make_paper_tables.py`, `docs/paper/tables/` | Done (#94, #96, #102, #112, #113) |
+
+**Outcomes** (devlog 15, 20 and 21, `docs/paper/tables/preregistered.tex`): H1 is partly supported for every model
+except gpt-oss-20b (its gain is 0.075, below 0.10). H2, H3 and H3c are not supported in the main analysis. In the
+sensitivity analysis (without Pollution and the one `reference_wrong` problem) only one verdict changes: H3 for
+GLM 4.7.
 
 ## Setup
 
@@ -466,7 +472,9 @@ python experiments/run.py E3 --sample-file samples/constraint_pairs_60.json
 
 Each repeat goes to `results/<exp>/<model-slug>/repeat_<n>/` with `config.json`, `records.jsonl` and `summary.json`.
 A failed problem stays in `records.jsonl` with `"failed": true`, and `summary.json` gives `failed_rate` over the whole
-sample. Analysis-only configs (E4, E5, E6) refuse to run and say what to run instead.
+sample. Analysis-only configs (E4, E5, E6) refuse to run and say what to run instead. The reported runs were
+started directly with `python -m optverify.run` and are saved in flat folders such as
+`results/pipeline_<model>_<sample>_r1_<time>/` (see "Where each saved result comes from").
 
 ```bash
 python experiments/aggregate.py E1
