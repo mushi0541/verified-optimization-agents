@@ -5,7 +5,7 @@ import json
 
 import pytest
 
-from scripts.failure_analysis import draft, table
+from scripts.failure_analysis import draft, false_alarm_label, table
 
 
 def _record(pid, cls, action, correct, status="optimal", predicted=10.0, reference=10.0, sense="LpMinimize", **report):
@@ -109,3 +109,13 @@ def test_a_repeated_row_is_refused(run, tmp_path):
     labels.write_text("\n".join(lines + [lines[-1]]) + "\n", encoding="utf-8")  # the false alarm twice
     with pytest.raises(SystemExit, match="appears twice"):
         table(labels, [run], tmp_path / "out")
+
+
+def test_a_false_alarm_is_labelled_by_the_signal_furthest_below_one():
+    # constraint-0919 (#41): every rewording agrees, one requirement is not linked, and 10 numbers are not used
+    report = {"paraphrase_agreement": 1.0, "requirement_coverage": 0.857, "number_coverage": 0.474}
+    assert false_alarm_label(report) == "number not used"
+    assert false_alarm_label(dict(report, paraphrase_agreement=0.333)) == "paraphrase disagreement"
+    # a tie goes to paraphrase disagreement, and a signal that was not measured costs nothing
+    assert false_alarm_label({"paraphrase_agreement": 0.5, "requirement_coverage": 0.5, "number_coverage": 1.0}) == "paraphrase disagreement"
+    assert false_alarm_label({"paraphrase_agreement": None, "requirement_coverage": 0.9, "number_coverage": 1.0}) == "requirement not linked"

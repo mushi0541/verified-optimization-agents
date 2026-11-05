@@ -15,7 +15,8 @@ Each table is built only from files that the analysis scripts wrote, so no numbe
 - efficiency.tex from results/e6/canonical_200/efficiency.json (scripts/efficiency.py --sample): E6 per model and
   system;
 - preregistered.tex from results/preregistered/{h1,h3,h3c} (#103): H1, H3 and H3c per model and held-out sample;
-- gap_resolution.tex from the same files: one row per hypothesis with its main-analysis result and verdict.
+- gap_resolution.tex from the same files: one row per hypothesis with its main-analysis result and verdict;
+- failures.tex from results/failures/failures.json (scripts/failure_analysis.py): wrong answers by category.
 
 A table whose input files are missing is not written, so main.tex shows its \\generated note instead; the script says
 which tables it wrote and which it skipped. Rows follow fixed lists of samples, so the output does not depend on the
@@ -457,9 +458,26 @@ def gap_resolution(results: Path) -> tuple[str, list[str]] | None:
                  ["Gap", "Hypothesis", "Main-analysis result", "Verdict"], rows, sources, tight=True), sources
 
 
+def failures(results: Path) -> tuple[str, list[str]] | None:
+    """Wrong final answers of the labelled E3 repeat by category (scripts/failure_analysis.py table), largest first,
+    without the categories no answer has. Pending (unlabelled) rows get their own row and a note while any are left."""
+    source = "results/failures/failures.json"
+    data = read(results / "failures" / "failures.json")
+    if data is None:
+        return None
+    counts = [(label.capitalize(), cells["wrong accept"], cells["correct refusal"])
+              for label, cells in data["wrong_by_label"].items() if cells["wrong accept"] + cells["correct refusal"]]
+    counts.sort(key=lambda row: -(row[1] + row[2]))  # a stable sort keeps the file's order for equal totals
+    rows = [[label, str(accepted), str(refused), str(accepted + refused)] for label, accepted, refused in counts]
+    problems = sum(sample["problems"] for sample in data["outcomes"].values())
+    caption = (f"Wrong final answers of E3 repeat 1 ({problems} problems) by category: accepted or refused by the "
+               "pipeline" + ("; ``Pending'' rows are not labelled yet" if data["pending_rows"] else ""))
+    return table(caption, "tab:failures", "lrrr", ["Category", "Accepted", "Refused", "Total"], rows, [source]), [source]
+
+
 BUILDERS = {"baselines.tex": baselines, "gap1.tex": gap1, "gap2.tex": gap2, "gap3.tex": gap3,
             "ablations.tex": ablations, "efficiency.tex": efficiency, "preregistered.tex": preregistered,
-            "gap_resolution.tex": gap_resolution}
+            "gap_resolution.tex": gap_resolution, "failures.tex": failures}
 
 
 def make_tables(results: Path, out: Path) -> dict[str, list[str] | None]:
