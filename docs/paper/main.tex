@@ -17,6 +17,8 @@
 \usepackage{xcolor}
 \usepackage{cite}
 \usepackage{url}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
 \usepackage[hidelinks]{hyperref}
 
 \newcommand{\plan}[1]{\textcolor{gray}{\textit{[Plan: #1]}}}
@@ -108,13 +110,14 @@ Checks of the stated requirements exist only in part, as structure verdicts~\cit
 per-constraint solver queries~\cite{abdulrahman2026verisimpl}. \textbf{RQ1:} do such requirement-level signals detect wrong models better than
 solver feasibility alone?
 \item \textbf{Gap~2, error control under shift.} No reviewed system can refuse to answer with a controlled error
-rate, and the closest recent attempt saw its error bound fail on new problems~\cite{lian2026admitor}. Grounded in
-selective classification~\cite{geifman2017selective,geifman2019selectivenet,kamath2020selective}, risk-controlling prediction sets~\cite{bates2021risk,angelopoulos2021gentle}, and conformal prediction frameworks~\cite{vovk2005algorithmic,angelopoulos2024conformal},
-\textbf{RQ2:} does a threshold calibrated on nine problem classes keep the wrong-accept rate at or below its target on the unseen
+rate, and the closest recent attempt saw its error bound fail on new problems~\cite{lian2026admitor}. Building on
+selective classification~\cite{geifman2017selective,geifman2019selectivenet,kamath2020selective}, risk-controlling
+prediction sets~\cite{bates2021risk,angelopoulos2021gentle} and conformal prediction~\cite{vovk2005algorithmic,angelopoulos2024conformal},
+we ask \textbf{RQ2:} does a threshold calibrated on nine problem classes keep the wrong-accept rate at or below its target on the unseen
 tenth class?
 \item \textbf{Gap~3, cost.} Multi-agent collaborative frameworks such as CAMEL~\cite{li2023camel}, AutoGen~\cite{wu2023autogen},
-and MetaGPT~\cite{hong2024metagpt} show strong capabilities, but their token usage is rarely benchmarked against single-agent
-sampling at equal token budgets with cost-effective inference routing~\cite{chen2024frugalgpt}.
+and MetaGPT~\cite{hong2024metagpt} show strong capabilities, but their token use is rarely compared with single-agent
+sampling at an equal token budget, although the cost of LLM calls is a known concern~\cite{chen2024frugalgpt}.
 \textbf{RQ3:} at the same token budget, does the multi-agent pipeline give a better trade-off between
 accuracy and wrongly accepted answers than a single agent that resamples?
 \end{itemize}
@@ -140,7 +143,8 @@ records by a script.
 of linear and mixed-integer programs, so that difficulty can be raised in a controlled way, and computes each optimum
 with a solver. It compares pure-text reasoning, text reasoning with computational tools, and SIR, and finds that only
 SIR stays reliable as problems grow, while constraint augmentation lowers the accuracy of both pure-text
-reasoning and SIR. Natural language formulation of constraint models has been conceptualized in earlier foundations~\cite{tsouros2023holy}, and recent agentic frameworks apply LLMs to what-if supply chain analysis~\cite{li2023optiguide}. OptiBench and
+reasoning and SIR. Writing constraint models from natural language is a long-standing goal~\cite{tsouros2023holy}, and agentic
+frameworks apply LLMs to what-if analysis in supply chains~\cite{li2023optiguide}. OptiBench and
 ReSocratic~\cite{yang2025optibench} and OptMATH~\cite{lu2025optmath} provide fixed collections and synthesized
 training data, NL4Opt~\cite{ramamonjison2022nl4opt} and MAMO~\cite{shen2024mamo} explore natural language formulations,
 and MIPLIB-NL~\cite{li2026miplibnl} reverse-builds industrial instances from MIPLIB 2017. Reference
@@ -210,9 +214,9 @@ is shown as a result.
 of the base paper's evaluation code~\cite{chen2026optengine}. Correctness is used only for evaluation; the system never
 sees $y$.
 
-\textbf{Score and decision.} The verifier gives each problem a score $s(q) \in [0, 1]$ from label-free signals, and
-$s(q) = 0$ when no feasible model exists. For a threshold $\tau$ the system answers when the model is feasible and
-$s(q) \ge \tau$. Over a set of $N$ problems with answered set $A_\tau$,
+\textbf{Score and decision.} The verifier gives each problem a score $S(q) \in [0, 1]$ from label-free signals, and
+$S(q) = 0$ when no feasible model exists. For a threshold $\tau$ the system answers when the model is feasible and
+$S(q) \ge \tau$. Over a set of $N$ problems with answered set $A_\tau$,
 \begin{equation}
 \mathrm{coverage}(\tau) = \frac{|A_\tau|}{N}, \qquad
 \mathrm{WAR}(\tau) = \frac{|W_\tau|}{|A_\tau|},
@@ -242,7 +246,7 @@ exact 95\% interval, while at least 50\% of all problems are answered.
 \item \textbf{H3.} With $k = 3$ reworded runs, the pipeline has a lower wrong-accept rate than the single-agent
 baseline B2, which samples answers up to the pipeline's mean token budget, at equal coverage (50\%); this holds only if
 the 95\% bootstrap interval of the paired difference at $k = 3$ lies below zero.
-\item \textbf{H3c} (pre-registered after H3 failed, \#103). The pipeline at $k = 1$ plus B2 samples for the rest of
+\item \textbf{H3c} (pre-registered after H3 failed, repository issue \#103). The pipeline at $k = 1$ plus B2 samples for the rest of
 the budget, scored by the mean of its own score and the share of B2 samples that agree with its answer, has a lower
 wrong-accept rate than B2 at 50\% coverage, again with the whole paired interval below zero.
 \end{itemize}
@@ -251,16 +255,44 @@ wrong-accept rate than B2 at 50\% coverage, again with the whole paired interval
 \label{sec:system}
 
 \subsection{Agent Roles and Modeling Pipeline}
-The system takes a question $Q$ and returns an optimal value with its evidence, an escalation with reasons, or an
-abstention. Five roles exchange structured data:
+Five roles exchange structured data (Fig.~\ref{fig:architecture}):
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[font=\scriptsize, node distance=3mm and 2.2mm,
+  box/.style={draw, rounded corners=1pt, align=center, inner sep=2pt, minimum height=7mm},
+  result/.style={align=left, inner sep=1pt}, >={Stealth[length=1.6mm]}]
+\node[box] (q) {Question\\$Q$};
+\node[box, right=of q] (parse) {Parser\\spec, $R_1..R_m$};
+\node[box, right=of parse] (form) {Formalizer\\PuLP code};
+\node[box, right=of form] (solve) {Solver-runner\\HiGHS, sandbox};
+\node[box, below=5mm of solve] (para) {Paraphraser\\$k$ rewordings};
+\node[box, left=of para] (ver) {Verifier (Gap 1)\\$S_{\text{num}}, S_{\text{req}}, S_{\text{para}}$};
+\node[box, left=of ver] (gate) {Gate (Gap 2)\\$S \ge \tau$?};
+\node[result, left=of gate] (dec) {answer\\escalate\\abstain};
+\draw[->] (q) -- (parse);
+\draw[->] (parse) -- (form);
+\draw[->] (form) -- (solve);
+\draw[->] (solve.north) -- ++(0,2.5mm) -| node[pos=0.25, above, inner sep=1pt] {repair, $r = 1$} (form.north);
+\draw[->] (solve) -- node[right, inner sep=1pt] {optimal} (para);
+\draw[->] (solve.south west) -- (ver.north east);
+\draw[->] (para) -- (ver);
+\draw[->] (ver) -- (gate);
+\draw[->] (gate) -- (dec);
+\node[draw, dashed, rounded corners=1pt, inner sep=2pt, below=2.5mm of ver] {token meter on every LLM call, per step (Gap 3)};
+\end{tikzpicture}
+\caption{The pipeline. Each rewording is formalized and solved on its own; B2 instead resamples B1 up to the same
+token budget.}
+\label{fig:architecture}
+\end{figure}
 
 \textbf{1. Structured Parser.} The parser writes a solver-independent specification without solving: the objective
 sense and statement, the decision variables with their domains, the parameters with values and units, and a checklist
 of requirements $\mathcal{R} = \{R_1, \dots, R_m\}$, each one restriction.
 
-\textbf{2. Formalizer with Targeted Self-Repair.} The formalizer ingests the original prompt $Q$ and the structured specification to write executable Python code using the PuLP modeling library. To facilitate verification, the prompt instructs the formalizer to label every added constraint with its corresponding requirement identifier (e.g., \texttt{"R1\_capacity"}). If initial execution produces a syntax error, runtime crash, or solver infeasibility, the code and captured traceback are fed to a repair loop for up to $r$ iterations ($r=1$ by default).
+\textbf{2. Formalizer with Targeted Self-Repair.} The formalizer reads $Q$ and the specification and writes PuLP code, naming each constraint after its requirement (e.g., \texttt{R1\_capacity}). If the code fails or the model is not optimal, the code and the error are sent back for up to $r$ repair rounds ($r = 1$ by default).
 
-\textbf{3. Sandboxed Solver-Runner.} The generated Python script executes in a separate process in isolated mode (\texttt{-I}) with minimal environment variables passed through, so no API keys or credentials are visible to the code. The HiGHS solver runs with a 120-second limit (\texttt{pulp.HiGHS(msg=False, timeLimit=120)}), and the child runner terminates any script exceeding 180 seconds. The runner captures standard output, exit codes, and solver log attributes, returning the final status $s \in \{\text{optimal}, \text{infeasible}, \text{unbounded}, \text{error}, \text{no\_code}\}$, the numeric objective value $v^*$, and runtime latency.
+\textbf{3. Sandboxed Solver-Runner.} The code runs in a separate Python process in isolated mode (\texttt{-I}) with a minimal environment, so no API key is visible to it. HiGHS has a 120-second limit, and the process is stopped after 180 seconds. The runner returns the status $s \in \{\text{optimal}, \text{infeasible}, \text{unbounded}, \text{error}, \text{no\_code}\}$, the objective value $v^*$ and the run time.
 
 \textbf{4. Paraphraser.} When the main model is optimal, the system writes $k$ rewordings of $Q$ (by default $k=3$, at
 $T=0.7$); each is formalized and solved on its own, giving optima $v^{(1)}, \dots, v^{(k)}$, and a failed rewording
@@ -270,25 +302,25 @@ is retried once.
 explainer summarizes an accepted model, or lists the failed checks of an escalated one.
 
 \subsection{Label-Free Verification Signals (Gap 1)}
-To assess solution correctness at inference time without ground-truth answers, the verifier computes three verification signals:
+Without reference answers, the verifier computes three signals:
 
-\textbf{Number Coverage ($S_{\text{num}}$).} Missing parameters frequently cause under-constrained or trivial models. The verifier extracts numeric values present in $Q$, skipping 0 and 1, ignoring item labels such as ``Package 3'', and matching percentages used as fractions (e.g., 24\% used as 0.24). Let $\mathcal{N}_Q$ be the required values and $\mathcal{N}_C$ the numbers referenced in the generated PuLP code. Number coverage is defined as:
+\textbf{Number Coverage ($S_{\text{num}}$).} A missing number often means a missing constraint. With $\mathcal{N}_Q$ the numbers of $Q$ (skipping 0, 1 and item labels such as ``Package 3'', and matching 24\% with 0.24) and $\mathcal{N}_C$ those in the code,
 \begin{equation}
 S_{\text{num}} = \frac{|\mathcal{N}_Q \cap \mathcal{N}_C|}{|\mathcal{N}_Q|}.
 \end{equation}
 
-\textbf{Requirement Coverage ($S_{\text{req}}$).} To detect dropped constraints, the verifier inspects the PuLP constraint names in the final model object. Let $\mathcal{R}_{\text{linked}} \subseteq \mathcal{R}$ be the subset of parser requirements referenced in named model constraints. Requirement coverage is computed as:
+\textbf{Requirement Coverage ($S_{\text{req}}$).} With $\mathcal{R}_{\text{linked}} \subseteq \mathcal{R}$ the requirements named by a constraint of the final model,
 \begin{equation}
 S_{\text{req}} = \frac{|\mathcal{R}_{\text{linked}}|}{|\mathcal{R}|}.
 \end{equation}
 
-\textbf{Paraphrase Agreement ($S_{\text{para}}$).} If a model captures the true underlying mathematical structure, its objective value must remain invariant under surface lexical variations of the prompt. For each rewording that produces an optimal solver status (a failed rewording is retried once; if it fails again, it is omitted and recorded), we evaluate agreement against the primary objective $v^*$ within a relative tolerance of 0.2\% ($|v^{(j)} - v^*| \le 0.002 \cdot \max(|v^*|, |v^{(j)}|)$). Let $k_{\text{solved}} \le k$ be the number of solved rewordings. Paraphrase agreement $S_{\text{para}}$ is the share of solved rewordings that agree with $v^*$. When no rewording solves (or $k=0$), the signal is unavailable and omitted from the composite mean.
+\textbf{Paraphrase Agreement ($S_{\text{para}}$).} A correct model's optimum should not change when the question is reworded. For each rewording with an optimal status (one that fails twice is left out and recorded), we evaluate agreement against the primary objective $v^*$ within a relative tolerance of 0.2\% ($|v^{(j)} - v^*| \le 0.002 \cdot \max(|v^*|, |v^{(j)}|)$). $S_{\text{para}}$ is the share of solved rewordings that agree; when none solves (or $k = 0$), it is left out.
 
-\textbf{Combined Verification Score ($S$).} When the solver status is optimal, the verifier computes a composite score $S \in [0, 1]$ as the arithmetic mean of available signals. With the full pipeline ($k \ge 1$ and the parser active), $S = (S_{\text{num}} + S_{\text{req}} + S_{\text{para}})/3$. When the parser is omitted, requirement coverage is unavailable and the mean is taken over the remaining two signals. If there is no optimal model, $S = 0$.
+\textbf{Combined Verification Score ($S$).} For an optimal model, $S \in [0, 1]$ is the mean of the available signals, $(S_{\text{num}} + S_{\text{req}} + S_{\text{para}})/3$ in the full pipeline; without the parser or the rewordings that signal is left out. Without an optimal model, $S = 0$.
 
 \subsection{Decision Gating and Error Control (Gap 2)}
 \label{sec:gate}
-The decision layer maps the verification outcome $(s, S)$ to an action $d \in \{\text{answer}, \text{escalate}, \text{abstain}\}$ parameterized by threshold $\tau$:
+With solver status $s$, score $S$ and threshold $\tau$, the decision is
 \begin{equation}
 d = \begin{cases}
 \text{answer}, & \text{if } s = \text{optimal} \text{ and } S \ge \tau, \\
@@ -296,18 +328,16 @@ d = \begin{cases}
 \text{abstain}, & \text{if } s \ne \text{optimal}.
 \end{cases}
 \end{equation}
-The threshold $\tau$ can be fixed empirically (e.g., $\tau=0.8$) or calibrated via leave-one-class-out validation to satisfy a target wrong-accept rate $\alpha$.
+The threshold is fixed ($\tau = 0.8$) or calibrated to a target $\alpha$ (Section~\ref{sec:problem}).
 
 \subsection{Token Accounting and Efficiency Metering (Gap 3)}
-Every LLM invocation records input tokens, output tokens, call latency, and caller role in a centralized token meter. By logging per-step accounting into each run record (\texttt{RunRecord.usage\_by\_step}), the framework enables direct, equal-budget comparisons between multi-agent collaborative execution and single-agent budget-matched resampling.
+A token meter records the input and output tokens, latency and role of every LLM call, and each run record keeps them per step (\texttt{RunRecord.usage\_by\_step}), so the pipeline and a single agent can be compared at an equal budget.
 
 \section{Experimental Setup}
 \label{sec:setup}
 
 \subsection{Benchmarks and Problem Splits}
-We evaluate the systems across two distinct benchmarks spanning synthetic complexity scaling and out-of-domain transfer:
-
-\textbf{1. OPT-Engine (\cthree{}).} The primary testbed is OPT-Engine~\cite{chen2026optengine}, an open benchmark covering ten canonical operations research problem families: BinPacking, Inventory, JobShop, Knapsack, NetworkFlow, Pollution, Portfolio, Production, TSP, and Transportation. We evaluate on fixed evaluation subsets:
+\textbf{1. OPT-Engine (\cthree{}).} OPT-Engine~\cite{chen2026optengine} has ten problem classes: BinPacking, Inventory, JobShop, Knapsack, NetworkFlow, Pollution, Portfolio, Production, TSP and Transportation. We use fixed samples:
 \begin{itemize}
 \item \texttt{canonical\_200}: 20 problems per class, for the main repeats and the baselines.
 \item \texttt{canonical\_587}: \texttt{canonical\_200} plus up to 40 more problems per class, a larger calibration
@@ -317,10 +347,11 @@ varied wording.
 \item \texttt{canonical\_587\_rest\_387} and \texttt{canonical\_unused}: the 387 problems of \texttt{canonical\_587}
 outside \texttt{canonical\_200}, and the 1,070 canonical problems in no other sample (half of them BinPacking), used
 only for the pre-registered tests (1,457 held-out problems together).
-\item \texttt{dev\_30} and \texttt{dev\_93}: development splits (3 per class and about 10 per class, 93 in all) strictly reserved for prompt design, error analysis, and ablations, never included in test evaluations.
+\item \texttt{ablation\_50}: for the ablations, 5 of the 20 problems per class of \texttt{canonical\_200}.
+\item \texttt{dev\_30} and \texttt{dev\_93}: development splits (3 and about 10 per class) used only for prompt design and error analysis, never for reported results.
 \end{itemize}
 
-\textbf{2. OpsOR-Bench.} To evaluate resilience under genuine domain shift (Gap 2, H2), we constructed OpsOR-Bench, a standalone benchmark of 36 problems across three realistic operations families: gate assignment, ground-crew rostering, and equipment dispatch (\texttt{scripts/make\_opsor.py}). It introduces operational structures and phrasing absent from the synthetic OPT-Engine generators.
+\textbf{2. OpsOR-Bench.} For a shift test (H2) we built OpsOR-Bench: 36 problems in three operations families (gate assignment, ground-crew rostering, equipment dispatch; \texttt{scripts/make\_opsor.py}), with structures and wording that the OPT-Engine generators do not produce.
 
 \subsection{Evaluated Models and Baselines}
 All models are evaluated via Amazon Bedrock open-weight endpoints:
@@ -330,14 +361,14 @@ All models are evaluated via Amazon Bedrock open-weight endpoints:
 \item \textbf{Six more models} for the pre-registered tests, each running every role of the pipeline, B1 and B2 on
 \texttt{canonical\_200}: DeepSeek V3.2, Qwen3 Next 80B, Mistral Large 3, Kimi K2.5, GLM 4.7 and gpt-oss-20b. The list
 was fixed after a two-problem smoke test, before any full run.
-\item \textbf{Solvers and Runtime:} Python 3.12, PuLP 3.3.2, and the HiGHS solver (\texttt{pulp.HiGHS(msg=False, timeLimit=120)}), running in isolated subprocesses.
+\item \textbf{Solver:} Python 3.12, PuLP 3.3.2 and HiGHS (\texttt{pulp.HiGHS(msg=False, timeLimit=120)}).
 \end{itemize}
 
 We evaluate the proposed pipeline against three reference systems:
 \begin{itemize}
-\item \textbf{Baseline B0 (Direct SIR):} Replicates the base paper's single-turn Solver-Integrated Reasoning approach. The model receives problem $Q$ and directly writes PuLP code. If the solver reports optimal, the objective is accepted; otherwise, the problem fails.
+\item \textbf{Baseline B0 (Direct SIR):} the base paper's single-turn SIR. The model writes PuLP code for $Q$, and an optimal objective is the answer; otherwise the problem fails.
 \item \textbf{Baseline B1 (SIR with Self-Repair):} Extends B0 with up to $r=1$ self-repair rounds driven by solver error tracebacks and non-optimal status codes.
-\item \textbf{Baseline B2 (Budget-Matched Single Agent):} Formulates problem $Q$ under B1, then continues drawing independent candidate solutions at temperature $T=0.7$ until consuming the identical mean token budget used by the $k=3$ multi-agent pipeline ($\approx 20,800$ tokens per problem; for the six other models 1.25 times their pipeline's mean, and the analysis keeps only the samples that fit the pipeline's tokens). B2 clusters candidate optima and returns the modal solution with consensus agreement.
+\item \textbf{Baseline B2 (Budget-Matched Single Agent):} B1, then new samples at $T = 0.7$ until it has used the pipeline's mean tokens at $k = 3$ (about 20,800 per problem; for the six other models 1.25 times their pipeline's mean, cut back to the pipeline's tokens in the analysis). It returns the most common optimum, scored by the share of samples that agree with it.
 \end{itemize}
 
 Formalizer calls use $T = 0$ and the paraphraser $T = 0.7$. Where there are several repeats we report their mean and
@@ -374,9 +405,9 @@ cannot reproduce (Section~\ref{sec:references}).
 \generated{tables/gap1.tex}{scripts/analyze\_gap1.py}
 The combined score separates correct from wrong answers with an AUROC of 0.87 over three repeats, against 0.54 for
 feasibility alone (Table~\ref{tab:gap1}), and the mean gain is at least 0.28 on every sample of that table. Paraphrase agreement
-carries most of it (0.85 alone); number coverage is saturated (0.55) and requirement coverage adds little (0.64). H1
+carries most of it (0.85 alone); number coverage barely separates (0.55) and requirement coverage adds little (0.64). H1
 is therefore partly supported: the gain holds, but removing a signal does not always lower the AUROC
-(Section~\ref{sec:ablations}). In the pre-registered runs the gain is 0.19 to 0.31 for six of seven, and 0.075 for
+(Section~\ref{sec:ablations}). In the pre-registered runs the gain is 0.187 to 0.305 for six of seven, and 0.075 for
 gpt-oss-20b, whose feasibility alone already gives 0.86 (Table~\ref{tab:preregistered}).
 
 \subsection{Gap 2: calibrated abstention and the shift test (H2)}
@@ -407,7 +438,8 @@ accurate (McNemar $p = 0.006$), and on the 1,457 held-out problems it wrongly ac
 387 new problems). B2 is at least as accurate for every model, by 1 to 17 points. For four of the six other models
 the pipeline's WAR is the lower one, but no interval excludes zero with 200 problems. H3 is not supported. The
 combination of H3c lowers the pipeline's WAR for gpt-oss-120b (significantly only on the 1,070 problems) but raises
-it for four of the six other models, and no interval against B2 is below zero, as its answer is the pipeline's. In the
+it for four of the six other models, and no interval against B2 is below zero: the combination still returns the pipeline's answer and only changes
+which answers are accepted. In the
 sensitivity analysis only one verdict changes: H3 for GLM 4.7, which we report as a lead, not a finding.
 \generatedfigure{../../results/gap3/canonical_200/accuracy_cost.pdf}{Accuracy against mean tokens per problem for
 the pipeline and B2 at $k = 1, 2, 3$, with B0 and B1, on \texttt{canonical\_200} with
@@ -439,8 +471,8 @@ table because it was run to 1.25 times the pipeline's budget; the H3 tests cut i
 \label{sec:failures}
 
 
-Every wrong final answer and every false alarm of the pipeline was labelled with the failure category of
-\#41, using \texttt{scripts/failure\_analysis.py}, which writes the evidence that needs no judgement (solver status,
+Every wrong final answer and every false alarm of the first E3 repeat (\texttt{canonical\_200},
+\texttt{constraint\_pairs\_60} and \texttt{linguistic\_60}) was labelled with a failure category, using \texttt{scripts/failure\_analysis.py}, which writes the evidence that needs no judgement (solver status,
 the gap to the reference and its direction, the objective sense) next to a hand-assigned label. Of the 380 problems,
 102 final answers were wrong. The pipeline refused 78 of them (escalated or abstained) and accepted 24. It also
 escalated 20 correct answers (false alarms); 19 of these came from disagreeing rewordings.
@@ -471,7 +503,7 @@ reached 4,181 while all three rewordings reached the reference 4,118, so the ans
 the two Knapsack models with continuous items were refused the same way.
 
 \textbf{False alarms.} Of the 20 correct answers that were escalated, 19 failed on paraphrase agreement: a rewording
-changed a detail and so reached a different optimum, and one on an unused number. This is the cost of the agreement
+changed a detail and so reached a different optimum; the other failed on an unused number. This is the cost of the agreement
 signal, and it falls on coverage, not on the wrong-accept rate.
 
 \subsection{Case Studies and Trajectories}
@@ -498,10 +530,10 @@ references therefore follow a model the text does not state.
 \item \textbf{Inventory:} 159 of the 160 references are reproduced, all with the capacity applying also right after
 a delivery arrives (``at any moment''), so an answer that checks it only at the end of the day is a real model error.
 For two questions that say ``at the end of any day'' (canonical-0644 and 0667) only the stricter rule gives the
-reference. The last one, canonical-0648, was solved by hand (\#40): its stated model gives 876 or 1,061 against the
+reference. The last one, canonical-0648, was solved by hand (repository issue \#40): its stated model gives 876 or 1,061 against the
 reference 1,818, so the reference is wrong.
 \end{itemize}
-The hand check of \#40 (\nolinkurl{results/reference_check/hand_labels.csv}) labels 157 Inventory references correct,
+The hand check (\nolinkurl{results/reference_check/hand_labels.csv}) labels 157 Inventory references correct,
 canonical-0644 and 0667 ambiguous and canonical-0648 wrong, and confirms by hand that the checked Pollution
 references are wrong. Following our protocol, every result is reported with all problems, and the sensitivity
 analysis leaves out Pollution and canonical-0648 and keeps the ambiguous problems; no problem is dropped silently.
@@ -514,8 +546,10 @@ every Pollution reference and a few Inventory references follow a model the text
 grading therefore counts some correct models as wrong, which lowers the measured accuracy and raises the measured
 wrong-accept rate of every system alike.
 
-\textbf{Method.} Number coverage is saturated on this benchmark: pooled over five development runs, 134 of 147
-feasible models (91\%) use every number, and so do all 30 wrong ones, because the generated questions never omit data. Paraphrase agreement
+\textbf{Method.} Number coverage is nearly saturated on this benchmark: in five development runs (four in
+\texttt{results/dev\_requirement\_coverage/} and one on \texttt{dev\_30}), 134 of 147 feasible models (91\%) use every
+number, and so do all 30 wrong ones, because the generated questions never omit data; on \texttt{canonical\_200} 88\%
+of the feasible models do. Paraphrase agreement
 cannot detect a misreading that every rewording shares (the Production cases of Section~\ref{sec:failures}).
 
 \textbf{Evaluation.} The exact bound behind the calibrated threshold needs many accepted calibration answers: at a
@@ -524,10 +558,11 @@ what one fold of \texttt{canonical\_200} provides. We therefore added \texttt{ca
 from the Phase~1 plan, made after H2 failed on \texttt{canonical\_200}, and both results are reported. The main
 configuration uses one model (gpt-oss-120b); the six other models have one run each on 200 problems, so their
 intervals are wide. Repeats differ only in provider nondeterminism and the paraphraser's sampling temperature.
-Every main configuration has three repeats except B2 (one run); some
-later repeats ran in another AWS region, and Table~\ref{tab:gap3} uses the first B1 run.
-A second paraphrase model (DeepSeek V3.2) caught two shared misreadings but did not raise the AUROC (0.876 against
-0.883 on \texttt{canonical\_200}).
+The pipeline on \texttt{canonical\_200}, \texttt{constraint\_pairs\_60} and \texttt{linguistic\_60}, B0 and B1 have
+three repeats; \texttt{canonical\_587}, the 1,070 unused problems, OpsOR-Bench and B2 have one run. Some repeats ran in
+another AWS region, and Tables~\ref{tab:gap3} and~\ref{tab:efficiency} use the first B1 run.
+A second paraphrase model (DeepSeek V3.2) caught two shared misreadings but left the AUROC about the same (0.876 in its one run on
+\texttt{canonical\_200}, against 0.870 over our three repeats).
 
 \section{Conclusion}
 \label{sec:conclusion}
@@ -544,9 +579,14 @@ wrongly accepts 3.6\% of its answers against 6.4\% for the pipeline, it is at le
 and adding its votes to the pipeline's score does not beat B2 for any model.
 \end{enumerate}
 The pipeline's remaining advantage is that a refusal comes with reasons (which check failed), a usability claim that
-we did not measure. Future work includes repair prompts that name the common causes of infeasibility, a second model
-family for the rewordings of misreadings that every rewording shares, and reference audits on industrial benchmarks.
+we did not measure. Future work includes repair prompts that name the common causes of infeasibility, checks that do not
+depend on the wording, for misreadings that every rewording shares, and reference audits on industrial benchmarks.
 
+
+\section*{AI-Use Disclosure}
+We used AI coding and writing assistants to write and debug code, draft and edit text, and check reported numbers
+against the saved results. We reviewed, tested and revised all AI-assisted work, and every number comes from runs and
+scripts in the repository.
 
 % ---------------------------------------------------------------------------------------------------------------
 \bibliographystyle{IEEEtran}

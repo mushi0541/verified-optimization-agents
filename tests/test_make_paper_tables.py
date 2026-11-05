@@ -208,11 +208,11 @@ def test_the_gap_resolution_table_counts_the_preregistered_runs(tmp_path):
     make_tables(results, tmp_path / "tables")
     rows = [line for line in (tmp_path / "tables" / "gap_resolution.tex").read_text(encoding="utf-8").splitlines()
             if line[:2] in ("1 ", "2 ", "3 ")]
-    assert rows[0].endswith("0.54 to 0.87; partly in 1 of 2 pre-registered runs & partly supported \\\\")
-    assert r"met in 0 of 3 samples; smallest $\alpha$ met: 12--21\%" in rows[1] and rows[1].endswith("not supported \\\\")
-    # one supported H3 run makes the verdict "partly"; no H3c run has its interval below 0
-    assert "[-5.0, +4.3]" in rows[2] and "supported in 1 of 2 pre-registered runs & partly \\\\" in rows[2]
-    assert rows[3].endswith("supported in 0 of 2 pre-registered runs & not supported \\\\")
+    assert "feasibility alone 0.54 & 0.87; H1 partly met in 1 of 2 pre-registered runs & Partially \\\\" in rows[0]
+    assert r"met in 0 of 3 samples; smallest $\alpha$ met: 12--21\%" in rows[1] and rows[1].endswith("& Not \\\\")
+    # one supported H3 run makes the gap "Partially" addressed; no H3c run has its interval below 0
+    assert "$[-5.0, +4.3]$" in rows[2] and rows[2].endswith("met in 1 of 2 pre-registered runs & Partially \\\\")
+    assert rows[3].endswith("met in 0 of 2 pre-registered runs & Not \\\\")
 
 
 def test_the_failures_table_sorts_categories_and_drops_empty_ones(tmp_path):
