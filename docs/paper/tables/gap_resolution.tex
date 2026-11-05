@@ -1,18 +1,18 @@
 % Written by scripts/make_paper_tables.py from results/gap1/canonical_200/gap1.json, results/gap2, results/gap3/canonical_200/e3.json, results/preregistered. Do not edit by hand.
 \begin{table}[t]
 \centering
-\caption{Gap resolution: each hypothesis, its main-analysis result and verdict (sensitivity results in Table~\ref{tab:preregistered})}
+\caption{Gap resolution: the component and metric of each gap, the base paper (OPT-Engine) and our main-analysis result (sensitivity results in Table~\ref{tab:preregistered})}
 \label{tab:gap_resolution}
 \footnotesize
 \setlength{\tabcolsep}{3pt}
-\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{2.55cm}>{\raggedright\arraybackslash}p{3.75cm}>{\raggedright\arraybackslash}p{1.35cm}@{}}
+\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{1.5cm}>{\raggedright\arraybackslash}p{1.5cm}>{\raggedright\arraybackslash}p{1.15cm}>{\raggedright\arraybackslash}p{1.75cm}l@{}}
 \toprule
-Gap & Hypothesis & Main-analysis result & Verdict \\
+Gap & Component & Metric & Base paper & Our result & Addressed? \\
 \midrule
-1 & H1: AUROC gain $\ge$ 0.10 over feasibility & 0.54 to 0.87; partly in 6 of 7 pre-registered runs & partly supported \\
-2 & H2: WAR $\le$ 10\% on unseen classes, half answered & met in 0 of 3 samples; smallest $\alpha$ met: 12--21\% & not supported \\
-3 & H3: lower WAR than B2 at an equal budget & [-5.0, +4.3] on \texttt{canonical\_200}; supported in 0 of 9 pre-registered runs & not supported \\
-3 & H3c: the pipeline with B2 beats B2 & supported in 0 of 9 pre-registered runs & not supported \\
+1 & Verifier: number, requirement and paraphrase signals & AUROC, correct vs wrong (H1: gain $\ge$ 0.10) & no check; feasibility alone 0.54 & 0.87; H1 partly met in 6 of 7 pre-registered runs & Partially \\
+2 & Decision gate with a calibrated threshold & Held-out WAR $\le$ 10\%, half answered (H2) & always answers & met in 0 of 3 samples; smallest $\alpha$ met: 12--21\% & Not \\
+3 & Token meter; B2 at an equal budget & WAR minus B2's at 50\% coverage (H3) & tokens not reported & $[-5.0, +4.3]$ points on 200 problems; met in 0 of 9 pre-registered runs & Not \\
+3 & Pipeline $k = 1$ with B2's votes & the same (H3c) & -- & met in 0 of 9 pre-registered runs & Not \\
 \bottomrule
 \end{tabular}
 \end{table}

@@ -431,35 +431,43 @@ def gap_resolution(results: Path) -> tuple[str, list[str]] | None:
     def count(items: list[bool]) -> str:
         return f"{sum(items)} of {len(items)}"
 
+    def addressed(supported: bool, partly: bool) -> str:
+        return "Fully" if supported else "Partially" if partly else "Not"
+
     s1 = g1["summary"]
     h1_partly = [verdict(d["summary"]["h1"]) != "not supported" for d in h1]
     alphas = sorted({run["alpha_scan"]["smallest_alpha_meeting_h2_rule"] for d in g2.values() for run in d["runs"]
                      if run.get("alpha_scan")})
     h2_any = [verdict(d["summary"]["h2"]) == "supported" for d in g2.values()]
     low, high = g3["h3"]["wrong_accept_difference_ci"]
+    h3_any = [d["h3"]["supported"] for d in h3]
+    h3c_any = [d["paired"][H3C_COMPARISON]["0.5"][1] < 0 for d in h3c]
+    # The columns of the Phase 2 brief (Section 4.4). OPT-Engine has no check, no abstention and no token report, so
+    # its column says what it does instead of a number; its feasibility-only AUROC is measured on our runs.
     rows = [
-        ["1", "H1: AUROC gain $\\ge$ 0.10 over feasibility",
-         f"{number(s1['auroc']['feasibility']['mean'], digits=2)} to {number(s1['auroc']['combined']['mean'], digits=2)}; "
-         f"partly in {count(h1_partly)} pre-registered runs",
-         verdict(s1["h1"])],
-        ["2", "H2: WAR $\\le$ 10\\% on unseen classes, half answered",
+        ["1", "Verifier: number, requirement and paraphrase signals", "AUROC, correct vs wrong (H1: gain $\\ge$ 0.10)",
+         f"no check; feasibility alone {number(s1['auroc']['feasibility']['mean'], digits=2)}",
+         f"{number(s1['auroc']['combined']['mean'], digits=2)}; H1 partly met in {count(h1_partly)} pre-registered runs",
+         addressed(verdict(s1["h1"]) == "supported", verdict(s1["h1"]) != "not supported")],
+        ["2", "Decision gate with a calibrated threshold", "Held-out WAR $\\le$ 10\\%, half answered (H2)",
+         "always answers",
          f"met in {count(h2_any)} samples; smallest $\\alpha$ met: {100 * alphas[0]:.0f}--{100 * alphas[-1]:.0f}\\%",
-         "not supported" if not any(h2_any) else "supported"],
-        ["3", "H3: lower WAR than B2 at an equal budget",
-         f"[{100 * low:+.1f}, {100 * high:+.1f}] on \\texttt{{canonical\\_200}}; supported in "
-         f"{count([d['h3']['supported'] for d in h3])} pre-registered runs",
-         "not supported" if not any(d["h3"]["supported"] for d in h3) and not g3["h3"]["supported"] else "partly"],
-        ["3", "H3c: the pipeline with B2 beats B2",
-         f"supported in {count([d['paired'][H3C_COMPARISON]['0.5'][1] < 0 for d in h3c])} pre-registered runs",
-         "not supported" if not any(d["paired"][H3C_COMPARISON]["0.5"][1] < 0 for d in h3c) else "partly"],
+         addressed(all(h2_any), any(h2_any))],
+        ["3", "Token meter; B2 at an equal budget", "WAR minus B2's at 50\\% coverage (H3)", "tokens not reported",
+         f"$[{100 * low:+.1f}, {100 * high:+.1f}]$ points on 200 problems; met in {count(h3_any)} pre-registered runs",
+         addressed(False, any(h3_any) or g3["h3"]["supported"])],
+        ["3", "Pipeline $k = 1$ with B2's votes", "the same (H3c)", "--",
+         f"met in {count(h3c_any)} pre-registered runs", addressed(False, any(h3c_any))],
     ]
     sources = ["results/gap1/canonical_200/gap1.json", "results/gap2", "results/gap3/canonical_200/e3.json",
                "results/preregistered"]
-    caption = ("Gap resolution: each hypothesis, its main-analysis result and verdict (sensitivity results in "
-               "Table~\\ref{tab:preregistered})")
+    caption = ("Gap resolution: the component and metric of each gap, the base paper (OPT-Engine) and our main-analysis "
+               "result (sensitivity results in Table~\\ref{tab:preregistered})")
     ragged = r">{\raggedright\arraybackslash}p"  # array package: no stretched spaces in narrow columns
-    return table(caption, "tab:gap_resolution", f"l{ragged}{{2.55cm}}{ragged}{{3.75cm}}{ragged}{{1.35cm}}",
-                 ["Gap", "Hypothesis", "Main-analysis result", "Verdict"], rows, sources, tight=True), sources
+    return table(caption, "tab:gap_resolution",
+                 f"l{ragged}{{1.5cm}}{ragged}{{1.5cm}}{ragged}{{1.15cm}}{ragged}{{1.75cm}}l",
+                 ["Gap", "Component", "Metric", "Base paper", "Our result", "Addressed?"], rows, sources,
+                 tight=True), sources
 
 
 def failures(results: Path) -> tuple[str, list[str]] | None:

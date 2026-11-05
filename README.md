@@ -7,9 +7,27 @@ operations questions into optimization models, verify those models, and answer, 
 - Architecture, gap mapping and data contracts: [docs/architecture.md](docs/architecture.md)
 - Development log (failures, fixes and their measured effect): [docs/devlog.md](docs/devlog.md)
 - Phase 1 report (submitted): [docs/phase1/Phase1_G1-01_23I-0541.pdf](docs/phase1/Phase1_G1-01_23I-0541.pdf), LaTeX source in `docs/phase1/latex/`
-- Phase 2 paper (draft, IEEE two-column): `docs/paper/main.tex` and `docs/paper/refs.bib`. Build it from `docs/paper` with
-  `pdflatex main && bibtex main && pdflatex main && pdflatex main`. Tables and figures are read from generated files
-  in `docs/paper/tables/` and `docs/paper/figures/`; until a file exists, the PDF shows a grey note in its place.
+- Phase 2 paper (IEEE two-column, 10 pages): `docs/paper/main.tex` and `docs/paper/refs.bib`. Build it from `docs/paper` with
+  `pdflatex main && bibtex main && pdflatex main && pdflatex main`. Its tables are written to `docs/paper/tables/` by
+  `scripts/make_paper_tables.py`, and its figures are read from `results/gap2/` and `results/gap3/`, all from saved runs.
+
+## Gap resolution
+
+The same table as the paper's Table "Gap resolution" (`docs/paper/tables/gap_resolution.tex`, written by
+`scripts/make_paper_tables.py`). Main model gpt-oss-120b; "pre-registered runs" are the tests on new problems and six
+more models (#103, #104). The base paper, OPT-Engine, has no check, no abstention and no token report, so its column
+says what it does.
+
+| Gap | Method / component | Metric | Base paper result | Our result | Addressed? |
+|---|---|---|---|---|---|
+| 1. Label-free verification | Verifier: number, requirement and paraphrase signals (`optverify/verifier.py`) | AUROC for correct against wrong answers (H1: gain of at least 0.10) | No check; solver feasibility alone gives 0.54 | 0.87; H1 partly met in 6 of 7 pre-registered runs | Partially |
+| 2. Error control under shift | Decision gate with a threshold calibrated to a target wrong-accept rate (`optverify/calibration.py`) | Held-out WAR at most 10% with half the problems answered (H2) | Always answers | Met in 0 of 3 samples; the smallest alpha the data can meet is 12% to 21% | Not |
+| 3. Cost | Token meter per step; single agent B2 at an equal budget (`optverify/systems.py`) | WAR minus B2's at 50% coverage (H3) | Tokens not reported | [-5.0, +4.3] points on 200 problems; met in 0 of 9 pre-registered runs | Not |
+| 3. Cost (H3c) | Pipeline at k = 1 with B2's votes (`scripts/explore_combination.py`) | The same | Not applicable | Met in 0 of 9 pre-registered runs | Not |
+
+In short: the signals do detect wrong models (Gap 1), but the calibrated error bound does not hold on unseen problem
+classes (Gap 2), and at an equal token budget majority voting is at least as good as the pipeline (Gap 3). Details are
+in the paper and in the "Outcomes" paragraph of [Phase 2 progress](#phase-2-progress).
 
 ## Architecture
 
@@ -642,7 +660,7 @@ Gap 2 calibration is leave-one-class-out inside the canonical test sample, so ea
 
 Supervisor: Muhammad Sajjad (Group G1)
 
-## Initial Results
+## Phase 1 results
 
 All Phase 1 results use `gpt-oss-120b` on Amazon Bedrock at temperature 0 (report Section 3).
 
