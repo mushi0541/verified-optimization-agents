@@ -1,0 +1,58 @@
+{
+  "run": "pipeline_bedrock-au.anthropic.claude-sonnet-4-5-20250929-v1-0_linguistic_60_r1_20261105-1539",
+  "config": {
+    "system": "pipeline",
+    "model": "bedrock:au.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "split": "canonical",
+    "sample_file": "samples\\linguistic_60.json",
+    "per_class": null,
+    "seed": null,
+    "repairs": 1,
+    "paraphrases": 3,
+    "signals": [
+      "number",
+      "requirement",
+      "paraphrase"
+    ],
+    "no_parser": false,
+    "threshold": 0.8,
+    "calibration": null,
+    "budget_tokens": null,
+    "max_samples": 10,
+    "sample_temperature": 0.7,
+    "paraphrase_temperature": 0.7,
+    "paraphrase_model": null,
+    "workers": 2,
+    "env_file": ".env",
+    "trace": true,
+    "prompt_version": "v1",
+    "resume": "results\\pipeline_bedrock-au.anthropic.claude-sonnet-4-5-20250929-v1-0_linguistic_60_r1_20261105-1539",
+    "alpha": null,
+    "endpoint": "bedrock ap-southeast-2",
+    "paraphrase_endpoint": "bedrock ap-southeast-2"
+  },
+  "resumes": 1,
+  "failed_problems": [],
+  "problems": 60,
+  "accuracy": 0.7666666666666667,
+  "solved_rate": 1.0,
+  "status_counts": {
+    "optimal": 60
+  },
+  "mean_input_tokens": 10547.766666666666,
+  "mean_output_tokens": 11362.3,
+  "mean_llm_calls": 8.2,
+  "mean_latency_s": 140.5304694266667,
+  "accuracy_by_class": {
+    "Inventory": 0.3,
+    "Knapsack": 1.0,
+    "TSP": 1.0
+  },
+  "decision_counts": {
+    "answer": 57,
+    "escalate": 3
+  },
+  "coverage": 0.95,
+  "selective_accuracy": 0.7719298245614035,
+  "wrong_accept_rate": 0.22807017543859648
+}
