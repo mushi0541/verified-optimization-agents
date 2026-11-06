@@ -3,6 +3,7 @@ name: tests
 
 on:
   pull_request:
+  workflow_dispatch:  # run the tests by hand from the Actions tab
   push:
     branches: [main]
 
