@@ -461,12 +461,13 @@ usage is saved for a failed problem, so the cost is a lower bound when runs fail
 `tokens_by_step.csv` (where each system spends its tokens, from `usage_by_step`) and `efficiency.json`.
 
 The two folders in `results/e6` were made with these commands (the `canonical_200` one leaves out the v3-prompt and
-second-paraphraser runs and the two B1 repeats run in ap-southeast-2, since E6 keeps one endpoint per row, and adds the
+second-paraphraser runs and the B1 and DeepSeek B0 repeats run in ap-southeast-2, since E6 keeps one endpoint per row, and adds the
 `canonical_200` part of the `canonical_587` run as a pipeline repeat):
 
 ```bash
 python scripts/efficiency.py --sample samples/canonical_200.json --out-dir results/e6/canonical_200 \
-    --runs $(ls -d results/*canonical_200_r* | grep -v -e prompts-v3 -e para-bedrock -e _20261105-1852 -e _20261105-1907) \
+    --runs $(ls -d results/*canonical_200_r* | grep -v -e prompts-v3 -e para-bedrock -e _20261105-1852 -e _20261105-1907 \
+      -e _20261105-2045 -e _20261105-2126) \
     results/pipeline_bedrock-openai.gpt-oss-120b-1-0_canonical_587_r1_20261101-2254
 python scripts/efficiency.py --out-dir results/e6/canonical_unused --runs results/baseline_*canonical_unused_r1* \
     results/pipeline_*canonical_unused_r1* results/b2_*canonical_unused_r1*
@@ -517,6 +518,18 @@ repeats) and updates `results/manifest.json`.
 
 The reported runs were made with `python -m optverify.run` (the settings of each run are in its `summary.json`
 `config`), so each analysis reads those run folders. Every analysis below runs offline, with no API key.
+
+To rebuild every saved analysis result and the paper's tables with the exact commands (real run folders and flags,
+including the sensitivity runs), run from the repository root with the virtual environment active (the script calls
+`python`; in Git Bash on Windows activate it with `source .venv/Scripts/activate`):
+
+```bash
+bash scripts/reproduce_results.sh
+```
+
+It takes about 20 minutes. Afterwards `git status` shows only the plot PDFs (new metadata), float noise below 1e-9 and
+`"skipped"` keys that newer versions of the scripts add; every number is the same. The commands in the sections above
+show the options; the script is the exact record.
 
 | Course | Runs (in `results/`) | Analysis | Output |
 |---|---|---|---|

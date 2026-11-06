@@ -33,6 +33,7 @@ Add an entry for each fix that answers a failure, newest last, and link it in th
 | 23 | 2026-11-05 | Third E3 repeat on the pairs and linguistic samples in another region; one extra model | #116, #118, #119 |
 | 24 | 2026-11-05 | B0 and B1 repeats 2 and 3 on canonical_200, in another region | #123 |
 | 25 | 2026-11-05 | DeepSeek V3.2 B0 repeats 2 and 3 on canonical_200 | #33 |
+| 26 | 2026-11-06 | One script that rebuilds every saved result | #46 |
 
 ## 1. Provider limits: request pacing, fitted output cap, then Amazon Bedrock
 
@@ -791,7 +792,11 @@ key, which his organization allows only in ap-southeast-2, as for the third E3 r
 `results/e1_e2/` and the paper's baseline table. Rebuilt with:
 
 ```bash
-python scripts/compare_baselines.py --repeat results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261102-0223/records.jsonl     --repeat results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261105-1852/records.jsonl     --repeat results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261105-1907/records.jsonl     --repeat results/baseline_bedrock-deepseek.v3.2_canonical_200_r0_20261102-0247/records.jsonl     --paper docs/paper_sir.json --out-dir results/e1_e2
+python scripts/compare_baselines.py --repeat results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261102-0223/records.jsonl \
+    --repeat results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261105-1852/records.jsonl \
+    --repeat results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261105-1907/records.jsonl \
+    --repeat results/baseline_bedrock-deepseek.v3.2_canonical_200_r0_20261102-0247/records.jsonl \
+    --paper docs/paper_sir.json --out-dir results/e1_e2
 ```
 
 The one-repeat files rebuilt exactly before the new runs were added. Two results stay on the first B1 run on purpose:
@@ -813,7 +818,36 @@ ap-southeast-2, as in devlog 23 and 24.
 configuration. Rebuilt with:
 
 ```bash
-python scripts/compare_baselines.py \n    --repeat results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261102-0223/records.jsonl \n    --repeat results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261105-1852/records.jsonl \n    --repeat results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261105-1907/records.jsonl \n    --repeat results/baseline_bedrock-deepseek.v3.2_canonical_200_r0_20261102-0247/records.jsonl \n    --repeat results/baseline_bedrock-deepseek.v3.2_canonical_200_r0_20261105-2045/records.jsonl \n    --repeat results/baseline_bedrock-deepseek.v3.2_canonical_200_r0_20261105-2126/records.jsonl \n    --paper docs/paper_sir.json --out-dir results/e1_e2
+python scripts/compare_baselines.py \
+    --repeat results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261102-0223/records.jsonl \
+    --repeat results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261105-1852/records.jsonl \
+    --repeat results/baseline_bedrock-openai.gpt-oss-120b-1-0_canonical_200_r1_20261105-1907/records.jsonl \
+    --repeat results/baseline_bedrock-deepseek.v3.2_canonical_200_r0_20261102-0247/records.jsonl \
+    --repeat results/baseline_bedrock-deepseek.v3.2_canonical_200_r0_20261105-2045/records.jsonl \
+    --repeat results/baseline_bedrock-deepseek.v3.2_canonical_200_r0_20261105-2126/records.jsonl \
+    --paper docs/paper_sir.json --out-dir results/e1_e2
 ```
 
-E6 only reads the gpt-oss-120b runs, so `results/e6/` is unchanged (checked by rerunning the README's E6 command).
+`results/e6/` is unchanged: E6 keeps one endpoint per row, so the README's E6 command now also leaves out these two
+Sydney runs (`_20261105-2045`, `_20261105-2126`), and with that it rebuilds `results/e6/` exactly (devlog 26).
+
+## 26. One script that rebuilds every saved result
+
+**Date.** 2026-11-06 (#46). Before the release we rebuilt every saved analysis result offline from a clean checkout,
+following only the README and this log.
+
+**Failure.** Every number rebuilt, but not every command did. Several README commands use placeholders such as
+`results/<pipeline repeat 1>` or leave out options the saved results need (`--alpha-scan`, `--shift`, `--subset`,
+`--skip-class Pollution --skip-problem canonical-0648`), so the inputs had to be read back from the `records` and
+`settings` fields of each result file. The README's E6 command also picked up the two DeepSeek B0 runs of devlog 25,
+and the command in devlog 25 had broken line breaks.
+
+**Change.** `scripts/reproduce_results.sh` holds the exact command behind every saved analysis folder: E1 and E2, Gap 1
+to 3 with the sensitivity runs, the ablations, E6, every pre-registered folder, the failure table and the paper tables,
+in that order. The README points to it, its E6 command leaves out the DeepSeek runs, and the devlog 24 and 25 commands
+are fixed.
+
+**Effect.** On a clean checkout the script runs in about 22 minutes with no API key. Of the 60 JSON and CSV files it
+rewrites, every value matches the committed file within 1e-9; the only other changes are the plot PDFs (metadata) and
+`"skipped"` keys that newer versions of `analyze_e3.py` and `explore_combination.py` write. The paper's tables come out
+unchanged.
