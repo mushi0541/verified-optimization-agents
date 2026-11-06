@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Rebuilds the saved analysis results from the saved run records, in the folders the repository uses.
 # It needs no API key and makes no network or model calls (only the offline scripts in scripts/).
-# Run it from the repository root. It takes about 20 minutes. Afterwards `git status` shows only the plot PDFs (new
+# Run it from the repository root with the virtual environment active (`source .venv/bin/activate`, or
+# `source .venv/Scripts/activate` in Git Bash on Windows), since it calls `python`. It takes about 20 minutes. Afterwards `git status` shows only the plot PDFs (new
 # metadata), float noise below 1e-9 and "skipped" keys that newer versions of the scripts add.
 set -euo pipefail
 

@@ -520,7 +520,8 @@ The reported runs were made with `python -m optverify.run` (the settings of each
 `config`), so each analysis reads those run folders. Every analysis below runs offline, with no API key.
 
 To rebuild every saved analysis result and the paper's tables with the exact commands (real run folders and flags,
-including the sensitivity runs), run from the repository root:
+including the sensitivity runs), run from the repository root with the virtual environment active (the script calls
+`python`; in Git Bash on Windows activate it with `source .venv/Scripts/activate`):
 
 ```bash
 bash scripts/reproduce_results.sh
