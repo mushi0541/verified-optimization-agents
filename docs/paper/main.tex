@@ -56,11 +56,11 @@ i230591@isb.nu.edu.pk}
 
 % ---------------------------------------------------------------------------------------------------------------
 \begin{abstract}
-Large language models (LLMs) can turn a word problem into solver code, but the code can run, report an optimal
-value and still be wrong, and current systems answer every question anyway. We built a multi-agent pipeline that
-answers only when its checks pass and otherwise escalates with reasons or abstains. Besides solver feasibility, its
-verifier uses three signals that need no reference answer: the share of the question's numbers found in the code,
-the share of parsed requirements tied to a named constraint, and whether reworded questions reach the same optimum.
+Large language models (LLMs) can turn an optimization word problem into solver code, but the code can run, report an optimal
+value and still be wrong, and current systems answer every question. We built a multi-agent pipeline (parser, formalizer
+with repair, sandboxed solver, reworded runs, verifier and decision gate) that answers only when its checks pass and otherwise escalates with reasons or abstains. Besides solver feasibility, its
+verifier uses three label-free signals: the share of the question's numbers found in the code,
+the share of parsed requirements tied to a named constraint, and the share of reworded questions that reach the same optimum.
 The answer threshold can be calibrated to a target wrong-accept rate with an exact binomial bound. We tested three
 pre-registered hypotheses on OPT-Engine problems with gpt-oss-120b and six other models. The signals do tell correct
 and wrong models apart: the AUROC goes from 0.54 for feasibility alone to 0.87 (H1 partly supported, in 6 of 7
@@ -68,7 +68,7 @@ pre-registered runs). Error control breaks when the problem class changes. At $\
 threshold kept the held-out wrong-accept rate on target while answering half the problems (H2 not supported).
 Under the same token budget, plain majority voting over resampled answers was at least as accurate for every model.
 On 1,457 held-out problems it wrongly accepted 3.6\% of its answers, against 6.4\% for the pipeline at 50\% coverage
-(H3 not supported), and combining the two did not beat voting. All code, runs and analysis scripts are released.
+(H3 not supported), and combining the two did not beat voting. All code, every run and the scripts behind every number in the paper are released.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -79,10 +79,10 @@ optimization modeling, large language models, multi-agent systems, verification,
 \section{Introduction}
 \label{sec:intro}
 
-Operations teams usually describe planning problems in plain language, but solving them needs a formal optimization
-model. LLMs can now write these models as solver code, and fine-tuned systems get roughly 60\% to 70\% macro accuracy
-on the standard benchmarks~\cite{chen2025sirl,lu2025optmath,huang2025orlm}. Accuracy drops a lot once problems get
-larger and more realistic. On the industrial MIPLIB-NL benchmark the best model solves just 39\% of the instances,
+Operations teams describe planning problems in plain language, but solving them needs a formal optimization
+model. Large language models (LLMs) can now write these models as solver code, and fine-tuned systems get roughly 60\% to 70\% macro accuracy
+on the standard benchmarks~\cite{chen2025sirl,lu2025optmath,huang2025orlm}. Accuracy drops sharply on
+larger, more realistic problems. On the industrial MIPLIB-NL benchmark the best model solves just 39\% of the instances,
 and SIRL-32B goes from 87.40\% on MAMO-Complex down to 1.43\%~\cite{li2026miplibnl,shen2024mamo}.
 
 A bigger issue is that these systems always give an answer. Generated code can run, return an ``optimal'' value and
@@ -90,11 +90,11 @@ still leave out a requirement that the question states. In the error analyses of
 ORLM~\cite{huang2025orlm}, missing constraints are the most frequent error, and they are also a common modelling error
 on MIPLIB-NL~\cite{li2026miplibnl}. Existing checks are weak here: they rely on the same model reviewing
 itself~\cite{jiang2025llmopt}, on LLM verdicts that are not calibrated~\cite{liu2026optverifier,zheng2023judging}, or
-on solver queries that cannot notice a requirement that was never written~\cite{abdulrahman2026verisimpl}. Verifier
-models do help with math reasoning~\cite{cobbe2021gsm8k}, but an uncalibrated verdict gives no guarantee once the data
-shifts. In operations, a confident wrong plan is worse than no plan at all: if a crew limit or a capacity is quietly
+on solver queries that cannot notice a requirement that the model left out~\cite{abdulrahman2026verisimpl}. Verifier
+models can help with math reasoning~\cite{cobbe2021gsm8k}, but an uncalibrated verdict cannot guarantee safety once
+the data shifts. In operations, a confident wrong plan is worse than no plan at all: if a crew limit or a capacity is quietly
 dropped, the schedule may be impossible to carry out. An operations user needs a system that answers only when its
-checks back the answer up, and otherwise abstains or passes the case to an analyst along with the reasons.
+checks back the answer up, and otherwise abstains or passes the case to an analyst with reasons.
 
 Our base paper, OPT-Engine~\cite{chen2026optengine}, studies where LLM-written models break down as problems grow. It
 shows that solver-integrated reasoning (SIR) is needed and that extra constraints still pull accuracy down, but it
@@ -104,9 +104,9 @@ research question:
 \item \textbf{Gap~1, label-free verification.} None of the reviewed systems checks at inference time, without
 reference answers, whether a model uses every number in the question or reaches the same optimum when the question
 is reworded. Self-consistency improves accuracy on general tasks~\cite{wang2023selfconsistency}, but we found no
-work that uses it to check paraphrased optimization questions. Checks on the stated requirements exist only partly, as verdicts
+prior work that uses it to check whether paraphrased optimization questions lead to equivalent formulations. Checks on the stated requirements exist only partly, as verdicts
 on model structure~\cite{liu2026optverifier} and solver queries per constraint~\cite{abdulrahman2026verisimpl}.
-\textbf{RQ1:} can these requirement-level signals spot wrong models better than solver feasibility on its own?
+\textbf{RQ1:} do these requirement-level signals spot wrong models better than solver feasibility on its own?
 \item \textbf{Gap~2, error control under shift.} No reviewed system can decline to answer while keeping its error
 rate under control, and in the closest recent attempt the error bound did not hold on new
 problems~\cite{lian2026admitor}. Using ideas from selective
@@ -243,11 +243,11 @@ from wrong answers by at least 0.10, and removing any one signal lowers it.
 \item \textbf{H2.} With $\alpha = 10\%$, the pooled held-out wrong-accept rate is at most $\alpha$, reported with its
 exact 95\% interval, while at least 50\% of all problems are answered.
 \item \textbf{H3.} With $k = 3$ reworded runs, the pipeline's wrong-accept rate at 50\% coverage is lower than that of
-the single-agent baseline B2, which keeps sampling answers until it reaches the pipeline's mean token budget. It counts
+the single-agent baseline B2, which keeps sampling answers until it reaches the pipeline's mean token budget. H3 counts
 as met only if the 95\% bootstrap interval of the paired difference at $k = 3$ is entirely below zero.
 \item \textbf{H3c} (pre-registered after H3 failed; repository issue \#103). The pipeline runs at $k = 1$, B2 samples use
 the rest of the budget, and the score is the mean of the pipeline's score and the share of B2 samples that agree with
-its answer. Its WAR at 50\% coverage is lower than B2's, again with the whole paired interval below zero.
+its answer. This combination's WAR at 50\% coverage is lower than B2's, again with the whole paired interval below zero.
 \end{itemize}
 
 \section{Proposed System}
@@ -358,7 +358,7 @@ All models run on open-weight endpoints in Amazon Bedrock:
 \item \textbf{Primary Model:} \texttt{openai.gpt-oss-120b-1:0}, an open-weights mixture-of-experts model used for all pipeline roles and baselines.
 \item \textbf{Second Paraphrase Model:} \texttt{deepseek.v3.2}, used for the B0 baseline comparison and to test whether an independent model family improves paraphrase agreement.
 \item \textbf{Six more models} for the pre-registered tests: DeepSeek V3.2, Qwen3 Next 80B, Mistral Large 3, Kimi
-K2.5, GLM 4.7 and gpt-oss-20b. Each one plays every pipeline role and also runs B1 and B2 on \texttt{canonical\_200}.
+K2.5, GLM 4.7 and gpt-oss-20b. Each one runs the full pipeline (every role), B1 and B2 on \texttt{canonical\_200}.
 We fixed this list after a smoke test on two problems, before any full run.
 \item \textbf{Solver:} HiGHS through PuLP 3.3.2 on Python 3.12 (\texttt{pulp.HiGHS(msg=False, timeLimit=120)}).
 \end{itemize}
@@ -521,16 +521,16 @@ Pollution and Inventory account for 65 of the 102 wrong answers, and for 18 of t
 accepted, so we checked their references. \texttt{scripts/check\_references.py} reads each question's data from its text,
 solves the model the text states with HiGHS, and compares the optimum with the reference (no LLM is used).
 \begin{itemize}
-\item \textbf{Pollution:} the stated model reproduces none of the 73 references we could read. We also tried four
-other readings of the text, and only one of them matched a single reference (canonical-1623), most likely by chance.
+\item \textbf{Pollution:} the stated model reproduces none of the 73 references we could read. Of four
+other readings we tried, only one matched a single reference (canonical-1623), most likely by chance.
 Six problems have no feasible solution as written, and 34 references sit below the stated model's optimum, which a
 stricter reading could never explain. In 7 of the pipeline's 21 Pollution answers, our answer matches the stated
-model's optimum digit for digit. So these references come from a model that the text does not describe.
+model's optimum digit for digit. So these references follow a model the text does not describe.
 \item \textbf{Inventory:} 159 of the 160 references are reproduced, and all of them need the capacity to hold right
 after a delivery arrives (``at any moment''). A model that checks it only at the end of the day is therefore really
 wrong. Two questions say ``at the end of any day'' (canonical-0644 and 0667), and there only the stricter rule gives
 the reference. We solved the last one, canonical-0648, by hand (repository issue \#40): the stated model gives 876 or
-1,061, but the reference is 1,818, so the reference is wrong.
+1,061, so the reference 1,818 is wrong.
 \end{itemize}
 The hand check (\nolinkurl{results/reference_check/hand_labels.csv}) labels 157 Inventory references correct,
 canonical-0644 and 0667 ambiguous and canonical-0648 wrong, and confirms by hand that the checked Pollution
@@ -557,16 +557,16 @@ what one fold of \texttt{canonical\_200} provides. We therefore added \texttt{ca
 from the Phase~1 plan, made after H2 failed on \texttt{canonical\_200}, and both results are reported. The main
 configuration uses one model (gpt-oss-120b); the six other models have one run each on 200 problems, so their
 intervals are wide. Repeats differ only in provider nondeterminism and the paraphraser's sampling temperature.
-We repeated B0, B1 and the pipeline on \texttt{canonical\_200}, \texttt{constraint\_pairs\_60} and
-\texttt{linguistic\_60} three times, and ran B2, \texttt{canonical\_587}, the 1,070 unused problems and OpsOR-Bench
-once. Some repeats ran in a different AWS region, and Tables~\ref{tab:gap3} and~\ref{tab:efficiency} use the first B1
+The pipeline on \texttt{canonical\_200}, \texttt{constraint\_pairs\_60} and \texttt{linguistic\_60}, and B0 and B1
+on \texttt{canonical\_200}, were run three times. B2, and the pipeline on \texttt{canonical\_587}, the 1,070 unused
+problems and OpsOR-Bench, were run once. Some repeats ran in a different AWS region, and Tables~\ref{tab:gap3} and~\ref{tab:efficiency} use the first B1
 run. A second paraphrase model (DeepSeek V3.2) caught two of the shared misreadings, but the AUROC hardly moved: 0.876
-in its single run on \texttt{canonical\_200}, against 0.870 over our three repeats.
+in its single run on \texttt{canonical\_200}, against 0.870 over three repeats.
 
 \section{Conclusion}
 \label{sec:conclusion}
-We built a multi-agent pipeline that runs the solver and then checks the result with label-free signals and a
-calibrated abstention rule. Per gap, we found:
+We built a multi-agent pipeline that runs the solver, then checks its result with label-free signals and
+calibrated abstention. Per gap, we found:
 \begin{enumerate}
 \item \textbf{Label-free signals detect flawed models (Gap~1).} H1 is partly supported: the combined score reaches
 an AUROC of 0.87 (+0.33 over feasibility alone), mostly from paraphrase agreement, but not every signal is needed.
