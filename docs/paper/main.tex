@@ -26,7 +26,7 @@
 \newcommand{\generated}[2]{\IfFileExists{#1}{\input{#1}}{\plan{\texttt{\detokenize{#1}}, written by #2}}}
 % \generatedfigure{file}{caption}{label}{what writes it}: a one-column figure from a generated PDF, or a note.
 \newcommand{\generatedfigure}[4]{\IfFileExists{#1}{\begin{figure}[t]\centering
-  \includegraphics[width=\columnwidth]{#1}\caption{#2}\label{#3}\end{figure}}{\plan{\texttt{\detokenize{#1}}, written by #4}}}
+  \includegraphics[width=0.8\columnwidth]{#1}\caption{#2}\label{#3}\end{figure}}{\plan{\texttt{\detokenize{#1}}, written by #4}}}
 \newcommand{\cthree}{C\textsuperscript{3}-Bench}
 
 \begin{document}
@@ -56,12 +56,16 @@ i230591@isb.nu.edu.pk}
 
 % ---------------------------------------------------------------------------------------------------------------
 \begin{abstract}
-Large language models (LLMs) can turn an optimization word problem into solver code, but the code can run, report an optimal
-value and still be wrong, and current systems answer every question. We built a multi-agent pipeline (parser, formalizer
-with repair, sandboxed solver, reworded runs, verifier and decision gate) that answers only when its checks pass and otherwise escalates with reasons or abstains. Besides solver feasibility, its
-verifier uses three label-free signals: the share of the question's numbers found in the code,
-the share of parsed requirements tied to a named constraint, and the share of reworded questions that reach the same optimum.
-The answer threshold can be calibrated to a target wrong-accept rate with an exact binomial bound. We tested three
+While large language models (LLMs) are capable of converting optimization problems defined in words into code for
+solving them, it may still be the case that the code runs, reports an optimal value and is still not correct, and
+present approaches answer every question. The authors have designed a multi-agent approach comprising a parser, a
+formalizer with a repair function, a sandboxed solver, rephrased executions, a verifier and a decision-making unit.
+This system answers only when its checks are met, and otherwise it escalates the case providing reasons or
+abstains. In addition to solver feasibility, its
+verification process makes use of three signals that do not need any reference answers: the proportion of the question's
+numbers that exist in the code, the proportion of parsed requirements that are tied to a named constraint, and
+the proportion of rewritten questions that achieve the same optimal result. The accept threshold can be calibrated to a
+target wrong-accept rate using an exact binomial bound. We tested three
 pre-registered hypotheses on OPT-Engine problems with gpt-oss-120b and six other models. The signals do tell correct
 and wrong models apart: the AUROC goes from 0.54 for feasibility alone to 0.87 (H1 partly supported, in 6 of 7
 pre-registered runs). Error control breaks when the problem class changes. At $\alpha = 10\%$ no calibrated
@@ -86,15 +90,15 @@ larger, more realistic problems. On the industrial MIPLIB-NL benchmark the best 
 and SIRL-32B goes from 87.40\% on MAMO-Complex down to 1.43\%~\cite{li2026miplibnl,shen2024mamo}.
 
 A bigger issue is that these systems always give an answer. Generated code can run, return an ``optimal'' value and
-still leave out a requirement that the question states. In the error analyses of OptiTree~\cite{liu2025optitree} and
-ORLM~\cite{huang2025orlm}, missing constraints are the most frequent error, and they are also a common modelling error
-on MIPLIB-NL~\cite{li2026miplibnl}. Existing checks are weak here: they rely on the same model reviewing
-itself~\cite{jiang2025llmopt}, on LLM verdicts that are not calibrated~\cite{liu2026optverifier,zheng2023judging}, or
-on solver queries that cannot notice a requirement that the model left out~\cite{abdulrahman2026verisimpl}. Verifier
-models can help with math reasoning~\cite{cobbe2021gsm8k}, but an uncalibrated verdict cannot guarantee safety once
-the data shifts. In operations, a confident wrong plan is worse than no plan at all: if a crew limit or a capacity is quietly
+still leave out a requirement that the question states. In error analyses for the systems OptiTree~\cite{liu2025optitree}
+and ORLM~\cite{huang2025orlm}, missing constraints are the most frequent error, and they occur often as a modelling
+mistake in MIPLIB-NL~\cite{li2026miplibnl}. Existing checks are weak in this regard, as they rely on the same model
+reviewing itself~\cite{jiang2025llmopt}, on LLM verdicts that are uncalibrated~\cite{liu2026optverifier,zheng2023judging},
+or on solver queries which are unable to notice a requirement omitted by the model~\cite{abdulrahman2026verisimpl}.
+Verifier models can assist with mathematical reasoning~\cite{cobbe2021gsm8k}, but an uncalibrated verdict cannot offer
+a guarantee of safety if the data changes. In operations, a confident wrong plan is worse than no plan at all: if a crew limit or a capacity is quietly
 dropped, the schedule may be impossible to carry out. An operations user needs a system that answers only when its
-checks back the answer up, and otherwise abstains or passes the case to an analyst with reasons.
+checks back it up and otherwise abstains or escalates to an analyst with reasons.
 
 Our base paper, OPT-Engine~\cite{chen2026optengine}, studies where LLM-written models break down as problems grow. It
 shows that solver-integrated reasoning (SIR) is needed and that extra constraints still pull accuracy down, but it
@@ -123,56 +127,58 @@ accuracy and wrongly accepted answers better than one agent that resamples?
 
 \noindent Our contributions are:
 \begin{enumerate}
-\item a verifier with three label-free signals: number coverage, requirement coverage (each parsed requirement is
-linked to a named constraint of the generated model) and paraphrase-optimum agreement, combined with solver
-feasibility into one score;
-\item a decision layer that answers, abstains or escalates, with a threshold calibrated to a target wrong-accept rate
-by an exact binomial bound, tested on held-out problem classes and on OpsOR-Bench, a small set of operations problems
-we built as a shift test;
-\item a single-agent baseline matched to the pipeline's token use within 10\%, and per-step token accounting
-that shows where each system spends its tokens;
-\item an open implementation in which every ablation and every number in this paper is computed from saved run
-records by a script.
+\item a verifier with three kinds of label-free indicators: number coverage, requirement coverage (where each parsed
+requirement is connected to a named constraint of the generated model) and paraphrase-optimum agreement, all
+combined with solver feasibility into one score;
+\item a decision-making layer where the system answers, refuses to answer or escalates the question, with a threshold
+calibrated to a target wrong-accept rate through an exact binomial bound, tested on held-out problem classes and on
+OpsOR-Bench, a small batch of operations problems we built for the shift test;
+\item a single-agent baseline whose token use stays within a 10\% margin of the pipeline's, together with per-step
+token accounting that shows how many tokens each system spends and where;
+\item an open implementation where every ablation and every number in this paper is computed by scripts from data
+kept in saved run records.
 \end{enumerate}
 
 \section{Related Work}
 \label{sec:related}
 
-\textbf{Benchmarks.} OPT-Engine~\cite{chen2026optengine} generates problems from parametric generators in ten classes
-of linear and mixed-integer programs, so that difficulty can be raised in a controlled way, and computes each optimum
-with a solver. It compares pure-text reasoning, text reasoning with computational tools, and SIR, and finds that only
-SIR stays reliable as problems grow, while constraint augmentation lowers the accuracy of both pure-text
-reasoning and SIR. Writing constraint models from natural language is a long-standing goal~\cite{tsouros2023holy}, and agentic
-frameworks apply LLMs to what-if analysis in supply chains~\cite{li2023optiguide}. OptiBench and
-ReSocratic~\cite{yang2025optibench} and OptMATH~\cite{lu2025optmath} provide fixed collections and synthesized
-training data, NL4Opt~\cite{ramamonjison2022nl4opt} and MAMO~\cite{shen2024mamo} explore natural language formulations,
-and MIPLIB-NL~\cite{li2026miplibnl} reverse-builds industrial instances from MIPLIB 2017. Reference
-answers are not always reliable: one audit found 50\% of IndustryOR and 41\% of OptMATH-Bench instances
-incorrect~\cite{zhang2025optimind}. We therefore use generated problems with computed optima, and check doubtful
-references by hand.
+\textbf{Benchmarks.} OPT-Engine~\cite{chen2026optengine} formulates tasks from parameterized generators in ten classes
+of linear and mixed-integer programs, thus allowing difficulty to be increased in a controlled manner, and determines
+the optimal solutions with a solver. It compares plain-text reasoning, text reasoning accompanied by computational
+tools, and SIR, and shows that SIR is the only method that stays reliable as problems grow, while the addition of
+constraints reduces the accuracy of both plain-text reasoning and SIR. Writing constraint models on the basis of
+natural language has long been a goal~\cite{tsouros2023holy}, while agentic frameworks use LLMs in the what-if
+analysis of supply chains~\cite{li2023optiguide}. OptiBench and ReSocratic~\cite{yang2025optibench} and
+OptMATH~\cite{lu2025optmath} offer fixed collections of problems and synthesized training data,
+NL4Opt~\cite{ramamonjison2022nl4opt} and MAMO~\cite{shen2024mamo} explore natural language formulations, and
+MIPLIB-NL~\cite{li2026miplibnl} works in the reverse manner, producing industrial problems starting from MIPLIB 2017.
+Reference answers are not always reliable: according to one audit, 50\% of IndustryOR instances and 41\% of
+OptMATH-Bench instances were incorrect~\cite{zhang2025optimind}. Therefore, we use generated problems along with
+already calculated optima, and check doubtful references by hand.
 
-\textbf{Training and search.} ORLM~\cite{huang2025orlm} and OptMATH~\cite{lu2025optmath} fine-tune models on
-synthesized problems, SIRL~\cite{chen2025sirl} uses the solver as a reward in reinforcement learning,
-LLMOPT~\cite{jiang2025llmopt} adds a self-correction loop, and OptiTree~\cite{liu2025optitree} searches over
-hierarchical decompositions. All of them raise accuracy, but
-all answer every question, and none reports the token cost of its extra calls. The error analyses of these papers
-motivate our verifier: missing constraints account for 61.9\% to 82.6\% of the remaining errors of
-OptiTree~\cite{liu2025optitree}, and ignored constraints or implicit conditions for 56.3\% of the modelling errors of
-ORLM~\cite{huang2025orlm}.
+\textbf{Training and search.} ORLM~\cite{huang2025orlm} and OptMATH~\cite{lu2025optmath} fine-tune models based on
+synthetic problems, SIRL~\cite{chen2025sirl} incorporates the solver into the reward function of reinforcement
+learning, LLMOPT~\cite{jiang2025llmopt} has a loop for self-correction, and OptiTree~\cite{liu2025optitree}
+implements a search of hierarchical decompositions. They all improve the accuracy of their models. They answer every
+question but do not report the token costs of their additional calls. The analysis of errors presented in
+these papers serves as a base for our verifier, since missing constraints account for 61.9\% to 82.6\% of the
+remaining errors in OptiTree~\cite{liu2025optitree}, and ignored constraints or implicit conditions account for
+56.3\% of the modelling errors made in ORLM~\cite{huang2025orlm}.
 
-\textbf{Verifying generated models.} Opt-Verifier~\cite{liu2026optverifier} asks LLMs for binary verdicts on a
-model's structure. It reaches 68\% recall on hard structure errors, ignores numerical values, and uses about nine
-calls and 5,300 to 8,500 tokens per problem. VeriSimpl~\cite{abdulrahman2026verisimpl} queries the solver on
-simplified versions of the problem; its precision of 78.5\% to 91.5\% comes with a recall of only 23.0\% to 34.2\%, and
-its queries cannot detect a requirement that the program omits entirely. ReLoop~\cite{lian2026reloop} and a
-falsification-based test battery~\cite{li2026falsification} change the input data of a generated model and test
-whether the solver's answer responds as the text implies. These checks find real errors, but none of them is turned
-into a rule for refusing to answer at a known error rate.
+\textbf{Verifying generated models.} Opt-Verifier~\cite{liu2026optverifier} asks LLMs to provide binary judgments
+regarding the model's structure. It achieves 68\% recall for difficult-to-detect structural mistakes, makes no attempt
+to check numerical values, and makes roughly nine calls while using 5,300 to 8,500 tokens per problem.
+VeriSimpl~\cite{abdulrahman2026verisimpl} queries the solver about simplified versions of the problem, achieving a
+precision between 78.5\% and 91.5\% with a recall of only 23.0\% to 34.2\%, and its queries fail to identify a
+requirement that the program omits entirely. ReLoop~\cite{lian2026reloop} and a test set-up based on
+falsification~\cite{li2026falsification} change a generated model's inputs and check if the answer from the solver
+responds the way the text implies. All of these tests find real mistakes, but none of them produces a criterion for
+rejecting an answer at a given error level.
 
-\textbf{Answering with an error guarantee.} AdmitOR~\cite{lian2026admitor} is the closest work. It answers,
-abstains or escalates using the agreement of three model families, with a finite-sample bound on wrong acceptances.
-The bound held on its calibration problems but failed on a benchmark stream, where 22 of 138 accepted answers
-(15.9\%) were wrong, against a 5\% target. The authors trace 20 of the 22 cases to questions that omit needed numbers
+\textbf{Giving answers with an error guarantee.} AdmitOR~\cite{lian2026admitor} is the work closest to ours. It either
+answers, abstains or escalates a question, basing its decision on the agreement of three model families, with a
+finite-sample bound on wrong acceptances. Its bound held on the calibration problems but failed on a benchmark stream,
+where 22 of 138 accepted answers (15.9\%) were wrong, against a 5\% target. The authors trace 20 of the 22 cases to questions that omit needed numbers
 or print them with too little precision; their check for values missing from the text flags 9 of the 15
 omitted-number cases. This result motivates two choices in our design: a data-level signal (number coverage) and an
 error bound that is always tested on problem types the calibration has not seen. Table~\ref{tab:related} compares
@@ -202,16 +208,16 @@ AdmitOR~\cite{lian2026admitor} & agreement of three model families & yes & yes &
 \section{Problem Formulation}
 \label{sec:problem}
 
-\textbf{Task.} The input is a question $q$ in natural language that states an optimization problem together with all
-its data. The system returns a tuple $(\hat{a}, d, e)$: a predicted optimal value $\hat{a} \in \mathbb{R} \cup
-\{\varnothing\}$, a decision $d \in \{\textit{answer}, \textit{abstain}, \textit{escalate}\}$ and a short explanation
-$e$ for the user. It abstains when it cannot build a model that the solver finds feasible and optimal, and escalates
-when it has such a model but its checks do not support it, giving the failed checks as reasons. Only an answered value
-is shown as a result.
+\textbf{Task.} The input consists of a query $q$ expressed in words, with an optimization task and all needed data. The
+system produces a tuple $(\hat{a}, d, e)$: a predicted optimal value $\hat{a} \in \mathbb{R} \cup \{\varnothing\}$, a
+decision $d \in \{\textit{answer}, \textit{abstain}, \textit{escalate}\}$ and a brief explanation $e$ for a user. The
+system abstains when it fails to produce a model that the solver finds feasible and optimal, and escalates when it
+builds such a model but the checks do not confirm it, giving the list of the failed checks. Only an answered value is
+shown as a result.
 
-\textbf{Correctness.} With the reference optimum $y$, a value is correct when $|\hat{a} - y| \le 0.002\,|y|$, the rule
-of the base paper's evaluation code~\cite{chen2026optengine}. Correctness is used only for evaluation; the system never
-sees $y$.
+\textbf{Correctness.} A value is correct with respect to a reference optimum $y$ when $|\hat{a} - y| \le 0.002\,|y|$,
+which is the rule used in the evaluation code of the base paper~\cite{chen2026optengine}. Correctness is used for
+evaluation purposes only; the system does not have access to $y$.
 
 \textbf{Score and decision.} The verifier gives each problem a score $S(q) \in [0, 1]$ from label-free signals, and
 $S(q) = 0$ when no feasible model exists. For a threshold $\tau$ the system answers when the model is feasible and
@@ -225,29 +231,31 @@ $1 - \mathrm{WAR}$ the selective accuracy. A system that never abstains, such
 as the SIR baseline, answers whenever the solver returns an optimal status, so its coverage is its share of models
 solved to optimality.
 
-\textbf{Calibration.} Given a target $\alpha$, the threshold is chosen on calibration problems only. Candidate
-thresholds are scanned in a fixed order from strict to lenient, and the scan stops before the first one whose one-sided
-exact 95\% upper bound on the calibration wrong-accept rate exceeds $\alpha$; the fixed order keeps the bound valid
-across thresholds. A threshold needs at least 29 accepted problems, since with fewer even zero wrong answers cannot
-give a bound below 10\%. When no threshold passes, the system answers nothing. It is tested
-leave-one-class-out: calibrated on nine of the ten problem classes and applied to the tenth, so that each problem is
-scored once, in the fold that holds out its class.
+\textbf{Calibration.} Calibration requires the selection of a threshold based on the specified target value
+$\alpha$, using calibration problems only. Candidate thresholds are evaluated in a fixed strict-to-lenient sequence,
+and the scan stops just before the first one with a one-sided exact 95\% upper limit on the calibration wrong-accept
+rate that is greater than $\alpha$; this fixed order keeps the bound valid across thresholds. A threshold must have at
+least 29 accepted problems, because with fewer even zero incorrect answers cannot give a bound lower than 10\%. If no
+threshold passes, the system answers nothing. The method is tested in leave-one-class-out mode: it is calibrated on
+nine of the ten problem classes and applied to the tenth, so each problem is scored exactly once.
 
 \textbf{Cost.} Every LLM call is metered in input and output tokens. Two systems are compared at an equal budget when
 their mean tokens per problem differ by at most 10\%.
 
-\textbf{Hypotheses.} Each research question has one testable prediction.
+\textbf{Hypotheses.} Each RQ has one testable prediction.
 \begin{itemize}
 \item \textbf{H1.} Adding the signals to feasibility raises the area under the ROC curve (AUROC) for separating correct
 from wrong answers by at least 0.10, and removing any one signal lowers it.
 \item \textbf{H2.} With $\alpha = 10\%$, the pooled held-out wrong-accept rate is at most $\alpha$, reported with its
 exact 95\% interval, while at least 50\% of all problems are answered.
-\item \textbf{H3.} With $k = 3$ reworded runs, the pipeline's wrong-accept rate at 50\% coverage is lower than that of
-the single-agent baseline B2, which keeps sampling answers until it reaches the pipeline's mean token budget. H3 counts
-as met only if the 95\% bootstrap interval of the paired difference at $k = 3$ is entirely below zero.
-\item \textbf{H3c} (pre-registered after H3 failed; repository issue \#103). The pipeline runs at $k = 1$, B2 samples use
-the rest of the budget, and the score is the mean of the pipeline's score and the share of B2 samples that agree with
-its answer. This combination's WAR at 50\% coverage is lower than B2's, again with the whole paired interval below zero.
+\item \textbf{H3.} Using $k = 3$ reworded runs, the pipeline's wrong-accept rate at 50\% coverage is lower than the
+wrong-accept rate of the single-agent baseline B2, which continues to obtain answers until it exhausts the pipeline's
+average token budget. H3 will be considered met only if the 95\% bootstrap interval of the paired difference at $k = 3$
+contains exclusively negative values.
+\item \textbf{H3c} (pre-registered only after H3 failed; issue \#103 in the repository). For H3c, the pipeline uses
+$k = 1$, B2 uses the rest of the budget, and the score is the average of the pipeline's score and the share of B2
+samples which coincide with the answer provided by the pipeline. H3c predicts that the WAR of this combination is lower
+than that of B2 at 50\% coverage, again with the entire paired interval being negative.
 \end{itemize}
 
 \section{Proposed System}
@@ -285,13 +293,14 @@ token budget.}
 \label{fig:architecture}
 \end{figure}
 
-\textbf{1. Structured Parser.} The parser writes a solver-independent specification without solving: the objective
-sense and statement, the decision variables with their domains, the parameters with values and units, and a checklist
-of requirements $\mathcal{R} = \{R_1, \dots, R_m\}$, each one restriction.
+\textbf{1. Structured Parser.} The parser generates a solver-independent specification without finding the
+solution: the objective sense and its statement, the decision variables with their domains, the parameters
+characterized by values and units, and the list of requirements $\mathcal{R} = \{R_1, \dots, R_m\}$, each one a single
+condition.
 
-\textbf{2. Formalizer with Targeted Self-Repair.} The formalizer reads $Q$ and the specification and writes PuLP code, naming each constraint after its requirement (e.g., \texttt{R1\_capacity}). If the code fails or the model is not optimal, the code and the error are sent back for up to $r$ repair rounds ($r = 1$ by default).
+\textbf{2. Formalizer with Targeted Self-Repair.} The formalizer obtains $Q$ and the specification and prepares the PuLP code, in which every constraint is labeled with the name of its requirement (e.g., \texttt{R1\_capacity}). If the code has a flaw or the model does not reach optimality, the code and the error are sent back for up to $r$ repair rounds, where $r = 1$ by default.
 
-\textbf{3. Sandboxed Solver-Runner.} The code runs in a separate Python process in isolated mode (\texttt{-I}) with a minimal environment, so no API key is visible to it. HiGHS has a 120-second limit, and the process is stopped after 180 seconds. The runner returns the status $s \in \{\text{optimal}, \text{infeasible}, \text{unbounded}, \text{error}, \text{no\_code}\}$, the objective value $v^*$ and the run time.
+\textbf{3. Sandboxed Solver-Runner.} The code executes in a separate Python process in isolated mode (\texttt{-I}) and with a minimal environment, so no API keys are visible. In addition, HiGHS has a 120-second limit, and the process stops after 180 seconds. Results are provided in the form of the status $s \in \{\text{optimal}, \text{infeasible}, \text{unbounded}, \text{error}, \text{no\_code}\}$, the objective value $v^*$ and the run time.
 
 \textbf{4. Paraphraser.} When the main model is optimal, the system writes $k$ rewordings of $Q$ (by default $k=3$, at
 $T=0.7$); each is formalized and solved on its own, giving optima $v^{(1)}, \dots, v^{(k)}$, and a failed rewording
@@ -301,21 +310,21 @@ is retried once.
 explainer summarizes an accepted model, or lists the failed checks of an escalated one.
 
 \subsection{Label-Free Verification Signals (Gap 1)}
-Without reference answers, the verifier computes three signals:
+In the absence of reference answers, the verifier determines three signals:
 
-\textbf{Number Coverage ($S_{\text{num}}$).} A number missing from the code often means a missing constraint. Let $\mathcal{N}_Q$ be the numbers in $Q$ (we skip 0, 1 and item labels like ``Package 3'', and treat 24\% and 0.24 as the same) and $\mathcal{N}_C$ the numbers in the code. Then
+\textbf{Number Coverage ($S_{\text{num}}$).} If there is a number that is not included in the code, that usually means that a constraint is missed as well. Let $\mathcal{N}_Q$ be the set of numbers that are present in $Q$ (we skip the numbers 0 and 1 and item labels such as ``Package 3'', and treat the numbers 24\% and 0.24 equally) and $\mathcal{N}_C$ the set of numbers that are present in the code. Then
 \begin{equation}
 S_{\text{num}} = \frac{|\mathcal{N}_Q \cap \mathcal{N}_C|}{|\mathcal{N}_Q|}.
 \end{equation}
 
-\textbf{Requirement Coverage ($S_{\text{req}}$).} Let $\mathcal{R}_{\text{linked}} \subseteq \mathcal{R}$ be the requirements that some constraint of the final model is named after. Then
+\textbf{Requirement Coverage ($S_{\text{req}}$).} Let $\mathcal{R}_{\text{linked}} \subseteq \mathcal{R}$ be the subset of requirements that are named by some constraint of the finalized model. Then
 \begin{equation}
 S_{\text{req}} = \frac{|\mathcal{R}_{\text{linked}}|}{|\mathcal{R}|}.
 \end{equation}
 
 \textbf{Paraphrase Agreement ($S_{\text{para}}$).} Rewording the question should not change the optimum of a correct model. We compare each rewording that solves to optimality (one that fails twice is dropped and logged) with the main optimum $v^*$, using a relative tolerance of 0.2\%: $|v^{(j)} - v^*| \le 0.002 \cdot \max(|v^*|, |v^{(j)}|)$. $S_{\text{para}}$ is the fraction of solved rewordings that agree. If none solves, or $k = 0$, this signal is not used.
 
-\textbf{Combined Verification Score ($S$).} For an optimal model, $S \in [0, 1]$ is the mean of the available signals, $(S_{\text{num}} + S_{\text{req}} + S_{\text{para}})/3$ in the full pipeline; without the parser or the rewordings that signal is left out. Without an optimal model, $S = 0$.
+\textbf{Combined Verification Score ($S$).} For an optimal model, $S \in [0, 1]$ is the mean of the available signals, $(S_{\text{num}} + S_{\text{req}} + S_{\text{para}})/3$ in the full pipeline; without the parser or the rewordings that signal is left out.
 
 \subsection{Decision Gating and Error Control (Gap 2)}
 \label{sec:gate}
@@ -341,16 +350,16 @@ For every LLM call, a token meter logs the input and output tokens, the latency 
 \item \texttt{canonical\_200}: 20 problems per class, for the main repeats and the baselines.
 \item \texttt{canonical\_587}: \texttt{canonical\_200} plus up to 40 more problems per class, a larger calibration
 sample.
-\item \texttt{constraint\_pairs\_60} (60 pairs, 120 problems) and \texttt{linguistic\_60}: added constraints and
-varied wording.
+\item \texttt{constraint\_pairs\_60} (60 pairs, 120 problems) and \texttt{linguistic\_60}: added constraints, new
+wording.
 \item \texttt{canonical\_587\_rest\_387} and \texttt{canonical\_unused}: the 387 problems of \texttt{canonical\_587}
 outside \texttt{canonical\_200}, and the 1,070 canonical problems in no other sample (half of them BinPacking), used
 only for the pre-registered tests (1,457 held-out problems together).
 \item \texttt{ablation\_50}: for the ablations, 5 of the 20 problems per class of \texttt{canonical\_200}.
-\item \texttt{dev\_30} and \texttt{dev\_93}: development splits (3 and about 10 problems per class), used only to design prompts and study errors, never for reported results.
+\item \texttt{dev\_30} and \texttt{dev\_93}: splits used during development (3 and approximately 10 problems per class), only for developing the prompts and studying the mistakes, never for the reported results.
 \end{itemize}
 
-\textbf{2. OpsOR-Bench.} To test shift (H2) we wrote OpsOR-Bench, 36 problems from three operations families: gate assignment, ground-crew rostering and equipment dispatch (\texttt{scripts/make\_opsor.py}). Their structure and wording differ from anything the OPT-Engine generators produce.
+\textbf{2. OpsOR-Bench.} In order to check the shift (H2), we created OpsOR-Bench, consisting of 36 problems from three families of operations: gate assignment, ground-crew rostering and equipment dispatch (\texttt{scripts/make\_opsor.py}). The structure and wording of these problems differ from anything produced by the OPT-Engine generators.
 
 \subsection{Evaluated Models and Baselines}
 All models run on open-weight endpoints in Amazon Bedrock:
@@ -359,7 +368,7 @@ All models run on open-weight endpoints in Amazon Bedrock:
 \item \textbf{Second Paraphrase Model:} \texttt{deepseek.v3.2}, used for the B0 baseline comparison and to test whether an independent model family improves paraphrase agreement.
 \item \textbf{Six more models} for the pre-registered tests: DeepSeek V3.2, Qwen3 Next 80B, Mistral Large 3, Kimi
 K2.5, GLM 4.7 and gpt-oss-20b. Each one runs the full pipeline (every role), B1 and B2 on \texttt{canonical\_200}.
-We fixed this list after a smoke test on two problems, before any full run.
+We fixed the list after a two-problem smoke test, before full runs.
 \item \textbf{Solver:} HiGHS through PuLP 3.3.2 on Python 3.12 (\texttt{pulp.HiGHS(msg=False, timeLimit=120)}).
 \end{itemize}
 
@@ -518,7 +527,7 @@ too.
 \subsection{Reference answers}
 \label{sec:references}
 Pollution and Inventory account for 65 of the 102 wrong answers, and for 18 of the 24 wrong answers that were
-accepted, so we checked their references. \texttt{scripts/check\_references.py} reads each question's data from its text,
+accepted, so we checked their references. \texttt{scripts/check\_references.py} reads each question's data,
 solves the model the text states with HiGHS, and compares the optimum with the reference (no LLM is used).
 \begin{itemize}
 \item \textbf{Pollution:} the stated model reproduces none of the 73 references we could read. Of four
@@ -534,7 +543,7 @@ the reference. We solved the last one, canonical-0648, by hand (repository issue
 \end{itemize}
 The hand check (\nolinkurl{results/reference_check/hand_labels.csv}) labels 157 Inventory references correct,
 canonical-0644 and 0667 ambiguous and canonical-0648 wrong, and confirms by hand that the checked Pollution
-references are wrong. Following our protocol, every result is reported with all problems, and the sensitivity
+references are wrong. Every result is reported with all problems, and the sensitivity
 analysis leaves out Pollution and canonical-0648 and keeps the ambiguous problems; no problem is dropped silently.
 
 \section{Limitations and Threats to Validity}
@@ -569,7 +578,7 @@ We built a multi-agent pipeline that runs the solver, then checks its result wit
 calibrated abstention. Per gap, we found:
 \begin{enumerate}
 \item \textbf{Label-free signals detect flawed models (Gap~1).} H1 is partly supported: the combined score reaches
-an AUROC of 0.87 (+0.33 over feasibility alone), mostly from paraphrase agreement, but not every signal is needed.
+an AUROC of 0.87 (+0.33 over feasibility alone), mostly from paraphrase agreement; not every signal is needed.
 \item \textbf{Calibrated abstention needs exchangeable data (Gap~2).} H2 is not supported: wrong answers with the top
 score in some classes keep any threshold calibrated on the other classes from meeting $\alpha = 10\%$.
 \item \textbf{At an equal budget, resampling is at least as good (Gap~3).} H3 and H3c are not supported. On
